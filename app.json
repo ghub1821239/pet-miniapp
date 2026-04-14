@@ -1,0 +1,17 @@
+{
+  "pages": [
+    "pages/pet/index",
+    "pages/forum/index",
+    "pages/identify/index",
+    "pages/calendar/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "萌宠日记",
+    "navigationBarBackgroundColor": "#ffd6e7",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#fff7fb",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

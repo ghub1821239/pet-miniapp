@@ -1,0 +1,114 @@
+<view class="page-container">
+  <view class="hero">
+    <view class="row-between">
+      <view>
+        <text class="hero-title">宠物档案</text>
+        <text class="hero-sub">记录宠物生日、年龄、喜好、性格，支持默认头像和自定义头像。</text>
+      </view>
+      <button class="primary-btn" bindtap="openAdd">+ 新增宠物</button>
+    </view>
+  </view>
+
+  <text class="section-title">我的宠物</text>
+
+  <block wx:if="{{pets.length > 0}}">
+    <block wx:for="{{pets}}" wx:key="id">
+      <view class="card">
+        <view class="pet-top" data-id="{{item.id}}" bindtap="toggleDetail">
+          <view>
+            <image wx:if="{{item.avatarType === 'image'}}" class="pet-avatar" src="{{item.avatarValue}}" mode="aspectFill"></image>
+            <view wx:else class="pet-avatar pet-avatar-emoji">{{item.avatarValue}}</view>
+          </view>
+
+          <view class="pet-main">
+            <view class="pet-name-row">
+              <text class="pet-name">{{item.name}}</text>
+              <text class="tag">{{item.type || '未填类型'}}</text>
+            </view>
+            <text class="pet-sub">{{item.breed || '未填品种'}} · {{item.age || '未填年龄'}}</text>
+          </view>
+
+          <text class="pet-more">{{expandedId === item.id ? '收起' : '详情'}}</text>
+        </view>
+
+        <view wx:if="{{expandedId === item.id}}" class="pet-detail">
+          <view class="info-row">
+            <text class="info-label">生日</text>
+            <text>{{item.birthday || '未填写'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">年龄</text>
+            <text>{{item.age || '未填写'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">喜好</text>
+            <text>{{item.likes || '未填写'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">性格</text>
+            <text>{{item.personality || '未填写'}}</text>
+          </view>
+
+          <view class="pet-action-row">
+            <button class="small-btn" catchtap="openEdit" data-id="{{item.id}}">编辑</button>
+            <button class="small-btn danger-btn" catchtap="deletePet" data-id="{{item.id}}">删除</button>
+          </view>
+        </view>
+      </view>
+    </block>
+  </block>
+
+  <view wx:else class="empty">还没有宠物，先添加第一只吧～</view>
+
+  <view wx:if="{{showForm}}" class="mask" bindtap="closeForm">
+    <view class="modal" catchtap="noop">
+      <text class="modal-title">{{formMode === 'add' ? '新增宠物' : '编辑宠物'}}</text>
+
+      <text class="field-label">宠物名称</text>
+      <input class="input" placeholder="例如：奶糖" value="{{form.name}}" data-field="name" bindinput="bindInput" />
+
+      <text class="field-label">宠物类别</text>
+      <input class="input" placeholder="例如：猫 / 狗" value="{{form.type}}" data-field="type" bindinput="bindInput" />
+
+      <text class="field-label">品种</text>
+      <input class="input" placeholder="例如：英短蓝猫 / 金毛" value="{{form.breed}}" data-field="breed" bindinput="bindInput" />
+
+      <text class="field-label">生日</text>
+      <picker mode="date" value="{{form.birthday}}" bindchange="changeBirthday">
+        <view class="picker-box">{{form.birthday || '请选择生日'}}</view>
+      </picker>
+
+      <text class="field-label">年龄</text>
+      <input class="input" placeholder="例如：2岁 / 8个月" value="{{form.age}}" data-field="age" bindinput="bindInput" />
+
+      <text class="field-label">喜好</text>
+      <input class="input" placeholder="例如：爱吃鸡胸肉、喜欢球球" value="{{form.likes}}" data-field="likes" bindinput="bindInput" />
+
+      <text class="field-label">性格</text>
+      <input class="input" placeholder="例如：活泼、黏人、胆小" value="{{form.personality}}" data-field="personality" bindinput="bindInput" />
+
+      <text class="field-label">默认头像</text>
+      <view class="flex-wrap">
+        <block wx:for="{{defaultAvatars}}" wx:key="*this">
+          <view
+            class="avatar-choice {{form.avatarType === 'emoji' && form.avatarValue === item ? 'active' : ''}}"
+            data-value="{{item}}"
+            bindtap="chooseDefaultAvatar"
+          >
+            {{item}}
+          </view>
+        </block>
+      </view>
+
+      <text class="field-label">或上传自定义头像</text>
+      <button class="secondary-btn mt12" bindtap="uploadAvatar">上传头像</button>
+
+      <view class="modal-actions">
+        <button class="secondary-btn" bindtap="closeForm">取消</button>
+        <button class="primary-btn" bindtap="savePet">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <pet-tabbar current="pet"></pet-tabbar>
+</view>

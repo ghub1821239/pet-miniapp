@@ -1,0 +1,47 @@
+<view class="page-container">
+  <view class="hero">
+    <text class="hero-title">萌宠识别</text>
+    <text class="hero-sub">上传宠物图片，返回识别结果，并自动填充宠物类别/品种。当前先用前端模拟识别，后续可接图像识别 API + LLM 分析接口。</text>
+  </view>
+
+  <view class="card">
+    <text class="section-title">上传宠物图片</text>
+
+    <view class="upload-box" bindtap="chooseImage">
+      <image wx:if="{{imageUrl}}" class="upload-preview" src="{{imageUrl}}" mode="aspectFill"></image>
+      <view wx:else class="upload-empty">
+        <text class="upload-icon">📷</text>
+        <text class="upload-text">点击上传宠物图片</text>
+      </view>
+    </view>
+
+    <view class="identify-btn-row">
+      <button class="secondary-btn" bindtap="chooseImage">重新选择</button>
+      <button class="primary-btn" bindtap="recognizePet" loading="{{loading}}">开始识别</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="section-title">识别结果</text>
+
+    <text class="field-label">宠物类别</text>
+    <input class="input" placeholder="识别后自动填充，也可手动修改" value="{{result.species}}" data-field="species" bindinput="bindResultInput" />
+
+    <text class="field-label">宠物品种</text>
+    <input class="input" placeholder="识别后自动填充，也可手动修改" value="{{result.breed}}" data-field="breed" bindinput="bindResultInput" />
+
+    <text class="field-label">识别置信度</text>
+    <input class="input" placeholder="例如：92%" value="{{result.confidence}}" data-field="confidence" bindinput="bindResultInput" />
+
+    <button class="secondary-btn mt12" bindtap="generateTips">生成品种小贴士</button>
+  </view>
+
+  <view class="card">
+    <text class="section-title">LLM 饲养小贴士</text>
+    <view class="tip-box">
+      {{tips || '这里将来可以接入 LLM，自动分析该品种常见疾病、喂养建议、运动方式、注意事项等。'}}
+    </view>
+  </view>
+
+  <pet-tabbar current="identify"></pet-tabbar>
+</view>
