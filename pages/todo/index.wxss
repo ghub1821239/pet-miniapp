@@ -1,0 +1,169 @@
+.page-container {
+  min-height: 100vh;
+  background: #fdf6fa;
+  padding: 24rpx 24rpx 180rpx;
+  box-sizing: border-box;
+}
+
+.top-switch {
+  display: flex;
+  width: 220rpx;
+  background: #fff0f5;
+  border-radius: 999rpx;
+  padding: 8rpx;
+  margin-bottom: 24rpx;
+}
+
+.switch-item {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  border-radius: 999rpx;
+  color: #666;
+  font-size: 28rpx;
+  text-decoration: none;
+}
+
+.switch-item.active {
+  background: #ff8fb1;
+  color: #fff;
+  font-weight: 700;
+}
+
+.page-head {
+  margin-bottom: 20rpx;
+}
+
+.page-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #333;
+}
+
+.page-sub {
+  display: block;
+  margin-top: 8rpx;
+  color: #999;
+  font-size: 24rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.section-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.todo-item {
+  padding: 22rpx 0;
+  border-bottom: 1px solid #f5e7ee;
+}
+
+.todo-item:last-child {
+  border-bottom: none;
+}
+
+.todo-left {
+  display: flex;
+  align-items: flex-start;
+}
+
+.circle {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  border: 3rpx solid #d8d8d8;
+  margin-right: 20rpx;
+  margin-top: 6rpx;
+  box-sizing: border-box;
+  text-align: center;
+  line-height: 30rpx;
+  color: #fff;
+  font-size: 22rpx;
+}
+
+.checked {
+  background: #7ea7ff;
+  border-color: #7ea7ff;
+}
+
+.todo-main {
+  flex: 1;
+}
+
+.todo-title {
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.5;
+}
+
+.todo-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10rpx;
+}
+
+.tag {
+  display: inline-block;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: #fff2f7;
+  color: #ff6b9a;
+  font-size: 22rpx;
+  margin-right: 12rpx;
+}
+
+.todo-time {
+  color: #999;
+  font-size: 24rpx;
+  margin-top: 8rpx;
+}
+
+.done-item {
+  opacity: 0.7;
+}
+
+.done-text {
+  color: #999;
+  text-decoration: line-through;
+}
+
+.overdue-text {
+  color: #ff5a5a;
+}
+
+.overdue-tag {
+  background: #fff2f2;
+  color: #ff5a5a;
+}
+
+.empty {
+  text-align: center;
+  color: #bbb;
+  font-size: 28rpx;
+  padding: 60rpx 0 40rpx;
+}
+
+.fab {
+  position: fixed;
+  right: 32rpx;
+  bottom: 180rpx;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: #ff8fb1;
+  color: #fff;
+  text-align: center;
+  line-height: 96rpx;
+  font-size: 52rpx;
+  box-shadow: 0 8rpx 24rpx rgba(255, 143, 177, 0.3);
+}

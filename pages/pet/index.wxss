@@ -1,0 +1,77 @@
+.pet-top {
+  display: flex;
+  align-items: center;
+}
+
+.pet-avatar {
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 50%;
+  background: #f6f6f6;
+}
+
+.pet-avatar-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56rpx;
+  background: #fff7fb;
+}
+
+.pet-main {
+  flex: 1;
+  margin-left: 18rpx;
+}
+
+.pet-name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pet-name {
+  font-size: 32rpx;
+  font-weight: 700;
+  margin-right: 12rpx;
+}
+
+.pet-sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #888;
+}
+
+.pet-more {
+  color: #ff8fb1;
+  font-size: 24rpx;
+}
+
+.pet-detail {
+  margin-top: 18rpx;
+}
+
+.pet-action-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16rpx;
+}
+
+.avatar-choice {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 50%;
+  background: #fff7fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 46rpx;
+  margin-right: 14rpx;
+  margin-top: 12rpx;
+  border: 2rpx solid transparent;
+}
+
+.avatar-choice.active {
+  border-color: #ff8fb1;
+  background: #fff0f5;
+}

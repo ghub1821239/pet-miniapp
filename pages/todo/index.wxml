@@ -1,0 +1,78 @@
+<view class="page-container">
+  <view class="top-switch">
+    <navigator class="switch-item" url="/pages/calendar/index" open-type="redirect">日程</navigator>
+    <view class="switch-item active">待办</view>
+  </view>
+
+  <view class="page-head">
+    <text class="page-title">全部待办</text>
+    <text class="page-sub">今天：{{today}}</text>
+  </view>
+
+  <view class="card">
+    <text class="section-title">未完成</text>
+    <block wx:if="{{pendingList.length > 0}}">
+      <block wx:for="{{pendingList}}" wx:key="id">
+        <view class="todo-item">
+          <view class="todo-left" data-id="{{item.id}}" bindtap="toggleDone">
+            <view class="circle"></view>
+            <view class="todo-main">
+              <text class="todo-title">{{item.title}}</text>
+              <view class="todo-meta">
+                <text class="tag">{{item.category}}</text>
+                <text class="todo-time">{{item.date}} {{item.time}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </block>
+    <view wx:else class="empty">暂无未完成事项</view>
+  </view>
+
+  <view class="card">
+    <text class="section-title">已过期</text>
+    <block wx:if="{{overdueList.length > 0}}">
+      <block wx:for="{{overdueList}}" wx:key="id">
+        <view class="todo-item overdue-item">
+          <view class="todo-left" data-id="{{item.id}}" bindtap="toggleDone">
+            <view class="circle"></view>
+            <view class="todo-main">
+              <text class="todo-title overdue-text">{{item.title}}</text>
+              <view class="todo-meta">
+                <text class="tag overdue-tag">{{item.category}}</text>
+                <text class="todo-time">{{item.date}} {{item.time}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </block>
+    <view wx:else class="empty">暂无过期事项</view>
+  </view>
+
+  <view class="card">
+    <text class="section-title">已完成</text>
+    <block wx:if="{{doneList.length > 0}}">
+      <block wx:for="{{doneList}}" wx:key="id">
+        <view class="todo-item done-item">
+          <view class="todo-left" data-id="{{item.id}}" bindtap="toggleDone">
+            <view class="circle checked">✓</view>
+            <view class="todo-main">
+              <text class="todo-title done-text">{{item.title}}</text>
+              <view class="todo-meta">
+                <text class="tag">{{item.category}}</text>
+                <text class="todo-time">{{item.date}} {{item.time}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </block>
+    <view wx:else class="empty">暂无已完成事项</view>
+  </view>
+
+  <view class="fab" bindtap="addTodo">＋</view>
+
+  <pet-tabbar current="todo"></pet-tabbar>
+</view>

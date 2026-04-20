@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "萌宠论坛",
+  "usingComponents": {
+    "pet-tabbar": "/components/tabbar/index"
+  }
+}

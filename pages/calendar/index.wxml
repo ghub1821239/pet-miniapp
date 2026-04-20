@@ -1,0 +1,127 @@
+<view class="page-container">
+  <view class="top-switch">
+    <view class="switch-item active">日程</view>
+    <navigator class="switch-item" url="/pages/todo/index" open-type="redirect">待办</navigator>
+  </view>
+
+  <view class="header-card">
+    <view class="header-left">
+      <view class="header-title">萌宠日历</view>
+      <view class="header-subtitle">可新增提醒、按日期查看、查看今日提醒</view>
+    </view>
+    <view class="add-btn" bindtap="openAddModal">+ 新增提醒</view>
+  </view>
+
+  <view class="card">
+    <view class="calendar-top">
+      <view class="month-bar">
+        <text class="month-arrow" bindtap="prevMonth">〈</text>
+        <text class="month-text">{{monthText}}</text>
+        <text class="month-arrow" bindtap="nextMonth">〉</text>
+      </view>
+
+      <picker mode="date" value="{{selectedDate}}" bindchange="onDateChange">
+        <view class="date-picker-btn">选择日期：{{selectedDate}}</view>
+      </picker>
+    </view>
+
+    <view class="week-row">
+      <view class="week-item">日</view>
+      <view class="week-item">一</view>
+      <view class="week-item">二</view>
+      <view class="week-item">三</view>
+      <view class="week-item">四</view>
+      <view class="week-item">五</view>
+      <view class="week-item">六</view>
+    </view>
+
+    <view class="day-grid">
+      <block wx:for="{{calendarList}}" wx:key="index">
+        <view class="day-wrap">
+          <view
+            class="day-cell {{item.empty ? 'empty-cell' : ''}} {{item.isToday ? 'today-cell' : ''}} {{item.isSelected ? 'selected-cell' : ''}}"
+            data-date="{{item.date}}"
+            bindtap="selectDay"
+          >
+            <text class="day-num">{{item.text}}</text>
+            <view wx:if="{{item.hasReminder && !item.empty}}" class="dot"></view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">今日提醒</view>
+    <block wx:if="{{todayList.length > 0}}">
+      <block wx:for="{{todayList}}" wx:key="id">
+        <view class="reminder-item">
+          <text class="reminder-title">{{item.title}}</text>
+          <view class="meta-row">
+            <text class="tag">{{item.category}}</text>
+            <text class="reminder-time">{{item.time}}</text>
+          </view>
+        </view>
+      </block>
+    </block>
+    <view wx:else class="empty">今天没有提醒</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">当日事项</view>
+    <block wx:if="{{selectedList.length > 0}}">
+      <block wx:for="{{selectedList}}" wx:key="id">
+        <view class="reminder-item">
+          <text class="reminder-title">{{item.title}}</text>
+          <view class="meta-row">
+            <text class="tag">{{item.category}}</text>
+            <text class="reminder-time">{{item.date}} {{item.time}}</text>
+          </view>
+        </view>
+      </block>
+    </block>
+    <view wx:else class="empty">该日期暂无提醒</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">常见事项</view>
+    <view class="quick-actions">
+      <view class="quick-wrap">
+        <view class="quick-item" data-category="喂食" bindtap="quickAdd">
+          <text class="quick-plus">＋</text>
+          <text>喂食</text>
+        </view>
+      </view>
+      <view class="quick-wrap">
+        <view class="quick-item" data-category="洗澡" bindtap="quickAdd">洗澡</view>
+      </view>
+      <view class="quick-wrap">
+        <view class="quick-item" data-category="驱虫" bindtap="quickAdd">驱虫</view>
+      </view>
+      <view class="quick-wrap">
+        <view class="quick-item" data-category="散步" bindtap="quickAdd">散步</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showFeedPanel}}" class="mask" bindtap="closePanel"></view>
+  <view wx:if="{{showFeedPanel}}" class="bottom-panel">
+    <view class="panel-title">选择喂食时段</view>
+    <view class="panel-options">
+      <view class="panel-btn" data-period="morning" bindtap="chooseFeed">早</view>
+      <view class="panel-btn" data-period="noon" bindtap="chooseFeed">中</view>
+      <view class="panel-btn" data-period="evening" bindtap="chooseFeed">晚</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showCommonPanel}}" class="mask" bindtap="closePanel"></view>
+  <view wx:if="{{showCommonPanel}}" class="bottom-panel">
+    <view class="panel-title">{{currentQuickCategory}}</view>
+    <view class="panel-options">
+      <view class="panel-btn" data-done="true" bindtap="chooseCommonStatus">已做</view>
+      <view class="panel-btn" data-done="false" bindtap="chooseCommonStatus">未做</view>
+    </view>
+  </view>
+
+  <pet-tabbar current="calendar"></pet-tabbar>
+</view>

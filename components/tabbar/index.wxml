@@ -1,0 +1,13 @@
+<view class="pet-tabbar">
+  <block wx:for="{{items}}" wx:key="key">
+    <view
+      class="tab-item {{current === item.key ? 'active' : ''}}"
+      data-key="{{item.key}}"
+      data-url="{{item.url}}"
+      bindtap="goPage"
+    >
+      <text class="tab-icon">{{item.icon}}</text>
+      <text class="tab-text">{{item.text}}</text>
+    </view>
+  </block>
+</view>
