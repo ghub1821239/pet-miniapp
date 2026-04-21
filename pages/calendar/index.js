@@ -1,4 +1,5 @@
 const REMINDER_KEY = 'petReminders'
+const COMMON_CATEGORIES = ['洗澡', '驱虫', '散步']
 
 function formatDate(date) {
   const y = date.getFullYear()
@@ -18,7 +19,55 @@ function getTodayInfo() {
 }
 
 function getReminderList() {
-  return wx.getStorageSync(REMINDER_KEY) || []
+  const list = wx.getStorageSync(REMINDER_KEY) || []
+  const sanitizedList = sanitizeReminderList(list)
+
+  if (sanitizedList.length !== list.length) {
+    wx.setStorageSync(REMINDER_KEY, sanitizedList)
+  }
+
+  return sanitizedList
+}
+
+function sanitizeReminderList(list) {
+  const seenCommon = new Set()
+  const result = []
+
+  for (let i = list.length - 1; i >= 0; i--) {
+    const item = list[i]
+    if (COMMON_CATEGORIES.includes(item.category)) {
+      const key = `${item.date}_${item.category}`
+      if (seenCommon.has(key)) continue
+      seenCommon.add(key)
+    }
+    result.unshift(item)
+  }
+
+  return result
+}
+
+function saveReminderList(list) {
+  wx.setStorageSync(REMINDER_KEY, sanitizeReminderList(list))
+}
+
+function getDefaultQuickStatusMap() {
+  return {
+    '洗澡': '',
+    '驱虫': '',
+    '散步': ''
+  }
+}
+
+function buildQuickStatusMap(list, selectedDate) {
+  const statusMap = getDefaultQuickStatusMap()
+
+  list.forEach(item => {
+    if (COMMON_CATEGORIES.includes(item.category) && item.date === selectedDate) {
+      statusMap[item.category] = item.done ? 'done' : 'undo'
+    }
+  })
+
+  return statusMap
 }
 
 Page({
@@ -34,6 +83,10 @@ Page({
     calendarList: [],
     todayList: [],
     selectedList: [],
+    isSelectedToday: true,
+
+    quickStatusMap: getDefaultQuickStatusMap(),
+
     showFeedPanel: false,
     showCommonPanel: false,
     currentQuickCategory: ''
@@ -101,11 +154,17 @@ Page({
 
   refreshReminderPanels() {
     const list = getReminderList()
+    const isSelectedToday = this.data.selectedDate === this.data.today
     const todayList = list.filter(item => item.date === this.data.today)
-    const selectedList = list.filter(item => item.date === this.data.selectedDate)
+    const selectedList = isSelectedToday
+      ? []
+      : list.filter(item => item.date === this.data.selectedDate)
+
     this.setData({
       todayList,
-      selectedList
+      selectedList,
+      isSelectedToday,
+      quickStatusMap: buildQuickStatusMap(list, this.data.selectedDate)
     })
   },
 
@@ -158,21 +217,58 @@ Page({
     })
   },
 
+  quickChooseStatus(e) {
+    const category = e.currentTarget.dataset.category
+    const done = e.currentTarget.dataset.done === 'true'
+    const statusText = done ? 'done' : 'undo'
+    const list = getReminderList()
+    const targetIndex = list.findIndex(item =>
+      item.category === category && item.date === this.data.selectedDate
+    )
+
+    if (targetIndex > -1) {
+      list[targetIndex] = {
+        ...list[targetIndex],
+        title: category,
+        done
+      }
+    } else {
+      list.push({
+        id: 'r_' + Date.now(),
+        title: category,
+        category,
+        date: this.data.selectedDate,
+        time: '09:00',
+        done
+      })
+    }
+
+    saveReminderList(list)
+
+    this.setData({
+      [`quickStatusMap.${category}`]: statusText
+    })
+
+    this.renderCalendar(this.data.currentYear, this.data.currentMonth)
+    this.refreshReminderPanels()
+
+    wx.showToast({
+      title: '已同步状态',
+      icon: 'success'
+    })
+  },
   quickAdd(e) {
     const category = e.currentTarget.dataset.category
     if (category === '喂食') {
-      this.setData({ showFeedPanel: true })
-      return
+      this.setData({
+        showFeedPanel: true
+      })
     }
-    this.setData({
-      showCommonPanel: true,
-      currentQuickCategory: category
-    })
   },
 
   chooseFeed(e) {
     const period = e.currentTarget.dataset.period
-    const map = { morning: '早', noon: '中', evening: '晚' }
+    const map = { morning: '早餐', noon: '午餐', evening: '晚餐' }
     const list = getReminderList()
     list.push({
       id: 'r_' + Date.now(),
@@ -182,7 +278,7 @@ Page({
       time: '09:00',
       done: false
     })
-    wx.setStorageSync(REMINDER_KEY, list)
+    saveReminderList(list)
     this.setData({ showFeedPanel: false }, () => {
       this.renderCalendar(this.data.currentYear, this.data.currentMonth)
       this.refreshReminderPanels()
@@ -201,7 +297,7 @@ Page({
       time: '09:00',
       done
     })
-    wx.setStorageSync(REMINDER_KEY, list)
+    saveReminderList(list)
     this.setData({
       showCommonPanel: false,
       currentQuickCategory: ''

@@ -21,7 +21,12 @@ Page({
     pendingList: [],
     doneList: [],
     overdueList: [],
-    today: ''
+    today: '',
+    summary: {
+      pending: 0,
+      overdue: 0,
+      done: 0
+    }
   },
 
   onLoad() {
@@ -60,7 +65,12 @@ Page({
     this.setData({
       pendingList,
       doneList,
-      overdueList
+      overdueList,
+      summary: {
+        pending: pendingList.length,
+        overdue: overdueList.length,
+        done: doneList.length
+      }
     })
   },
 

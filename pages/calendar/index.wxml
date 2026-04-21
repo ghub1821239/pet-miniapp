@@ -6,13 +6,14 @@
 
   <view class="header-card">
     <view class="header-left">
-      <view class="header-title">萌宠日历</view>
-      <view class="header-subtitle">可新增提醒、按日期查看、查看今日提醒</view>
+      <view class="header-kicker">PET CALENDAR</view>
+      <view class="header-title">{{monthText}}</view>
+      <view class="header-subtitle">当前选中 {{selectedDate}}，今日提醒 {{todayList.length}} 条</view>
     </view>
     <view class="add-btn" bindtap="openAddModal">+ 新增提醒</view>
   </view>
 
-  <view class="card">
+  <view class="card card-calendar">
     <view class="calendar-top">
       <view class="month-bar">
         <text class="month-arrow" bindtap="prevMonth">〈</text>
@@ -51,15 +52,21 @@
     </view>
   </view>
 
-  <view class="card">
-    <view class="section-title">今日提醒</view>
+  <view class="card card-highlight">
+    <view class="section-head">
+      <view>
+        <view class="section-kicker">TODAY</view>
+        <view class="section-title">今日提醒</view>
+      </view>
+      <view class="section-badge">{{todayList.length}}</view>
+    </view>
     <block wx:if="{{todayList.length > 0}}">
       <block wx:for="{{todayList}}" wx:key="id">
         <view class="reminder-item">
           <text class="reminder-title">{{item.title}}</text>
           <view class="meta-row">
             <text class="tag">{{item.category}}</text>
-            <text class="reminder-time">{{item.time}}</text>
+            <text class="reminder-time reminder-time-strong">{{item.time}}</text>
           </view>
         </view>
       </block>
@@ -68,7 +75,13 @@
   </view>
 
   <view class="card">
-    <view class="section-title">当日事项</view>
+    <view class="section-head">
+      <view>
+        <view class="section-kicker">SELECTED DATE</view>
+        <view class="section-title">当日事项</view>
+      </view>
+      <view class="section-badge section-badge-muted">{{selectedList.length}}</view>
+    </view>
     <block wx:if="{{selectedList.length > 0}}">
       <block wx:for="{{selectedList}}" wx:key="id">
         <view class="reminder-item">
@@ -80,48 +93,108 @@
         </view>
       </block>
     </block>
-    <view wx:else class="empty">该日期暂无提醒</view>
+    <view wx:else class="empty">{{isSelectedToday ? '今天的事项已在今日提醒中显示' : '该日期暂无提醒'}}</view>
   </view>
 
-  <view class="card">
-    <view class="section-title">常见事项</view>
-    <view class="quick-actions">
-      <view class="quick-wrap">
-        <view class="quick-item" data-category="喂食" bindtap="quickAdd">
-          <text class="quick-plus">＋</text>
-          <text>喂食</text>
+  <view class="card quick-card">
+  <view class="section-head">
+    <view>
+      <view class="section-kicker">QUICK ACTIONS</view>
+      <view class="section-title">常见事项</view>
+    </view>
+  </view>
+
+  <view class="quick-list">
+    <view class="quick-row quick-row-feed">
+      <view>
+        <view class="quick-label">今日喂食</view>
+        <view class="quick-name">喂食</view>
+      </view>
+      <view class="feed-entry">
+        <view class="feed-tip">早餐 / 午餐 / 晚餐</view>
+        <view class="feed-add-btn" data-category="喂食" bindtap="quickAdd">＋</view>
+      </view>
+    </view>
+
+    <view class="quick-row">
+      <view class="quick-name">洗澡</view>
+      <view class="quick-actions-inline">
+        <view
+          class="action-btn {{quickStatusMap['洗澡'] === 'done' ? 'action-btn-active' : 'action-btn-idle'}}"
+          data-category="洗澡"
+          data-done="true"
+          bindtap="quickChooseStatus"
+        >
+          已做
+        </view>
+        <view
+          class="action-btn {{quickStatusMap['洗澡'] === 'undo' ? 'action-btn-active-gray' : 'action-btn-idle'}}"
+          data-category="洗澡"
+          data-done="false"
+          bindtap="quickChooseStatus"
+        >
+          未做
         </view>
       </view>
-      <view class="quick-wrap">
-        <view class="quick-item" data-category="洗澡" bindtap="quickAdd">洗澡</view>
+    </view>
+
+    <view class="quick-row">
+      <view class="quick-name">驱虫</view>
+      <view class="quick-actions-inline">
+        <view
+          class="action-btn {{quickStatusMap['驱虫'] === 'done' ? 'action-btn-active' : 'action-btn-idle'}}"
+          data-category="驱虫"
+          data-done="true"
+          bindtap="quickChooseStatus"
+        >
+          已做
+        </view>
+        <view
+          class="action-btn {{quickStatusMap['驱虫'] === 'undo' ? 'action-btn-active-gray' : 'action-btn-idle'}}"
+          data-category="驱虫"
+          data-done="false"
+          bindtap="quickChooseStatus"
+        >
+          未做
+        </view>
       </view>
-      <view class="quick-wrap">
-        <view class="quick-item" data-category="驱虫" bindtap="quickAdd">驱虫</view>
-      </view>
-      <view class="quick-wrap">
-        <view class="quick-item" data-category="散步" bindtap="quickAdd">散步</view>
+    </view>
+
+    <view class="quick-row">
+      <view class="quick-name">散步</view>
+      <view class="quick-actions-inline">
+        <view
+          class="action-btn {{quickStatusMap['散步'] === 'done' ? 'action-btn-active' : 'action-btn-idle'}}"
+          data-category="散步"
+          data-done="true"
+          bindtap="quickChooseStatus"
+        >
+          已做
+        </view>
+        <view
+          class="action-btn {{quickStatusMap['散步'] === 'undo' ? 'action-btn-active-gray' : 'action-btn-idle'}}"
+          data-category="散步"
+          data-done="false"
+          bindtap="quickChooseStatus"
+        >
+          未做
+        </view>
       </view>
     </view>
   </view>
+</view>
 
-  <view wx:if="{{showFeedPanel}}" class="mask" bindtap="closePanel"></view>
-  <view wx:if="{{showFeedPanel}}" class="bottom-panel">
-    <view class="panel-title">选择喂食时段</view>
-    <view class="panel-options">
-      <view class="panel-btn" data-period="morning" bindtap="chooseFeed">早</view>
-      <view class="panel-btn" data-period="noon" bindtap="chooseFeed">中</view>
-      <view class="panel-btn" data-period="evening" bindtap="chooseFeed">晚</view>
-    </view>
+<view wx:if="{{showFeedPanel}}" class="mask" bindtap="closePanel"></view>
+<view wx:if="{{showFeedPanel}}" class="bottom-panel">
+  <view class="panel-kicker">FEED PLAN</view>
+  <view class="panel-title">选择喂食时段</view>
+  <view class="panel-subtitle">记录今天是哪一餐，稍后会自动加入提醒列表。</view>
+  <view class="panel-options">
+    <view class="panel-btn" data-period="morning" bindtap="chooseFeed">早餐</view>
+    <view class="panel-btn" data-period="noon" bindtap="chooseFeed">午餐</view>
+    <view class="panel-btn" data-period="evening" bindtap="chooseFeed">晚餐</view>
   </view>
+</view>
 
-  <view wx:if="{{showCommonPanel}}" class="mask" bindtap="closePanel"></view>
-  <view wx:if="{{showCommonPanel}}" class="bottom-panel">
-    <view class="panel-title">{{currentQuickCategory}}</view>
-    <view class="panel-options">
-      <view class="panel-btn" data-done="true" bindtap="chooseCommonStatus">已做</view>
-      <view class="panel-btn" data-done="false" bindtap="chooseCommonStatus">未做</view>
-    </view>
-  </view>
-
-  <pet-tabbar current="calendar"></pet-tabbar>
+<pet-tabbar current="calendar"></pet-tabbar>
 </view>

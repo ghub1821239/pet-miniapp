@@ -1,6 +1,8 @@
 .page-container {
   min-height: 100vh;
-  background: #fdf6fa;
+  background:
+    radial-gradient(circle at top left, rgba(255, 226, 237, 0.95), transparent 32%),
+    linear-gradient(180deg, #fff8fb 0%, #f8f3f6 100%);
   padding: 24rpx 24rpx 180rpx;
   box-sizing: border-box;
 }
@@ -31,40 +33,147 @@
 }
 
 .page-head {
-  margin-bottom: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.page-kicker {
+  display: block;
+  font-size: 22rpx;
+  color: #c9839f;
+  letter-spacing: 4rpx;
+  margin-bottom: 12rpx;
 }
 
 .page-title {
   display: block;
-  font-size: 40rpx;
+  font-size: 50rpx;
   font-weight: 700;
-  color: #333;
+  color: #2f2a2d;
 }
 
 .page-sub {
   display: block;
-  margin-top: 8rpx;
-  color: #999;
+  margin-top: 12rpx;
+  color: #847980;
   font-size: 24rpx;
 }
 
-.card {
-  background: #fff;
-  border-radius: 24rpx;
-  padding: 24rpx;
+.summary-card {
+  background: linear-gradient(135deg, #ffe6ef 0%, #fff7fa 100%);
+  border-radius: 30rpx;
+  padding: 28rpx;
   margin-bottom: 24rpx;
+  box-shadow: 0 14rpx 32rpx rgba(255, 143, 177, 0.12);
+}
+
+.summary-main {
+  margin-bottom: 22rpx;
+}
+
+.summary-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #2f2a2d;
+}
+
+.summary-copy {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #75696f;
+}
+
+.summary-pills {
+  display: flex;
+  gap: 16rpx;
+}
+
+.summary-pill {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 22rpx;
+  padding: 18rpx 0;
+  text-align: center;
+}
+
+.summary-pill-warn {
+  background: rgba(255, 243, 242, 0.92);
+}
+
+.summary-pill-done {
+  background: rgba(247, 243, 245, 0.92);
+}
+
+.summary-pill-num {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #2f2a2d;
+}
+
+.summary-pill-label {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #877a80;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 28rpx;
+  padding: 26rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 10rpx 28rpx rgba(37, 24, 32, 0.05);
+}
+
+.card-priority {
+  border: 2rpx solid #ffd5e3;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
 }
 
 .section-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333;
+  color: #2f2a2d;
   margin-bottom: 16rpx;
+}
+
+.section-count {
+  min-width: 52rpx;
+  height: 52rpx;
+  line-height: 52rpx;
+  border-radius: 50%;
+  background: #fff1f6;
+  color: #ff6696;
+  text-align: center;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.section-count-warn {
+  background: #fff1ef;
+  color: #ff776a;
+}
+
+.section-count-done {
+  background: #f3eef1;
+  color: #7b7076;
 }
 
 .todo-item {
   padding: 22rpx 0;
   border-bottom: 1px solid #f5e7ee;
+}
+
+.todo-item-priority {
+  padding: 26rpx 0;
 }
 
 .todo-item:last-child {
@@ -90,9 +199,17 @@
   font-size: 22rpx;
 }
 
+.circle-pending {
+  border-color: #ffb3cb;
+}
+
+.circle-overdue {
+  border-color: #ff8b82;
+}
+
 .checked {
-  background: #7ea7ff;
-  border-color: #7ea7ff;
+  background: #ff8fb1;
+  border-color: #ff8fb1;
 }
 
 .todo-main {
@@ -101,7 +218,7 @@
 
 .todo-title {
   font-size: 30rpx;
-  color: #333;
+  color: #2f2a2d;
   line-height: 1.5;
 }
 
@@ -123,22 +240,27 @@
 }
 
 .todo-time {
-  color: #999;
+  color: #8f848a;
   font-size: 24rpx;
   margin-top: 8rpx;
 }
 
+.todo-time-strong {
+  color: #5a5156;
+  font-weight: 600;
+}
+
 .done-item {
-  opacity: 0.7;
+  opacity: 0.74;
 }
 
 .done-text {
-  color: #999;
+  color: #8d8489;
   text-decoration: line-through;
 }
 
 .overdue-text {
-  color: #ff5a5a;
+  color: #c14f47;
 }
 
 .overdue-tag {
@@ -146,9 +268,13 @@
   color: #ff5a5a;
 }
 
+.overdue-time {
+  color: #c14f47;
+}
+
 .empty {
   text-align: center;
-  color: #bbb;
+  color: #b4aab0;
   font-size: 28rpx;
   padding: 60rpx 0 40rpx;
 }
@@ -160,10 +286,10 @@
   width: 96rpx;
   height: 96rpx;
   border-radius: 50%;
-  background: #ff8fb1;
+  background: linear-gradient(135deg, #ff8fb1 0%, #ff6f9b 100%);
   color: #fff;
   text-align: center;
   line-height: 96rpx;
   font-size: 52rpx;
-  box-shadow: 0 8rpx 24rpx rgba(255, 143, 177, 0.3);
+  box-shadow: 0 14rpx 28rpx rgba(255, 143, 177, 0.32);
 }

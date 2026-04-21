@@ -5,22 +5,47 @@
   </view>
 
   <view class="page-head">
-    <text class="page-title">全部待办</text>
+    <text class="page-kicker">待办总览</text>
+    <text class="page-title">今天把宠物事项收干净</text>
     <text class="page-sub">今天：{{today}}</text>
   </view>
 
-  <view class="card">
-    <text class="section-title">未完成</text>
+  <view class="summary-card">
+    <view class="summary-main">
+      <text class="summary-title">任务摘要</text>
+      <text class="summary-copy">未完成 {{summary.pending}} 项，已过期 {{summary.overdue}} 项</text>
+    </view>
+    <view class="summary-pills">
+      <view class="summary-pill">
+        <text class="summary-pill-num">{{summary.pending}}</text>
+        <text class="summary-pill-label">待做</text>
+      </view>
+      <view class="summary-pill summary-pill-warn">
+        <text class="summary-pill-num">{{summary.overdue}}</text>
+        <text class="summary-pill-label">过期</text>
+      </view>
+      <view class="summary-pill summary-pill-done">
+        <text class="summary-pill-num">{{summary.done}}</text>
+        <text class="summary-pill-label">完成</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card card-priority">
+    <view class="section-head">
+      <text class="section-title">未完成</text>
+      <text class="section-count">{{summary.pending}}</text>
+    </view>
     <block wx:if="{{pendingList.length > 0}}">
       <block wx:for="{{pendingList}}" wx:key="id">
-        <view class="todo-item">
+        <view class="todo-item todo-item-priority">
           <view class="todo-left" data-id="{{item.id}}" bindtap="toggleDone">
-            <view class="circle"></view>
+            <view class="circle circle-pending"></view>
             <view class="todo-main">
               <text class="todo-title">{{item.title}}</text>
               <view class="todo-meta">
                 <text class="tag">{{item.category}}</text>
-                <text class="todo-time">{{item.date}} {{item.time}}</text>
+                <text class="todo-time todo-time-strong">{{item.date}} {{item.time}}</text>
               </view>
             </view>
           </view>
@@ -31,17 +56,20 @@
   </view>
 
   <view class="card">
-    <text class="section-title">已过期</text>
+    <view class="section-head">
+      <text class="section-title">已过期</text>
+      <text class="section-count section-count-warn">{{summary.overdue}}</text>
+    </view>
     <block wx:if="{{overdueList.length > 0}}">
       <block wx:for="{{overdueList}}" wx:key="id">
         <view class="todo-item overdue-item">
           <view class="todo-left" data-id="{{item.id}}" bindtap="toggleDone">
-            <view class="circle"></view>
+            <view class="circle circle-overdue"></view>
             <view class="todo-main">
               <text class="todo-title overdue-text">{{item.title}}</text>
               <view class="todo-meta">
                 <text class="tag overdue-tag">{{item.category}}</text>
-                <text class="todo-time">{{item.date}} {{item.time}}</text>
+                <text class="todo-time overdue-time">{{item.date}} {{item.time}}</text>
               </view>
             </view>
           </view>
@@ -52,7 +80,10 @@
   </view>
 
   <view class="card">
-    <text class="section-title">已完成</text>
+    <view class="section-head">
+      <text class="section-title">已完成</text>
+      <text class="section-count section-count-done">{{summary.done}}</text>
+    </view>
     <block wx:if="{{doneList.length > 0}}">
       <block wx:for="{{doneList}}" wx:key="id">
         <view class="todo-item done-item">
