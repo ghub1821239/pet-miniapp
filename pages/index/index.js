@@ -1,4 +1,3 @@
-// index.js
 const defaultAvatarUrl = 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'
 
 Page({
@@ -34,9 +33,8 @@ Page({
     })
   },
   getUserProfile(e) {
-    // 推荐使用wx.getUserProfile获取用户信息，开发者每次通过该接口获取用户个人信息均需用户确认，开发者妥善保管用户快速填写的头像昵称，避免重复弹窗
     wx.getUserProfile({
-      desc: '展示用户信息', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，请谨慎填写
+      desc: '展示用户信息',
       success: (res) => {
         console.log(res)
         this.setData({
@@ -46,4 +44,30 @@ Page({
       }
     })
   },
+
+  // ========== 下面是新加的分享代码（解决按钮灰色） ==========
+  onLoad() {
+    // 开启右上角分享菜单（好友 + 朋友圈）
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
+    })
+  },
+
+  // 分享给好友
+  onShareAppMessage() {
+    return {
+      title: '萌宠日记99', // 你想显示的分享标题
+      path: '/pages/index/index', // 别人点进来的页面
+      imageUrl: '' // 可以放一张图片链接当分享封面
+    }
+  },
+
+  // 分享到朋友圈
+  onShareTimeline() {
+    return {
+      title: '萌宠日记99',
+      imageUrl: ''
+    }
+  }
 })
