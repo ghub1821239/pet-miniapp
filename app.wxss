@@ -1,6 +1,6 @@
 page {
-  background: #fff7fb;
-  color: #333;
+  background: #fdf9ef;
+  color: #5a4632;
   font-size: 28rpx;
 }
 
@@ -11,28 +11,29 @@ button::after {
 .page-container {
   min-height: 100vh;
   box-sizing: border-box;
-  padding: 24rpx 24rpx 170rpx;
+  padding: 24rpx 24rpx 220rpx;
 }
 
 .hero {
-  background: linear-gradient(135deg, #ffd6e7, #ffeef5);
+  background: linear-gradient(135deg, #fbf6ea 0%, #fff7df 54%, #f7f8ef 100%);
   border-radius: 24rpx;
   padding: 28rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 10rpx 30rpx rgba(255, 143, 177, 0.12);
+  border: 1px solid #eee3ce;
+  box-shadow: 0 16rpx 36rpx rgba(187, 177, 144, 0.12);
 }
 
 .hero-title {
   font-size: 40rpx;
   font-weight: 700;
-  color: #333;
+  color: #5a4632;
 }
 
 .hero-sub {
   display: block;
   margin-top: 10rpx;
   font-size: 24rpx;
-  color: #666;
+  color: #8f7b67;
   line-height: 1.6;
 }
 
@@ -43,11 +44,12 @@ button::after {
 }
 
 .card {
-  background: #ffffff;
-  border-radius: 24rpx;
+  background: rgba(255, 255, 253, 0.96);
+  border-radius: 30rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.05);
+  border: 1px solid #efe4d0;
+  box-shadow: 0 16rpx 34rpx rgba(193, 179, 143, 0.11);
 }
 
 .section-title {
@@ -60,43 +62,46 @@ button::after {
 .section-sub {
   display: block;
   font-size: 24rpx;
-  color: #999;
+  color: #9d8b78;
   margin-top: 8rpx;
 }
 
 .primary-btn {
-  background: #ff8fb1;
-  color: #fff;
+  background: linear-gradient(180deg, #acc28d, #95ac78);
+  color: #fffdf8;
   border-radius: 999rpx;
   font-size: 28rpx;
   line-height: 1.2;
   padding: 18rpx 28rpx;
+  box-shadow: 0 10rpx 22rpx rgba(148, 168, 118, 0.22);
 }
 
 .secondary-btn {
-  background: #fff0f5;
-  color: #ff5f90;
+  background: #fff5df;
+  color: #b18845;
   border-radius: 999rpx;
   font-size: 26rpx;
   line-height: 1.2;
   padding: 18rpx 24rpx;
+  border: 1px solid #f0dfb9;
 }
 
 .small-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #fff0f5;
-  color: #ff5f90;
+  background: #f4f4e8;
+  color: #8c9b73;
   border-radius: 16rpx;
   font-size: 24rpx;
   padding: 12rpx 20rpx;
   margin-left: 12rpx;
+  border: 1px solid #dde4cd;
 }
 
 .danger-btn {
-  background: #fff2f2;
-  color: #ff5a5a;
+  background: #fff2e8;
+  color: #d07a5f;
 }
 
 .input,
@@ -104,8 +109,8 @@ button::after {
 .picker-box {
   width: 100%;
   box-sizing: border-box;
-  background: #fff7fb;
-  border: 1px solid #ffd7e5;
+  background: #fffdf8;
+  border: 1px solid #ece2cf;
   border-radius: 18rpx;
   padding: 20rpx;
   margin-top: 12rpx;
@@ -118,7 +123,7 @@ button::after {
 .field-label {
   display: block;
   font-size: 26rpx;
-  color: #666;
+  color: #8f7b67;
   margin-top: 16rpx;
 }
 
@@ -127,15 +132,15 @@ button::after {
   padding: 8rpx 18rpx;
   border-radius: 999rpx;
   font-size: 22rpx;
-  background: #fff0f5;
-  color: #ff5f90;
+  background: #eef3e5;
+  color: #87996e;
   margin-right: 12rpx;
   margin-top: 8rpx;
 }
 
 .empty {
   text-align: center;
-  color: #999;
+  color: #b29f8a;
   padding: 60rpx 0;
 }
 
@@ -156,9 +161,10 @@ button::after {
   max-height: 85vh;
   overflow: auto;
   box-sizing: border-box;
-  background: #fff;
+  background: #fffefb;
   border-radius: 28rpx 28rpx 0 0;
   padding: 28rpx 24rpx 36rpx;
+  border-top: 1px solid #ece1cd;
 }
 
 .modal-title {
@@ -185,11 +191,11 @@ button::after {
   display: flex;
   justify-content: space-between;
   padding: 14rpx 0;
-  border-bottom: 1px solid #f5e7ee;
+  border-bottom: 1px solid #efe5d4;
 }
 
 .info-label {
-  color: #888;
+  color: #9f8d78;
 }
 
 .preview-img {
@@ -202,19 +208,20 @@ button::after {
 }
 
 .tip-box {
-  background: #fff8e8;
-  color: #8a6b1e;
+  background: linear-gradient(180deg, #fff6da, #fffdf0);
+  color: #99763c;
   border-radius: 20rpx;
   padding: 22rpx;
   line-height: 1.7;
+  border: 1px solid #efe0b6;
 }
 
 .status-text-done {
-  color: #999;
+  color: #b4a691;
   text-decoration: line-through;
 }
 
 .status-strong {
-  background: #fff1f1;
-  color: #ff5a5a;
+  background: #fff0e8;
+  color: #d07a5f;
 }

@@ -1,0 +1,63 @@
+<view class="page-container">
+  <view class="hero">
+    <text class="hero-title">发布宠物动态</text>
+    <text class="hero-sub">先用 mock 版本把图文/视频发布流程跑通，后续再接真实接口。</text>
+  </view>
+
+  <view class="card">
+    <text class="section-title">媒体内容</text>
+
+    <view class="publish-action-row">
+      <button class="secondary-btn" bindtap="chooseImages">上传图片</button>
+      <button class="secondary-btn" bindtap="chooseVideo">上传视频</button>
+    </view>
+
+    <view wx:if="{{form.images.length > 0}}" class="publish-media-list">
+      <block wx:for="{{form.images}}" wx:key="*this">
+        <image class="publish-thumb" src="{{item}}" mode="aspectFill"></image>
+      </block>
+    </view>
+
+    <view wx:if="{{form.videoCover}}" class="publish-video-box">
+      <image class="publish-video-cover" src="{{form.videoCover}}" mode="aspectFill"></image>
+      <text class="publish-video-tag">视频封面</text>
+    </view>
+
+    <text class="field-label">标题</text>
+    <input class="input" placeholder="例如：带元宝去公园找狗狗朋友" value="{{form.title}}" data-field="title" bindinput="bindInput" />
+
+    <text class="field-label">正文</text>
+    <textarea class="textarea" placeholder="分享今天的萌宠日常、找玩伴需求或求助内容..." value="{{form.content}}" data-field="content" bindinput="bindInput"></textarea>
+
+    <text class="field-label">关联宠物</text>
+    <picker range="{{petNames}}" value="{{petIndex}}" bindchange="changePet">
+      <view class="picker-box">{{petNames[petIndex]}}</view>
+    </picker>
+
+    <text class="field-label">分区</text>
+    <picker range="{{sections}}" value="{{sectionIndex}}" bindchange="changeSection">
+      <view class="picker-box">{{sections[sectionIndex]}}</view>
+    </picker>
+
+    <text class="field-label">标签</text>
+    <input class="input" placeholder="例如：同城，找玩伴，柴犬，遛狗" value="{{form.tagsText}}" data-field="tagsText" bindinput="bindInput" />
+    <view class="publish-tag-hint">
+      <block wx:for="{{tagOptions}}" wx:key="*this">
+        <text class="tag">{{item}}</text>
+      </block>
+    </view>
+
+    <text class="field-label">城市 / 模糊位置</text>
+    <input class="input" placeholder="例如：天津" value="{{form.city}}" data-field="city" bindinput="bindInput" />
+
+    <text class="field-label">距离展示</text>
+    <input class="input" placeholder="例如：约 2km / 同城" value="{{form.distance}}" data-field="distance" bindinput="bindInput" />
+
+    <view class="publish-switch-row">
+      <text class="field-label publish-inline-label">显示位置</text>
+      <switch checked="{{form.showLocation}}" color="#d8b25b" bindchange="switchLocation" />
+    </view>
+
+    <button class="primary-btn publish-submit" bindtap="submitPost">发布动态</button>
+  </view>
+</view>

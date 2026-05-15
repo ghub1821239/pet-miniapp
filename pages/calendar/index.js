@@ -1,14 +1,114 @@
 // pages/calendar/index.js
 var REMINDER_KEY = 'petReminders'
 
+function pad(num) {
+  return num < 10 ? '0' + num : '' + num
+}
+
 function getToday() {
   var d = new Date()
   var y = d.getFullYear()
-  var m = d.getMonth() + 1
-  var day = d.getDate()
-  m = m < 10 ? '0' + m : m
-  day = day < 10 ? '0' + day : day
-  return y + '-' + m + '-' + day
+  return formatDate(y, d.getMonth() + 1, d.getDate())
+}
+
+function formatDate(year, month, day) {
+  return year + '-' + pad(month) + '-' + pad(day)
+}
+
+function formatMonth(year, month) {
+  return year + '.' + pad(month)
+}
+
+function formatMonthTitle(year, month) {
+  return year + ' 年 ' + month + ' 月'
+}
+
+function parseDate(dateStr) {
+  var parts = dateStr.split('-')
+  return {
+    year: Number(parts[0]),
+    month: Number(parts[1]),
+    day: Number(parts[2])
+  }
+}
+
+function getMonthStart(dateStr) {
+  var info = parseDate(dateStr)
+  return {
+    year: info.year,
+    month: info.month
+  }
+}
+
+function getMonthDays(year, month) {
+  return new Date(year, month, 0).getDate()
+}
+
+function buildMonthGrid(year, month, selectedDate, today, reminders) {
+  var firstDay = new Date(year, month - 1, 1).getDay()
+  var daysInMonth = getMonthDays(year, month)
+  var prevMonth = month === 1 ? 12 : month - 1
+  var prevYear = month === 1 ? year - 1 : year
+  var daysInPrevMonth = getMonthDays(prevYear, prevMonth)
+  var cells = []
+  var reminderMap = {}
+  var i
+
+  for (i = 0; i < reminders.length; i++) {
+    if (!reminderMap[reminders[i].date]) {
+      reminderMap[reminders[i].date] = []
+    }
+    reminderMap[reminders[i].date].push(reminders[i])
+  }
+
+  for (i = 0; i < 42; i++) {
+    var offset = i - firstDay + 1
+    var cellYear = year
+    var cellMonth = month
+    var cellDay = offset
+    var isCurrentMonth = true
+
+    if (offset <= 0) {
+      cellMonth = prevMonth
+      cellYear = prevYear
+      cellDay = daysInPrevMonth + offset
+      isCurrentMonth = false
+    } else if (offset > daysInMonth) {
+      cellMonth = month === 12 ? 1 : month + 1
+      cellYear = month === 12 ? year + 1 : year
+      cellDay = offset - daysInMonth
+      isCurrentMonth = false
+    }
+
+    var date = formatDate(cellYear, cellMonth, cellDay)
+    var list = reminderMap[date] || []
+    var pendingCount = 0
+    var hasStrong = false
+    var j
+
+    for (j = 0; j < list.length; j++) {
+      if (!list[j].done) {
+        pendingCount++
+      }
+      if (list[j].strong && !list[j].done) {
+        hasStrong = true
+      }
+    }
+
+    cells.push({
+      date: date,
+      day: cellDay,
+      isCurrentMonth: isCurrentMonth,
+      isToday: date === today,
+      isSelected: date === selectedDate,
+      hasReminder: list.length > 0,
+      hasStrong: hasStrong,
+      reminderCount: list.length,
+      pendingCount: pendingCount
+    })
+  }
+
+  return cells
 }
 
 function sortReminders(list) {
@@ -22,9 +122,15 @@ function sortReminders(list) {
 Page({
   data: {
     categories: ['喂食', '洗澡', '驱虫', '疫苗', '吃药', '遛狗'],
+    weekDays: ['日', '一', '二', '三', '四', '五', '六'],
     reminders: [],
     today: '',
     selectedDate: '',
+    currentMonth: '',
+    currentMonthTitle: '',
+    currentYear: 0,
+    currentMonthNumber: 0,
+    calendarDays: [],
     todayList: [],
     dayList: [],
     showForm: false,
@@ -42,9 +148,14 @@ Page({
 
   onLoad: function () {
     var today = getToday()
+    var monthInfo = getMonthStart(today)
     this.setData({
       today: today,
-      selectedDate: today
+      selectedDate: today,
+      currentYear: monthInfo.year,
+      currentMonthNumber: monthInfo.month,
+      currentMonth: formatMonth(monthInfo.year, monthInfo.month),
+      currentMonthTitle: formatMonthTitle(monthInfo.year, monthInfo.month)
     })
   },
 
@@ -68,6 +179,13 @@ Page({
     var reminders = this.data.reminders
     var todayList = []
     var dayList = []
+    var calendarDays = buildMonthGrid(
+      this.data.currentYear,
+      this.data.currentMonthNumber,
+      this.data.selectedDate,
+      this.data.today,
+      reminders
+    )
     var i
 
     for (i = 0; i < reminders.length; i++) {
@@ -81,7 +199,10 @@ Page({
 
     this.setData({
       todayList: todayList,
-      dayList: dayList
+      dayList: dayList,
+      calendarDays: calendarDays,
+      currentMonth: formatMonth(this.data.currentYear, this.data.currentMonthNumber),
+      currentMonthTitle: formatMonthTitle(this.data.currentYear, this.data.currentMonthNumber)
     })
   },
 
@@ -116,9 +237,65 @@ Page({
     })
   },
 
-  changeDateFilter: function (e) {
+  selectDay: function (e) {
+    var date = e.currentTarget.dataset.date
+    var info = parseDate(date)
     this.setData({
-      selectedDate: e.detail.value
+      selectedDate: date,
+      currentYear: info.year,
+      currentMonthNumber: info.month
+    })
+    this.refreshList()
+  },
+
+  prevMonth: function () {
+    var year = this.data.currentYear
+    var month = this.data.currentMonthNumber - 1
+
+    if (month < 1) {
+      month = 12
+      year--
+    }
+
+    this.setData({
+      currentYear: year,
+      currentMonthNumber: month
+    })
+    this.refreshList()
+  },
+
+  nextMonth: function () {
+    var year = this.data.currentYear
+    var month = this.data.currentMonthNumber + 1
+
+    if (month > 12) {
+      month = 1
+      year++
+    }
+
+    this.setData({
+      currentYear: year,
+      currentMonthNumber: month
+    })
+    this.refreshList()
+  },
+
+  jumpToToday: function () {
+    var monthInfo = getMonthStart(this.data.today)
+    this.setData({
+      selectedDate: this.data.today,
+      currentYear: monthInfo.year,
+      currentMonthNumber: monthInfo.month
+    })
+    this.refreshList()
+  },
+
+  changeDateFilter: function (e) {
+    var info = parseDate(e.detail.value)
+    this.setData({
+      selectedDate: e.detail.value,
+      currentYear: info.year,
+      currentMonthNumber: info.month
     })
     this.refreshList()
   },

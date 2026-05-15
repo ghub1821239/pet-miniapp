@@ -1,95 +1,128 @@
-<view class="page-container">
-  <view class="hero">
-    <text class="hero-title">萌宠论坛</text>
-    <text class="hero-sub">支持图文、定位、评论互动，当前为 1.0 原型版，后续可以扩展帖子详情、点赞排行、分区筛选等。</text>
+<view class="page-container community-page">
+  <view class="community-header">
+    <view>
+      <text class="community-title">萌宠广场</text>
+    </view>
+    <view class="community-header-actions">
+      <view class="community-search" bindtap="openSearch">搜索宠物、话题、同城玩伴</view>
+      <view class="community-top-plus" bindtap="goPublish">+</view>
+    </view>
   </view>
 
-  <view class="card">
-    <text class="section-title">发布动态</text>
-
-    <text class="field-label">内容分区</text>
-    <picker range="{{sections}}" value="{{sectionIndex}}" bindchange="changeSection">
-      <view class="picker-box">当前分区：{{sections[sectionIndex]}}</view>
-    </picker>
-
-    <text class="field-label">帖子内容</text>
-    <textarea
-      class="textarea"
-      placeholder="分享你和宠物的日常、安利好物，或者发起交友～"
-      value="{{form.content}}"
-      bindinput="bindPostContent"
-    ></textarea>
-
-    <view class="forum-btn-row">
-      <button class="secondary-btn" bindtap="choosePostImages">添加图片</button>
-      <button class="secondary-btn" bindtap="chooseLocation">添加定位</button>
+  <scroll-view class="channel-scroll" scroll-x enable-flex show-scrollbar="false">
+    <view class="channel-list">
+      <block wx:for="{{channels}}" wx:key="*this">
+        <view
+          class="channel-item {{activeChannel === item ? 'active' : ''}}"
+          data-channel="{{item}}"
+          bindtap="switchChannel"
+        >
+          {{item}}
+        </view>
+      </block>
     </view>
+  </scroll-view>
 
-    <view wx:if="{{form.locationName}}" class="tag">📍 {{form.locationName}}</view>
+  <view class="community-grid">
+    <view class="community-column">
+      <block wx:for="{{leftColumn}}" wx:key="id">
+        <view class="feed-card">
+          <view class="feed-cover-wrap">
+            <image wx:if="{{item.coverImage}}" class="feed-cover" src="{{item.coverImage}}" mode="aspectFill"></image>
+            <view wx:else class="feed-cover feed-cover-placeholder {{'tone-' + item.coverTone}}">
+              <text class="feed-cover-emoji">{{item.coverEmoji}}</text>
+              <text class="feed-cover-label">{{item.petName}}</text>
+            </view>
+            <view wx:if="{{item.mediaType === 'video'}}" class="feed-video-badge">视频</view>
+          </view>
 
-    <view wx:if="{{form.images.length > 0}}" class="forum-image-list">
-      <block wx:for="{{form.images}}" wx:key="*this">
-        <image class="forum-thumb" src="{{item}}" mode="aspectFill"></image>
+          <view class="feed-body">
+            <text class="feed-title">{{item.title}}</text>
+
+            <view class="feed-tags">
+              <block wx:for="{{item.tags}}" wx:key="*this">
+                <text class="feed-tag">{{item}}</text>
+              </block>
+            </view>
+
+            <view class="feed-pet-card">
+              <text class="feed-pet-name">{{item.petName}}</text>
+              <text class="feed-pet-meta">{{item.breed}} {{item.petCard.age}}</text>
+              <text class="feed-pet-meta">{{item.petCard.personality}}｜{{item.petCard.activity}}</text>
+            </view>
+
+            <view class="feed-footer">
+              <view class="feed-user">
+                <view class="feed-avatar">{{item.avatar}}</view>
+                <view class="feed-user-copy">
+                  <text class="feed-user-name">{{item.userName}}</text>
+                  <text class="feed-user-location">{{item.city}}｜{{item.distance}}</text>
+                </view>
+              </view>
+
+              <view class="feed-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" bindtap="toggleLike">
+                ❤ {{item.likeCount}}
+              </view>
+            </view>
+          </view>
+        </view>
       </block>
     </view>
 
-    <button class="primary-btn forum-submit" bindtap="submitPost">发布帖子</button>
-  </view>
+    <view class="community-column">
+      <block wx:for="{{rightColumn}}" wx:key="id">
+        <view class="feed-card">
+          <view class="feed-cover-wrap">
+            <image wx:if="{{item.coverImage}}" class="feed-cover" src="{{item.coverImage}}" mode="aspectFill"></image>
+            <view wx:else class="feed-cover feed-cover-placeholder {{'tone-' + item.coverTone}}">
+              <text class="feed-cover-emoji">{{item.coverEmoji}}</text>
+              <text class="feed-cover-label">{{item.petName}}</text>
+            </view>
+            <view wx:if="{{item.mediaType === 'video'}}" class="feed-video-badge">视频</view>
+          </view>
 
-  <text class="section-title">最新动态</text>
+          <view class="feed-body">
+            <text class="feed-title">{{item.title}}</text>
 
-  <block wx:for="{{posts}}" wx:key="id">
-    <view class="card">
-      <view class="forum-head">
-        <view class="forum-user">
-          <view class="forum-avatar">{{item.avatar}}</view>
-          <view>
-            <text class="forum-user-name">{{item.user}}</text>
-            <text class="forum-time">{{item.createdAt}}</text>
+            <view class="feed-tags">
+              <block wx:for="{{item.tags}}" wx:key="*this">
+                <text class="feed-tag">{{item}}</text>
+              </block>
+            </view>
+
+            <view class="feed-pet-card">
+              <text class="feed-pet-name">{{item.petName}}</text>
+              <text class="feed-pet-meta">{{item.breed}} {{item.petCard.age}}</text>
+              <text class="feed-pet-meta">{{item.petCard.personality}}｜{{item.petCard.activity}}</text>
+            </view>
+
+            <view class="feed-footer">
+              <view class="feed-user">
+                <view class="feed-avatar">{{item.avatar}}</view>
+                <view class="feed-user-copy">
+                  <text class="feed-user-name">{{item.userName}}</text>
+                  <text class="feed-user-location">{{item.city}}｜{{item.distance}}</text>
+                </view>
+              </view>
+
+              <view class="feed-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" bindtap="toggleLike">
+                ❤ {{item.likeCount}}
+              </view>
+            </view>
           </view>
         </view>
-        <text class="tag">{{item.section}}</text>
-      </view>
-
-      <view class="forum-content">{{item.content}}</view>
-
-      <view wx:if="{{item.locationName}}" class="tag">📍 {{item.locationName}}</view>
-
-      <view wx:if="{{item.images.length > 0}}" class="forum-image-list">
-        <block wx:for="{{item.images}}" wx:key="*this">
-          <image class="forum-thumb" src="{{item}}" mode="aspectFill"></image>
-        </block>
-      </view>
-
-      <view class="forum-action-row">
-        <button class="small-btn" data-index="{{index}}" bindtap="toggleLike">
-          {{item.liked ? '已点赞' : '点赞'}} {{item.likeCount}}
-        </button>
-      </view>
-
-      <view class="forum-comment-box">
-        <block wx:if="{{item.comments.length > 0}}">
-          <block wx:for="{{item.comments}}" wx:key="id">
-            <view class="forum-comment-line">
-              <text class="forum-comment-user">{{item.user}}：</text>
-              <text>{{item.text}}</text>
-            </view>
-          </block>
-        </block>
-
-        <input
-          class="input"
-          placeholder="写下你的评论..."
-          value="{{item.commentDraft}}"
-          data-index="{{index}}"
-          bindinput="inputComment"
-        />
-        <view class="forum-comment-btn-wrap">
-          <button class="secondary-btn" data-index="{{index}}" bindtap="addComment">发表评论</button>
-        </view>
-      </view>
+      </block>
     </view>
-  </block>
+  </view>
 
-  <pet-tabbar current="forum"></pet-tabbar>
+  <view wx:if="{{filteredPosts.length === 0}}" class="card community-empty">
+    <text class="section-title">这个频道还很安静</text>
+    <text class="section-sub">先发一条你家萌宠的动态吧。</text>
+  </view>
+
+  <view class="community-fab" bindtap="goPublish">
+    <text class="community-fab-icon">+</text>
+  </view>
+
+  <pet-tabbar current="community"></pet-tabbar>
 </view>

@@ -2,8 +2,8 @@
   width: 100%;
   height: 360rpx;
   border-radius: 24rpx;
-  background: #fff7fb;
-  border: 2rpx dashed #ffc1d5;
+  background: #fff8ee;
+  border: 2rpx dashed #e5c974;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -17,7 +17,7 @@
 
 .upload-empty {
   text-align: center;
-  color: #999;
+  color: #a59582;
 }
 
 .upload-icon {

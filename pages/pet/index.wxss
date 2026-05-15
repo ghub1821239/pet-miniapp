@@ -1,11 +1,71 @@
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+
+.overview-item {
+  padding: 24rpx 18rpx;
+  border-radius: 22rpx;
+  background: linear-gradient(180deg, #fff7dc, #fffdf1);
+  border: 1px solid #f0dfb2;
+  text-align: center;
+}
+
+.overview-value {
+  display: block;
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #b58c31;
+}
+
+.overview-label {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #8f7a60;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+
+.quick-item {
+  padding: 24rpx 20rpx;
+  border-radius: 22rpx;
+  background: rgba(255, 253, 246, 0.98);
+  border: 1px solid #f1e3bc;
+  box-shadow: 0 10rpx 24rpx rgba(229, 196, 116, 0.08);
+}
+
+.quick-icon {
+  display: block;
+  font-size: 40rpx;
+  line-height: 1;
+}
+
+.quick-text {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #5a4632;
+}
+
+.pet-card {
+  padding-bottom: 20rpx;
+}
+
 .pet-top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .pet-avatar {
-  width: 110rpx;
-  height: 110rpx;
+  width: 112rpx;
+  height: 112rpx;
   border-radius: 50%;
   background: #f6f6f6;
 }
@@ -15,7 +75,7 @@
   align-items: center;
   justify-content: center;
   font-size: 56rpx;
-  background: #fff7fb;
+  background: #fff8ee;
 }
 
 .pet-main {
@@ -33,18 +93,46 @@
   font-size: 32rpx;
   font-weight: 700;
   margin-right: 12rpx;
+  color: #5a4632;
 }
 
 .pet-sub {
   display: block;
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: #888;
+  color: #92816f;
 }
 
-.pet-more {
-  color: #ff8fb1;
-  font-size: 24rpx;
+.pet-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 12rpx;
+}
+
+.pet-soft-tag {
+  display: inline-block;
+  margin-right: 10rpx;
+  margin-top: 8rpx;
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: #fff3cf;
+  color: #a17b2f;
+  font-size: 22rpx;
+}
+
+.pet-like-tag {
+  background: #fff8e5;
+}
+
+.pet-cta-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18rpx;
+}
+
+.pet-cta-row button,
+.pet-cta-row view {
+  margin-left: 12rpx;
 }
 
 .pet-detail {
@@ -57,11 +145,58 @@
   margin-top: 16rpx;
 }
 
+.empty-profile-card {
+  text-align: center;
+  padding: 48rpx 28rpx;
+}
+
+.empty-pet-emoji {
+  display: block;
+  font-size: 88rpx;
+  line-height: 1;
+}
+
+.empty-pet-title {
+  display: block;
+  margin-top: 20rpx;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #5a4632;
+}
+
+.empty-pet-copy {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: #927f69;
+}
+
+.empty-pet-btn {
+  width: 100%;
+  margin-top: 20rpx;
+}
+
+.secondary-empty-btn {
+  margin-top: 14rpx;
+}
+
+.tip-card {
+  margin-bottom: 24rpx;
+}
+
+.tip-copy {
+  display: block;
+  font-size: 26rpx;
+  line-height: 1.8;
+  color: #8f7a60;
+}
+
 .avatar-choice {
   width: 92rpx;
   height: 92rpx;
   border-radius: 50%;
-  background: #fff7fb;
+  background: #fff8ee;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,6 +207,14 @@
 }
 
 .avatar-choice.active {
-  border-color: #ff8fb1;
-  background: #fff0f5;
+  border-color: #d8b25b;
+  background: #f8eed0;
+}
+
+.pet-form-modal {
+  padding-bottom: calc(56rpx + env(safe-area-inset-bottom));
+}
+
+.pet-form-actions {
+  padding-bottom: env(safe-area-inset-bottom);
 }

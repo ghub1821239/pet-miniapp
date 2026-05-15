@@ -1,49 +1,50 @@
 <view class="page-container">
-  <view class="hero">
-    <view class="row-between">
-      <view>
-        <text class="hero-title">萌宠日历</text>
-        <text class="hero-sub">可新增提醒、按日期查看、查看今日提醒，并切换完成/未完成状态。</text>
+  <view class="card calendar-panel">
+    <view class="calendar-toolbar">
+      <button class="month-switch" bindtap="prevMonth">‹</button>
+      <view class="calendar-title-wrap">
+        <text class="section-title calendar-title">{{currentMonthTitle}}</text>
       </view>
-      <button class="primary-btn" bindtap="openAdd">+ 新增提醒</button>
+      <button class="month-switch" bindtap="nextMonth">›</button>
+    </view>
+
+    <view class="calendar-week-row">
+      <block wx:for="{{weekDays}}" wx:key="*this">
+        <text class="calendar-weekday">{{item}}</text>
+      </block>
+    </view>
+
+    <view class="calendar-grid">
+      <block wx:for="{{calendarDays}}" wx:key="date">
+        <view
+          class="calendar-cell {{item.isCurrentMonth ? '' : 'is-other-month'}} {{item.isSelected ? 'is-selected' : ''}} {{item.isToday ? 'is-today' : ''}}"
+          data-date="{{item.date}}"
+          bindtap="selectDay"
+        >
+          <text class="calendar-day-number">{{item.day}}</text>
+          <view class="calendar-markers">
+            <view wx:if="{{item.hasReminder}}" class="calendar-dot {{item.hasStrong ? 'is-strong' : ''}}"></view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="calendar-actions">
+      <view class="calendar-selected-date">当前查看：{{selectedDate}}</view>
+      <button class="secondary-btn" bindtap="jumpToToday">回到今天</button>
     </view>
   </view>
 
   <view class="card">
-    <text class="section-title">今日提醒</text>
-    <text class="section-sub">日期：{{today}}</text>
-
-    <block wx:if="{{todayList.length > 0}}">
-      <block wx:for="{{todayList}}" wx:key="id">
-        <view class="reminder-item {{item.done ? 'reminder-done' : ''}}">
-          <view class="row-between">
-            <view>
-              <view class="reminder-title-row">
-                <text class="{{item.done ? 'status-text-done' : ''}}">{{item.title}}</text>
-                <text class="tag">{{item.category}}</text>
-                <text wx:if="{{item.strong}}" class="tag status-strong">强提醒</text>
-              </view>
-              <text class="reminder-time">{{item.date}} {{item.time}}</text>
-            </view>
-            <view class="reminder-btns">
-              <button class="small-btn" data-id="{{item.id}}" bindtap="toggleDone">
-                {{item.done ? '撤销' : '完成'}}
-              </button>
-              <button class="small-btn danger-btn" data-id="{{item.id}}" bindtap="deleteReminder">删除</button>
-            </view>
-          </view>
-        </view>
-      </block>
-    </block>
-
-    <view wx:else class="empty">今天没有提醒</view>
-  </view>
-
-  <view class="card">
-    <text class="section-title">按日期查看</text>
-    <picker mode="date" value="{{selectedDate}}" bindchange="changeDateFilter">
-      <view class="picker-box">当前查看日期：{{selectedDate}}</view>
-    </picker>
+    <view class="row-between selected-day-head">
+      <view>
+        <text class="section-title">今日计划</text>
+        <text class="section-sub">{{selectedDate}}</text>
+      </view>
+      <view class="plan-add-btn" bindtap="openAdd">
+        <text class="plan-add-icon">+</text>
+      </view>
+    </view>
 
     <block wx:if="{{dayList.length > 0}}">
       <block wx:for="{{dayList}}" wx:key="id">
@@ -68,7 +69,7 @@
       </block>
     </block>
 
-    <view wx:else class="empty">该日期暂无提醒</view>
+    <view wx:else class="empty compact-empty">暂无计划</view>
   </view>
 
   <view wx:if="{{showForm}}" class="mask" bindtap="closeForm">
@@ -94,7 +95,7 @@
       </picker>
 
       <text class="field-label">强提醒</text>
-      <switch checked="{{form.strong}}" color="#ff8fb1" bindchange="switchStrong" />
+      <switch checked="{{form.strong}}" color="#d8b25b" bindchange="switchStrong" />
 
       <view class="modal-actions">
         <button class="secondary-btn" bindtap="closeForm">取消</button>

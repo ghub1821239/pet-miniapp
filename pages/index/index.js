@@ -1,73 +1,28 @@
-const defaultAvatarUrl = 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'
-
 Page({
   data: {
-    motto: 'Hello World',
-    userInfo: {
-      avatarUrl: defaultAvatarUrl,
-      nickName: '',
+    hero: {
+      eyebrow: '今日页签',
+      title: '萌宠日记',
+      subtitle: '先把五项导航和首页主入口接起来，后续再继续补充真实的成长记录、图片流和发布能力。',
+      tags: ['成长手账', '轻量占位', '温暖记录']
     },
-    hasUserInfo: false,
-    canIUseGetUserProfile: wx.canIUse('getUserProfile'),
-    canIUseNicknameComp: wx.canIUse('input.type.nickname'),
-  },
-  bindViewTap() {
-    wx.navigateTo({
-      url: '../logs/logs'
-    })
-  },
-  onChooseAvatar(e) {
-    const { avatarUrl } = e.detail
-    const { nickName } = this.data.userInfo
-    this.setData({
-      "userInfo.avatarUrl": avatarUrl,
-      hasUserInfo: nickName && avatarUrl && avatarUrl !== defaultAvatarUrl,
-    })
-  },
-  onInputChange(e) {
-    const nickName = e.detail.value
-    const { avatarUrl } = this.data.userInfo
-    this.setData({
-      "userInfo.nickName": nickName,
-      hasUserInfo: nickName && avatarUrl && avatarUrl !== defaultAvatarUrl,
-    })
-  },
-  getUserProfile(e) {
-    wx.getUserProfile({
-      desc: '展示用户信息',
-      success: (res) => {
-        console.log(res)
-        this.setData({
-          userInfo: res.userInfo,
-          hasUserInfo: true
-        })
+    intro: {
+      description: '这里现在作为日记页的轻量占位入口，负责承接首页流程和底部导航结构，让整个小程序的五页主路径先跑通。',
+      status: '已接入新的五项底部导航，当前聚焦结构与跳转，业务内容会在下一阶段逐步补齐。'
+    },
+    roadmap: [
+      {
+        title: '成长记录卡片',
+        description: '后续可扩展单图、多图、打卡和一句话记录等常见日记形态。'
+      },
+      {
+        title: '快捷发布入口',
+        description: '补上发布日记、上传照片和情绪标签等高频操作。'
+      },
+      {
+        title: '最近动态联动',
+        description: '把最近记录与论坛精选、提醒概览做成更完整的首页节奏。'
       }
-    })
-  },
-
-  // ========== 下面是新加的分享代码（解决按钮灰色） ==========
-  onLoad() {
-    // 开启右上角分享菜单（好友 + 朋友圈）
-    wx.showShareMenu({
-      withShareTicket: true,
-      menus: ['shareAppMessage', 'shareTimeline']
-    })
-  },
-
-  // 分享给好友
-  onShareAppMessage() {
-    return {
-      title: '萌宠日记99', // 你想显示的分享标题
-      path: '/pages/index/index', // 别人点进来的页面
-      imageUrl: '' // 可以放一张图片链接当分享封面
-    }
-  },
-
-  // 分享到朋友圈
-  onShareTimeline() {
-    return {
-      title: '萌宠日记99',
-      imageUrl: ''
-    }
+    ]
   }
 })

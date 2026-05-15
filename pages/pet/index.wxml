@@ -3,9 +3,43 @@
     <view class="row-between">
       <view>
         <text class="hero-title">宠物档案</text>
-        <text class="hero-sub">记录宠物生日、年龄、喜好、性格，支持默认头像和自定义头像。</text>
+        <text class="hero-sub">记录宠物生日、年龄、品种、性格和喜好，生成专属萌宠名片。</text>
       </view>
       <button class="primary-btn" bindtap="openAdd">+ 新增宠物</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="section-title">养宠概览</text>
+    <view class="overview-grid">
+      <view class="overview-item">
+        <text class="overview-value">{{overview.petCount}}</text>
+        <text class="overview-label">已添加宠物</text>
+      </view>
+      <view class="overview-item">
+        <text class="overview-value">{{overview.reminderCount}}</text>
+        <text class="overview-label">今日提醒</text>
+      </view>
+      <view class="overview-item">
+        <text class="overview-value">{{overview.diaryCount}}</text>
+        <text class="overview-label">成长日记</text>
+      </view>
+      <view class="overview-item">
+        <text class="overview-value">{{overview.identifyCount}}</text>
+        <text class="overview-label">识别记录</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="section-title">快捷管理</text>
+    <view class="quick-grid">
+      <block wx:for="{{quickActions}}" wx:key="key">
+        <view class="quick-item" data-key="{{item.key}}" bindtap="handleQuickAction">
+          <text class="quick-icon">{{item.icon}}</text>
+          <text class="quick-text">{{item.text}}</text>
+        </view>
+      </block>
     </view>
   </view>
 
@@ -13,9 +47,9 @@
 
   <block wx:if="{{pets.length > 0}}">
     <block wx:for="{{pets}}" wx:key="id">
-      <view class="card">
-        <view class="pet-top" data-id="{{item.id}}" bindtap="toggleDetail">
-          <view>
+      <view class="card pet-card">
+        <view class="pet-top">
+          <view data-id="{{item.id}}" bindtap="toggleDetail">
             <image wx:if="{{item.avatarType === 'image'}}" class="pet-avatar" src="{{item.avatarValue}}" mode="aspectFill"></image>
             <view wx:else class="pet-avatar pet-avatar-emoji">{{item.avatarValue}}</view>
           </view>
@@ -23,12 +57,29 @@
           <view class="pet-main">
             <view class="pet-name-row">
               <text class="pet-name">{{item.name}}</text>
-              <text class="tag">{{item.type || '未填类型'}}</text>
+              <text class="tag">{{item.type || '宠物'}}</text>
             </view>
             <text class="pet-sub">{{item.breed || '未填品种'}} · {{item.age || '未填年龄'}}</text>
-          </view>
 
-          <text class="pet-more">{{expandedId === item.id ? '收起' : '详情'}}</text>
+            <view wx:if="{{item.personalityTags.length > 0}}" class="pet-tag-row">
+              <block wx:for="{{item.personalityTags}}" wx:key="*this">
+                <text class="pet-soft-tag">{{item}}</text>
+              </block>
+            </view>
+
+            <view wx:if="{{item.likeTags.length > 0}}" class="pet-tag-row">
+              <block wx:for="{{item.likeTags}}" wx:key="*this">
+                <text class="pet-soft-tag pet-like-tag">{{item}}</text>
+              </block>
+            </view>
+          </view>
+        </view>
+
+        <view class="pet-cta-row">
+          <button class="secondary-btn" catchtap="openEdit" data-id="{{item.id}}">编辑</button>
+          <button class="small-btn" catchtap="toggleDetail" data-id="{{item.id}}">
+            {{expandedId === item.id ? '收起详情' : '查看详情'}}
+          </button>
         </view>
 
         <view wx:if="{{expandedId === item.id}}" class="pet-detail">
@@ -50,7 +101,6 @@
           </view>
 
           <view class="pet-action-row">
-            <button class="small-btn" catchtap="openEdit" data-id="{{item.id}}">编辑</button>
             <button class="small-btn danger-btn" catchtap="deletePet" data-id="{{item.id}}">删除</button>
           </view>
         </view>
@@ -58,10 +108,21 @@
     </block>
   </block>
 
-  <view wx:else class="empty">还没有宠物，先添加第一只吧～</view>
+  <view wx:else class="card empty-profile-card">
+    <text class="empty-pet-emoji">🐾</text>
+    <text class="empty-pet-title">还没有宠物档案</text>
+    <text class="empty-pet-copy">为你的萌宠建立专属小档案吧</text>
+    <button class="primary-btn empty-pet-btn" bindtap="openAdd">+ 创建第一只宠物</button>
+    <button class="secondary-btn empty-pet-btn secondary-empty-btn" bindtap="importByIdentify">使用识别结果导入</button>
+  </view>
+
+  <view class="card tip-card">
+    <text class="section-title">今日养宠小贴士</text>
+    <text class="tip-copy">建立宠物档案后，可以更方便地管理疫苗、驱虫、生日和日常照护事项。</text>
+  </view>
 
   <view wx:if="{{showForm}}" class="mask" bindtap="closeForm">
-    <view class="modal" catchtap="noop">
+    <view class="modal pet-form-modal" catchtap="noop">
       <text class="modal-title">{{formMode === 'add' ? '新增宠物' : '编辑宠物'}}</text>
 
       <text class="field-label">宠物名称</text>
@@ -103,7 +164,7 @@
       <text class="field-label">或上传自定义头像</text>
       <button class="secondary-btn mt12" bindtap="uploadAvatar">上传头像</button>
 
-      <view class="modal-actions">
+      <view class="modal-actions pet-form-actions">
         <button class="secondary-btn" bindtap="closeForm">取消</button>
         <button class="primary-btn" bindtap="savePet">保存</button>
       </view>

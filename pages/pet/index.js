@@ -1,5 +1,8 @@
 // pages/pet/index.js
 var PETS_KEY = 'pets'
+var REMINDER_KEY = 'petReminders'
+var COMMUNITY_KEY = 'forumPosts'
+var IDENTIFY_KEY = 'identifyHistory'
 
 function getToday() {
   var d = new Date()
@@ -34,6 +37,11 @@ function calcAgeText(birthday) {
   return years + '岁'
 }
 
+function toTagList(text) {
+  if (!text) return []
+  return text.split(/[,，、\s]+/).filter(Boolean).slice(0, 3)
+}
+
 Page({
   data: {
     pets: [],
@@ -41,6 +49,18 @@ Page({
     showForm: false,
     formMode: 'add',
     defaultAvatars: ['🐶', '🐱', '🐰', '🐹', '🦊', '🐼'],
+    overview: {
+      petCount: 0,
+      reminderCount: 0,
+      diaryCount: 0,
+      identifyCount: 0
+    },
+    quickActions: [
+      { key: 'add', text: '新增宠物', icon: '➕' },
+      { key: 'identify', text: '识别导入', icon: '📷' },
+      { key: 'calendar', text: '生日提醒', icon: '📅' },
+      { key: 'edit', text: '编辑资料', icon: '✏️' }
+    ],
     form: {
       id: '',
       name: '',
@@ -57,12 +77,40 @@ Page({
 
   onShow: function () {
     this.loadPets()
+    this.loadOverview()
   },
 
   loadPets: function () {
     var pets = wx.getStorageSync(PETS_KEY) || []
+    var i
+    var list = []
+    var item
+
+    for (i = 0; i < pets.length; i++) {
+      item = JSON.parse(JSON.stringify(pets[i]))
+      item.personalityTags = toTagList(item.personality)
+      item.likeTags = toTagList(item.likes)
+      list.push(item)
+    }
+
     this.setData({
-      pets: pets
+      pets: list
+    })
+  },
+
+  loadOverview: function () {
+    var pets = wx.getStorageSync(PETS_KEY) || []
+    var reminders = wx.getStorageSync(REMINDER_KEY) || []
+    var posts = wx.getStorageSync(COMMUNITY_KEY) || []
+    var identifyHistory = wx.getStorageSync(IDENTIFY_KEY) || []
+
+    this.setData({
+      overview: {
+        petCount: pets.length,
+        reminderCount: reminders.length,
+        diaryCount: posts.length,
+        identifyCount: identifyHistory.length
+      }
     })
   },
 
@@ -106,11 +154,29 @@ Page({
 
     if (!target) return
 
+    delete target.personalityTags
+    delete target.likeTags
+
     this.setData({
       showForm: true,
       formMode: 'edit',
       form: target
     })
+  },
+
+  openPrimaryEdit: function () {
+    if (this.data.pets.length > 0) {
+      this.openEdit({
+        currentTarget: {
+          dataset: {
+            id: this.data.pets[0].id
+          }
+        }
+      })
+      return
+    }
+
+    this.openAdd()
   },
 
   closeForm: function () {
@@ -205,6 +271,7 @@ Page({
     })
 
     this.loadPets()
+    this.loadOverview()
 
     wx.showToast({
       title: '保存成功',
@@ -242,8 +309,40 @@ Page({
             expandedId: ''
           })
           that.loadPets()
+          that.loadOverview()
         }
       }
+    })
+  },
+
+  handleQuickAction: function (e) {
+    var key = e.currentTarget.dataset.key
+
+    if (key === 'add') {
+      this.openAdd()
+      return
+    }
+
+    if (key === 'identify') {
+      wx.navigateTo({
+        url: '/pages/identify/index'
+      })
+      return
+    }
+
+    if (key === 'calendar') {
+      wx.navigateTo({
+        url: '/pages/calendar/index'
+      })
+      return
+    }
+
+    this.openPrimaryEdit()
+  },
+
+  importByIdentify: function () {
+    wx.navigateTo({
+      url: '/pages/identify/index'
     })
   }
 })

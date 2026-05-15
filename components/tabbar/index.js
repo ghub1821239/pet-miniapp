@@ -3,35 +3,44 @@ Component({
   properties: {
     current: {
       type: String,
-      value: 'pet'
+      value: 'community'
     }
   },
 
   data: {
-    items: [
+    leftItems: [
       {
-        key: 'pet',
-        text: '档案',
-        icon: '🐾',
-        url: '/pages/pet/index'
-      },
-      {
-        key: 'forum',
-        text: '论坛',
-        icon: '💬',
+        key: 'community',
+        text: '社区',
+        icon: '🏘️',
         url: '/pages/forum/index'
       },
       {
-        key: 'identify',
-        text: '识别',
-        icon: '📷',
-        url: '/pages/identify/index'
-      },
+        key: 'diary',
+        text: '日记',
+        icon: '📖',
+        url: '/pages/index/index'
+      }
+    ],
+    centerItem: {
+      key: 'identify',
+      text: '识别',
+      icon: '📷',
+      url: '/pages/identify/index',
+      isCenter: true
+    },
+    rightItems: [
       {
         key: 'calendar',
         text: '日历',
         icon: '📅',
         url: '/pages/calendar/index'
+      },
+      {
+        key: 'pet',
+        text: '档案',
+        icon: '🐾',
+        url: '/pages/pet/index'
       }
     ]
   },
