@@ -1,13 +1,26 @@
-<view class="page-container">
-  <view class="hero">
-    <text class="hero-title">萌宠识别</text>
-    <text class="hero-sub">上传宠物图片，返回识别结果，并自动填充宠物类别/品种。当前先用前端模拟识别，后续可接图像识别 API + LLM 分析接口。</text>
+<view class="page-container identify-page">
+  <view class="hero identify-hero">
+    <text class="hero-title">拍一拍，认识你的毛孩子</text>
+    <text class="hero-sub">支持宠物品种识别、外观特征分析和养护建议生成。</text>
   </view>
 
   <view class="card">
-    <text class="section-title">上传宠物图片</text>
+    <text class="section-title">识别入口</text>
+    <view class="identify-action-grid">
+      <block wx:for="{{identifyActions}}" wx:key="id">
+        <view class="identify-action-item" bindtap="handleActionTap" data-id="{{item.id}}">
+          <view class="identify-action-icon">{{item.icon}}</view>
+          <text class="identify-action-title">{{item.title}}</text>
+          <text class="identify-action-desc">{{item.desc}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
 
-    <view class="upload-box" bindtap="chooseImage">
+  <view class="card">
+    <text class="section-title">上传识别</text>
+
+    <view class="upload-box" bindtap="handleChooseImage">
       <image wx:if="{{imageUrl}}" class="upload-preview" src="{{imageUrl}}" mode="aspectFill"></image>
       <view wx:else class="upload-empty">
         <text class="upload-icon">📷</text>
@@ -16,30 +29,67 @@
     </view>
 
     <view class="identify-btn-row">
-      <button class="secondary-btn" bindtap="chooseImage">重新选择</button>
-      <button class="primary-btn" bindtap="recognizePet" loading="{{loading}}">开始识别</button>
+      <button class="secondary-btn" bindtap="handleChooseImage">相册上传</button>
+      <button class="primary-btn" bindtap="handleTakePhoto" loading="{{loading}}">拍照识别</button>
     </view>
   </view>
 
   <view class="card">
-    <text class="section-title">识别结果</text>
+    <view class="row-between">
+      <view>
+        <text class="section-title">示例识别结果</text>
+        <text class="section-sub">{{result.createdAt}}</text>
+      </view>
+      <text class="identify-confidence">{{result.confidence}}%</text>
+    </view>
 
-    <text class="field-label">宠物类别</text>
-    <input class="input" placeholder="识别后自动填充，也可手动修改" value="{{result.species}}" data-field="species" bindinput="bindResultInput" />
+    <image class="identify-demo-image" src="{{result.image}}" mode="aspectFill"></image>
 
-    <text class="field-label">宠物品种</text>
-    <input class="input" placeholder="识别后自动填充，也可手动修改" value="{{result.breed}}" data-field="breed" bindinput="bindResultInput" />
+    <view class="identify-result-head">
+      <view class="identify-pet-badge">🐾</view>
+      <view class="identify-pet-copy">
+        <text class="identify-pet-name">{{result.petName}}</text>
+        <text class="identify-pet-meta">{{result.species}} · {{result.breed}}</text>
+      </view>
+    </view>
 
-    <text class="field-label">识别置信度</text>
-    <input class="input" placeholder="例如：92%" value="{{result.confidence}}" data-field="confidence" bindinput="bindResultInput" />
+    <view class="identify-feature-list">
+      <block wx:for="{{result.features}}" wx:key="*this">
+        <text class="tag identify-feature-tag">{{item}}</text>
+      </block>
+    </view>
 
-    <button class="secondary-btn mt12" bindtap="generateTips">生成品种小贴士</button>
+    <view class="tip-box identify-advice-box">{{result.advice}}</view>
+
+    <view class="identify-result-actions">
+      <button class="secondary-btn identify-action-btn" bindtap="handleSaveToArchive">保存到档案</button>
+      <button class="secondary-btn identify-action-btn" bindtap="handleGenerateDiary">生成日记</button>
+      <button class="primary-btn identify-action-btn" bindtap="handleAddReminder">添加提醒</button>
+    </view>
   </view>
 
   <view class="card">
-    <text class="section-title">LLM 饲养小贴士</text>
-    <view class="tip-box">
-      {{tips || '这里将来可以接入 LLM，自动分析该品种常见疾病、喂养建议、运动方式、注意事项等。'}}
+    <text class="section-title">历史识别记录</text>
+
+    <block wx:if="{{identifyRecords.length}}">
+      <block wx:for="{{identifyRecords}}" wx:key="id">
+        <view class="identify-record-item">
+          <image class="identify-record-image" src="{{item.image}}" mode="aspectFill"></image>
+          <view class="identify-record-main">
+            <text class="identify-record-name">{{item.petName}}</text>
+            <text class="identify-record-meta">{{item.result}} · 置信度 {{item.confidence}}%</text>
+          </view>
+          <view class="identify-record-side">
+            <text class="identify-record-date">{{item.date}}</text>
+            <text class="identify-record-action">{{item.action}}</text>
+          </view>
+        </view>
+      </block>
+    </block>
+
+    <view wx:else class="empty">
+      <text class="empty-title">还没有识别记录</text>
+      <text class="empty-copy">拍一张照片认识毛孩子吧</text>
     </view>
   </view>
 

@@ -1,15 +1,15 @@
-<view class="page-container">
-  <view class="hero">
-    <text class="hero-title">发布宠物动态</text>
-    <text class="hero-sub">先用 mock 版本把图文/视频发布流程跑通，后续再接真实接口。</text>
+<view class="page-container publish-page">
+  <view class="publish-tip">
+    <text class="publish-tip-title">记录这一刻</text>
+    <text class="publish-tip-sub">分享宠物日常、找玩伴或求助内容</text>
   </view>
 
-  <view class="card">
-    <text class="section-title">媒体内容</text>
+  <view class="card publish-card">
+    <text class="section-title">动态内容</text>
 
     <view class="publish-action-row">
-      <button class="secondary-btn" bindtap="chooseImages">上传图片</button>
-      <button class="secondary-btn" bindtap="chooseVideo">上传视频</button>
+      <button class="secondary-btn publish-media-btn" bindtap="chooseAlbumMedia">从相册选择</button>
+      <button class="secondary-btn publish-media-btn" bindtap="chooseCameraMedia">直接拍摄</button>
     </view>
 
     <view wx:if="{{form.images.length > 0}}" class="publish-media-list">
@@ -24,38 +24,27 @@
     </view>
 
     <text class="field-label">标题</text>
-    <input class="input" placeholder="例如：带元宝去公园找狗狗朋友" value="{{form.title}}" data-field="title" bindinput="bindInput" />
+    <input class="input publish-input" placeholder="写一个简短标题" value="{{form.title}}" data-field="title" bindinput="bindInput" />
 
     <text class="field-label">正文</text>
-    <textarea class="textarea" placeholder="分享今天的萌宠日常、找玩伴需求或求助内容..." value="{{form.content}}" data-field="content" bindinput="bindInput"></textarea>
+    <textarea class="textarea publish-textarea" placeholder="分享今天发生的可爱瞬间..." value="{{form.content}}" data-field="content" bindinput="bindInput"></textarea>
 
     <text class="field-label">关联宠物</text>
     <picker range="{{petNames}}" value="{{petIndex}}" bindchange="changePet">
-      <view class="picker-box">{{petNames[petIndex]}}</view>
-    </picker>
-
-    <text class="field-label">分区</text>
-    <picker range="{{sections}}" value="{{sectionIndex}}" bindchange="changeSection">
-      <view class="picker-box">{{sections[sectionIndex]}}</view>
+      <view class="picker-box publish-picker">{{petNames[petIndex]}}</view>
     </picker>
 
     <text class="field-label">标签</text>
-    <input class="input" placeholder="例如：同城，找玩伴，柴犬，遛狗" value="{{form.tagsText}}" data-field="tagsText" bindinput="bindInput" />
-    <view class="publish-tag-hint">
+    <input class="input publish-input" placeholder="自定义标签，多个可用空格或逗号分隔" value="{{form.tagsText}}" data-field="tagsText" bindinput="bindInput" />
+    <view class="publish-tag-list">
       <block wx:for="{{tagOptions}}" wx:key="*this">
-        <text class="tag">{{item}}</text>
+        <text class="publish-tag-chip {{selectedTags.indexOf(item) > -1 ? 'active' : ''}}" data-tag="{{item}}" bindtap="handleTagTap">{{item}}</text>
       </block>
     </view>
 
-    <text class="field-label">城市 / 模糊位置</text>
-    <input class="input" placeholder="例如：天津" value="{{form.city}}" data-field="city" bindinput="bindInput" />
-
-    <text class="field-label">距离展示</text>
-    <input class="input" placeholder="例如：约 2km / 同城" value="{{form.distance}}" data-field="distance" bindinput="bindInput" />
-
     <view class="publish-switch-row">
       <text class="field-label publish-inline-label">显示位置</text>
-      <switch checked="{{form.showLocation}}" color="#d8b25b" bindchange="switchLocation" />
+      <switch checked="{{form.showLocation}}" color="#B1C29E" bindchange="switchLocation" />
     </view>
 
     <button class="primary-btn publish-submit" bindtap="submitPost">发布动态</button>

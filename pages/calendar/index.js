@@ -1,18 +1,86 @@
-// pages/calendar/index.js
-var REMINDER_KEY = 'petReminders'
+var CALENDAR_KEY = 'calendarPlans'
+var LEGACY_CALENDAR_KEY = 'petReminders'
+var PET_LIST_KEY = 'petList'
+var LEGACY_PETS_KEY = 'pets'
+var CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
+var DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
+
+var DEFAULT_CALENDAR_PLANS = [
+  {
+    id: 1,
+    date: '2026-05-16',
+    petName: '毛孩子',
+    petAvatar: CAT_IMAGE,
+    type: '梳毛护理',
+    title: '给毛孩子梳毛',
+    time: '20:00',
+    color: '#9CAF88',
+    note: '长毛猫需要定期梳毛，注意耳后和腋下是否打结',
+    reminderText: '准时提醒',
+    repeatText: '每周（周六）',
+    strong: false,
+    done: false
+  },
+  {
+    id: 2,
+    date: '2026-05-20',
+    petName: '毛孩子',
+    petAvatar: CAT_IMAGE,
+    type: '驱虫提醒',
+    title: '体内外驱虫',
+    time: '10:00',
+    color: '#F0A04B',
+    note: '注意观察当天精神状态',
+    reminderText: '提前1天',
+    repeatText: '每月（20日）',
+    strong: true,
+    done: false
+  },
+  {
+    id: 3,
+    date: '2026-05-25',
+    petName: '布丁',
+    petAvatar: DOG_IMAGE,
+    type: '洗澡护理',
+    title: '布丁洗澡和梳毛',
+    time: '16:30',
+    color: '#FADA7A',
+    note: '萨摩耶毛量大，洗完要彻底吹干',
+    reminderText: '提前30分钟',
+    repeatText: '不重复',
+    strong: false,
+    done: false
+  }
+]
+
+var WEEK_LABELS = ['日', '一', '二', '三', '四', '五', '六']
+var REMINDER_OPTIONS = ['不提醒', '准时提醒', '提前5分钟', '提前30分钟', '提前1小时', '提前1天', '提前2天']
+var DEFAULT_PETS = [
+  {
+    id: 1,
+    name: '毛孩子',
+    breed: '蓝金渐层长毛猫',
+    avatar: CAT_IMAGE
+  },
+  {
+    id: 2,
+    name: '布丁',
+    breed: '萨摩耶',
+    avatar: DOG_IMAGE
+  }
+]
 
 function pad(num) {
   return num < 10 ? '0' + num : '' + num
 }
 
-function getToday() {
-  var d = new Date()
-  var y = d.getFullYear()
-  return formatDate(y, d.getMonth() + 1, d.getDate())
-}
-
 function formatDate(year, month, day) {
   return year + '-' + pad(month) + '-' + pad(day)
+}
+
+function getToday() {
+  var d = new Date()
+  return formatDate(d.getFullYear(), d.getMonth() + 1, d.getDate())
 }
 
 function formatMonth(year, month) {
@@ -32,6 +100,25 @@ function parseDate(dateStr) {
   }
 }
 
+function getWeekLabel(dateStr) {
+  var info = parseDate(dateStr)
+  var day = new Date(info.year, info.month - 1, info.day).getDay()
+  return '周' + WEEK_LABELS[day]
+}
+
+function getRepeatOptions(dateStr) {
+  var info = parseDate(dateStr)
+  return [
+    '不重复',
+    '每天',
+    '工作日（周一至周五）',
+    '每周（' + getWeekLabel(dateStr) + '）',
+    '每月（' + info.day + '日）',
+    '每年（' + info.month + '月' + info.day + '日）',
+    '自定义'
+  ]
+}
+
 function getMonthStart(dateStr) {
   var info = parseDate(dateStr)
   return {
@@ -44,21 +131,101 @@ function getMonthDays(year, month) {
   return new Date(year, month, 0).getDate()
 }
 
-function buildMonthGrid(year, month, selectedDate, today, reminders) {
+function normalizePlan(item) {
+  var petName = item.petName === '小布丁' ? '布丁' : (item.petName || '毛孩子')
+  var subtasks = Array.isArray(item.subtasks) ? item.subtasks.map(function (subtask) {
+    if (typeof subtask === 'string') {
+      return {
+        text: subtask,
+        done: false
+      }
+    }
+
+    return {
+      text: subtask.text || '',
+      done: !!subtask.done
+    }
+  }).filter(function (subtask) {
+    return subtask.text
+  }) : []
+  return {
+    id: item.id || 'plan_' + Date.now(),
+    date: item.date,
+    petName: petName,
+    petAvatar: item.petAvatar || (petName === '布丁' ? DOG_IMAGE : CAT_IMAGE),
+    type: item.type || item.category || '日常提醒',
+    title: item.title || '宠物提醒',
+    time: item.time || '08:00',
+    color: item.color || '#9CAF88',
+    note: item.note || '',
+    subtasks: subtasks,
+    reminderText: item.reminderText || '准时提醒',
+    repeatText: item.repeatText || '不重复',
+    strong: !!item.strong,
+    done: !!item.done
+  }
+}
+
+function normalizePets(source) {
+  var list = Array.isArray(source) && source.length ? source : DEFAULT_PETS
+  return list.map(function (pet, index) {
+    var name = pet.name === '小布丁' ? '布丁' : (pet.name || ('萌宠' + (index + 1)))
+    return {
+      id: pet.id || ('pet_' + index),
+      name: name,
+      breed: pet.breed || (name === '布丁' ? '萨摩耶' : '蓝金渐层长毛猫'),
+      avatar: pet.avatar || pet.image || (name === '布丁' ? DOG_IMAGE : CAT_IMAGE)
+    }
+  })
+}
+
+function getSuggestedSubtasks(form) {
+  var keyword = ((form.title || '') + ' ' + (form.note || '') + ' ' + (form.category || '')).toLowerCase()
+
+  if (keyword.indexOf('医院') > -1 || keyword.indexOf('体检') > -1 || keyword.indexOf('检查') > -1) {
+    return ['体重测量', '体温检查', '口腔检查', '耳道检查', '皮肤毛发检查', '血常规', '粪便检查', '疫苗记录确认']
+  }
+
+  if (form.category === '驱虫') {
+    return ['确认体重', '准备驱虫药', '记录驱虫时间', '观察精神状态']
+  }
+
+  if (form.category === '洗澡') {
+    return ['梳毛开结', '修剪指甲', '清洁耳朵', '吹干脚垫和耳后']
+  }
+
+  if (form.category === '疫苗') {
+    return ['带上疫苗本', '确认预约时间', '观察接种后状态']
+  }
+
+  if (form.category === '体重记录') {
+    return ['饭前称重', '记录体重数值', '对比上周变化']
+  }
+
+  return ['准备外出用品', '完成后打卡']
+}
+
+function sortPlans(list) {
+  return list.sort(function (a, b) {
+    return (a.date + ' ' + a.time).localeCompare(b.date + ' ' + b.time)
+  })
+}
+
+function buildMonthGrid(year, month, selectedDate, today, plans) {
   var firstDay = new Date(year, month - 1, 1).getDay()
   var daysInMonth = getMonthDays(year, month)
   var prevMonth = month === 1 ? 12 : month - 1
   var prevYear = month === 1 ? year - 1 : year
   var daysInPrevMonth = getMonthDays(prevYear, prevMonth)
+  var planMap = {}
   var cells = []
-  var reminderMap = {}
   var i
 
-  for (i = 0; i < reminders.length; i++) {
-    if (!reminderMap[reminders[i].date]) {
-      reminderMap[reminders[i].date] = []
+  for (i = 0; i < plans.length; i++) {
+    if (!planMap[plans[i].date]) {
+      planMap[plans[i].date] = []
     }
-    reminderMap[reminders[i].date].push(reminders[i])
+    planMap[plans[i].date].push(plans[i])
   }
 
   for (i = 0; i < 42; i++) {
@@ -81,17 +248,14 @@ function buildMonthGrid(year, month, selectedDate, today, reminders) {
     }
 
     var date = formatDate(cellYear, cellMonth, cellDay)
-    var list = reminderMap[date] || []
-    var pendingCount = 0
+    var dayPlans = planMap[date] || []
     var hasStrong = false
     var j
 
-    for (j = 0; j < list.length; j++) {
-      if (!list[j].done) {
-        pendingCount++
-      }
-      if (list[j].strong && !list[j].done) {
+    for (j = 0; j < dayPlans.length; j++) {
+      if (dayPlans[j].strong && !dayPlans[j].done) {
         hasStrong = true
+        break
       }
     }
 
@@ -101,29 +265,21 @@ function buildMonthGrid(year, month, selectedDate, today, reminders) {
       isCurrentMonth: isCurrentMonth,
       isToday: date === today,
       isSelected: date === selectedDate,
-      hasReminder: list.length > 0,
+      hasReminder: dayPlans.length > 0,
       hasStrong: hasStrong,
-      reminderCount: list.length,
-      pendingCount: pendingCount
+      reminderCount: dayPlans.length
     })
   }
 
   return cells
 }
 
-function sortReminders(list) {
-  return list.sort(function (a, b) {
-    var aStr = a.date + ' ' + a.time
-    var bStr = b.date + ' ' + b.time
-    return aStr > bStr ? 1 : -1
-  })
-}
-
 Page({
   data: {
-    categories: ['喂食', '洗澡', '驱虫', '疫苗', '吃药', '遛狗'],
+    categories: ['喂食', '洗澡', '驱虫', '疫苗', '吃药', '遛狗', '体重记录'],
     weekDays: ['日', '一', '二', '三', '四', '五', '六'],
     reminders: [],
+    petOptions: [],
     today: '',
     selectedDate: '',
     currentMonth: '',
@@ -131,16 +287,30 @@ Page({
     currentYear: 0,
     currentMonthNumber: 0,
     calendarDays: [],
-    todayList: [],
     dayList: [],
     showForm: false,
+    suggestedSubtasks: [],
+    formSubtaskDoneCount: 0,
+    optionSheet: {
+      visible: false,
+      title: '',
+      type: '',
+      options: [],
+      selected: ''
+    },
     categoryIndex: 0,
     form: {
       id: '',
+      petId: '',
       title: '',
+      petName: '毛孩子',
+      petAvatar: CAT_IMAGE,
+      note: '',
       date: '',
       time: '08:00',
       category: '喂食',
+      reminderText: '准时提醒',
+      repeatText: '不重复',
       strong: false,
       done: false
     }
@@ -149,6 +319,8 @@ Page({
   onLoad: function () {
     var today = getToday()
     var monthInfo = getMonthStart(today)
+    this.ensureMockPlans()
+    this.loadPets()
     this.setData({
       today: today,
       selectedDate: today,
@@ -160,16 +332,49 @@ Page({
   },
 
   onShow: function () {
-    this.loadReminders()
-    this.checkStrongReminders()
+    this.loadPets()
+    this.loadPlans()
   },
 
-  loadReminders: function () {
-    var list = wx.getStorageSync(REMINDER_KEY) || []
-    list = sortReminders(list)
+  loadPets: function () {
+    var petList = wx.getStorageSync(PET_LIST_KEY)
+    var legacyPets = wx.getStorageSync(LEGACY_PETS_KEY)
+    var source = Array.isArray(petList) && petList.length ? petList : legacyPets
 
     this.setData({
-      reminders: list
+      petOptions: normalizePets(source)
+    })
+  },
+
+  ensureMockPlans: function () {
+    var plans = wx.getStorageSync(CALENDAR_KEY)
+    var legacyPlans = wx.getStorageSync(LEGACY_CALENDAR_KEY)
+
+    if ((!Array.isArray(plans) || !plans.length) && (!Array.isArray(legacyPlans) || !legacyPlans.length)) {
+      wx.setStorageSync(CALENDAR_KEY, DEFAULT_CALENDAR_PLANS)
+      wx.setStorageSync(LEGACY_CALENDAR_KEY, DEFAULT_CALENDAR_PLANS)
+    }
+  },
+
+  loadPlans: function () {
+    var plans = wx.getStorageSync(CALENDAR_KEY)
+    var legacyPlans = wx.getStorageSync(LEGACY_CALENDAR_KEY)
+    var sourceList = Array.isArray(plans) && plans.length ? plans : legacyPlans
+    var normalized = []
+    var i
+
+    if (!Array.isArray(sourceList) || !sourceList.length) {
+      sourceList = DEFAULT_CALENDAR_PLANS
+    }
+
+    for (i = 0; i < sourceList.length; i++) {
+      normalized.push(normalizePlan(sourceList[i]))
+    }
+
+    normalized = sortPlans(normalized)
+
+    this.setData({
+      reminders: normalized
     })
 
     this.refreshList()
@@ -177,28 +382,24 @@ Page({
 
   refreshList: function () {
     var reminders = this.data.reminders
-    var todayList = []
+    var selectedDate = this.data.selectedDate
     var dayList = []
     var calendarDays = buildMonthGrid(
       this.data.currentYear,
       this.data.currentMonthNumber,
-      this.data.selectedDate,
+      selectedDate,
       this.data.today,
       reminders
     )
     var i
 
     for (i = 0; i < reminders.length; i++) {
-      if (reminders[i].date === this.data.today) {
-        todayList.push(reminders[i])
-      }
-      if (reminders[i].date === this.data.selectedDate) {
+      if (reminders[i].date === selectedDate) {
         dayList.push(reminders[i])
       }
     }
 
     this.setData({
-      todayList: todayList,
       dayList: dayList,
       calendarDays: calendarDays,
       currentMonth: formatMonth(this.data.currentYear, this.data.currentMonthNumber),
@@ -206,19 +407,33 @@ Page({
     })
   },
 
-  openAdd: function () {
+  handleAddPlan: function () {
+    var petOptions = this.data.petOptions.length ? this.data.petOptions : DEFAULT_PETS
+    var defaultPet = petOptions[0]
+    var initialForm = {
+      id: '',
+      petId: defaultPet.id,
+      title: '',
+      petName: defaultPet.name,
+      petAvatar: defaultPet.avatar,
+      note: '',
+      subtaskInput: '',
+      subtasks: [],
+      date: this.data.selectedDate || this.data.today,
+      time: '08:00',
+      category: this.data.categories[0],
+      reminderText: '准时提醒',
+      repeatText: '不重复',
+      strong: false,
+      done: false
+    }
+
     this.setData({
       showForm: true,
       categoryIndex: 0,
-      form: {
-        id: '',
-        title: '',
-        date: this.data.selectedDate || this.data.today,
-        time: '08:00',
-        category: this.data.categories[0],
-        strong: false,
-        done: false
-      }
+      suggestedSubtasks: getSuggestedSubtasks(initialForm),
+      form: initialForm,
+      formSubtaskDoneCount: 0
     })
   },
 
@@ -235,9 +450,100 @@ Page({
     this.setData({
       ['form.' + field]: e.detail.value
     })
+
+    if (field === 'title' || field === 'note') {
+      this.updateSuggestedSubtasks()
+    }
   },
 
-  selectDay: function (e) {
+  updateSuggestedSubtasks: function () {
+    this.setData({
+      suggestedSubtasks: getSuggestedSubtasks(this.data.form)
+    })
+  },
+
+  updateFormSubtasks: function (subtasks) {
+    var list = Array.isArray(subtasks) ? subtasks : []
+    var doneCount = list.filter(function (item) {
+      return !!item.done
+    }).length
+
+    this.setData({
+      'form.subtasks': list,
+      formSubtaskDoneCount: doneCount
+    })
+  },
+
+  addSubtask: function () {
+    var input = (this.data.form.subtaskInput || '').trim()
+    var subtasks = (this.data.form.subtasks || []).slice()
+
+    if (!input) {
+      return
+    }
+
+    if (!subtasks.some(function (item) { return item.text === input })) {
+      subtasks.push({
+        text: input,
+        done: false
+      })
+    }
+
+    this.updateFormSubtasks(subtasks)
+    this.setData({
+      'form.subtaskInput': ''
+    })
+  },
+
+  removeSubtask: function (e) {
+    var index = Number(e.currentTarget.dataset.index)
+    var subtasks = (this.data.form.subtasks || []).slice()
+    subtasks.splice(index, 1)
+    this.updateFormSubtasks(subtasks)
+  },
+
+  addSuggestedSubtask: function (e) {
+    var task = e.currentTarget.dataset.task
+    var subtasks = (this.data.form.subtasks || []).slice()
+
+    if (!subtasks.some(function (item) { return item.text === task })) {
+      subtasks.push({
+        text: task,
+        done: false
+      })
+      this.updateFormSubtasks(subtasks)
+    }
+  },
+
+  toggleFormSubtaskDone: function (e) {
+    var index = Number(e.currentTarget.dataset.index)
+    var subtasks = (this.data.form.subtasks || []).slice()
+
+    if (subtasks[index]) {
+      subtasks[index].done = !subtasks[index].done
+      this.updateFormSubtasks(subtasks)
+    }
+  },
+
+  selectPetOption: function (e) {
+    var id = e.currentTarget.dataset.id
+    var petOptions = this.data.petOptions
+    var selectedPet = petOptions.find(function (pet) {
+      return String(pet.id) === String(id)
+    })
+
+    if (!selectedPet) {
+      return
+    }
+
+    this.setData({
+      'form.petId': selectedPet.id,
+      'form.petName': selectedPet.name,
+      'form.petAvatar': selectedPet.avatar
+    })
+  },
+
+  handleDateTap: function (e) {
     var date = e.currentTarget.dataset.date
     var info = parseDate(date)
     this.setData({
@@ -248,7 +554,7 @@ Page({
     this.refreshList()
   },
 
-  prevMonth: function () {
+  handlePrevMonth: function () {
     var year = this.data.currentYear
     var month = this.data.currentMonthNumber - 1
 
@@ -264,7 +570,7 @@ Page({
     this.refreshList()
   },
 
-  nextMonth: function () {
+  handleNextMonth: function () {
     var year = this.data.currentYear
     var month = this.data.currentMonthNumber + 1
 
@@ -290,19 +596,24 @@ Page({
     this.refreshList()
   },
 
-  changeDateFilter: function (e) {
-    var info = parseDate(e.detail.value)
-    this.setData({
-      selectedDate: e.detail.value,
-      currentYear: info.year,
-      currentMonthNumber: info.month
-    })
-    this.refreshList()
-  },
-
   changeFormDate: function (e) {
+    var date = e.detail.value
+    var repeatText = this.data.form.repeatText
+    var repeatOptions = getRepeatOptions(date)
+
+    if (repeatText !== '不重复' && repeatText !== '每天' && repeatText !== '工作日（周一至周五）' && repeatText !== '自定义') {
+      if (repeatText.indexOf('每周') === 0) {
+        repeatText = repeatOptions[3]
+      } else if (repeatText.indexOf('每月') === 0) {
+        repeatText = repeatOptions[4]
+      } else if (repeatText.indexOf('每年') === 0) {
+        repeatText = repeatOptions[5]
+      }
+    }
+
     this.setData({
-      'form.date': e.detail.value
+      'form.date': date,
+      'form.repeatText': repeatText
     })
   },
 
@@ -318,6 +629,7 @@ Page({
       categoryIndex: index,
       'form.category': this.data.categories[index]
     })
+    this.updateSuggestedSubtasks()
   },
 
   switchStrong: function (e) {
@@ -326,10 +638,67 @@ Page({
     })
   },
 
+  chooseReminderOption: function () {
+    this.setData({
+      'optionSheet.visible': true,
+      'optionSheet.title': '提醒方式',
+      'optionSheet.type': 'reminder',
+      'optionSheet.options': REMINDER_OPTIONS,
+      'optionSheet.selected': this.data.form.reminderText
+    })
+  },
+
+  chooseRepeatOption: function () {
+    var options = getRepeatOptions(this.data.form.date || this.data.today)
+    this.setData({
+      'optionSheet.visible': true,
+      'optionSheet.title': '重复规则',
+      'optionSheet.type': 'repeat',
+      'optionSheet.options': options,
+      'optionSheet.selected': this.data.form.repeatText
+    })
+  },
+
+  closeOptionSheet: function () {
+    this.setData({
+      'optionSheet.visible': false
+    })
+  },
+
+  selectOptionItem: function (e) {
+    this.setData({
+      'optionSheet.selected': e.currentTarget.dataset.value
+    })
+  },
+
+  confirmOptionSheet: function () {
+    var type = this.data.optionSheet.type
+    var selected = this.data.optionSheet.selected
+
+    if (type === 'reminder') {
+      this.setData({
+        'form.reminderText': selected,
+        'optionSheet.visible': false
+      })
+      return
+    }
+
+    this.setData({
+      'form.repeatText': selected,
+      'optionSheet.visible': false
+    })
+
+    if (selected === '自定义') {
+      wx.showToast({
+        title: '自定义重复开发中',
+        icon: 'none'
+      })
+    }
+  },
+
   saveReminder: function () {
     var form = this.data.form
-    var reminders = wx.getStorageSync(REMINDER_KEY) || []
-    var i
+    var reminders = this.data.reminders.slice()
 
     if (!form.title) {
       wx.showToast({
@@ -339,11 +708,26 @@ Page({
       return
     }
 
-    form.id = 'reminder_' + Date.now()
-    reminders.unshift(form)
-    reminders = sortReminders(reminders)
+    reminders.unshift({
+      id: 'plan_' + Date.now(),
+      date: form.date,
+      petName: form.petName || '毛孩子',
+      petAvatar: form.petAvatar || (form.petName === '布丁' ? DOG_IMAGE : CAT_IMAGE),
+      type: form.category,
+      title: form.title,
+      time: form.time,
+      color: form.category === '驱虫' ? '#F0A04B' : form.category === '体重记录' ? '#9CAF88' : '#FADA7A',
+      note: form.note || '记得按时完成这条提醒',
+      subtasks: Array.isArray(form.subtasks) ? form.subtasks : [],
+      reminderText: form.reminderText || '准时提醒',
+      repeatText: form.repeatText || '不重复',
+      strong: form.strong,
+      done: false
+    })
 
-    wx.setStorageSync(REMINDER_KEY, reminders)
+    reminders = sortPlans(reminders)
+    wx.setStorageSync(CALENDAR_KEY, reminders)
+    wx.setStorageSync(LEGACY_CALENDAR_KEY, reminders)
 
     this.setData({
       showForm: false,
@@ -357,9 +741,9 @@ Page({
     })
   },
 
-  toggleDone: function (e) {
+  togglePlanDone: function (e) {
     var id = e.currentTarget.dataset.id
-    var reminders = wx.getStorageSync(REMINDER_KEY) || []
+    var reminders = this.data.reminders.slice()
     var i
 
     for (i = 0; i < reminders.length; i++) {
@@ -369,8 +753,8 @@ Page({
       }
     }
 
-    reminders = sortReminders(reminders)
-    wx.setStorageSync(REMINDER_KEY, reminders)
+    wx.setStorageSync(CALENDAR_KEY, reminders)
+    wx.setStorageSync(LEGACY_CALENDAR_KEY, reminders)
 
     this.setData({
       reminders: reminders
@@ -378,56 +762,10 @@ Page({
     this.refreshList()
   },
 
-  deleteReminder: function (e) {
-    var that = this
-    var id = e.currentTarget.dataset.id
-    var reminders = wx.getStorageSync(REMINDER_KEY) || []
-    var newList = []
-    var i
-
-    wx.showModal({
-      title: '提示',
-      content: '确定删除这条提醒吗？',
-      success: function (res) {
-        if (res.confirm) {
-          for (i = 0; i < reminders.length; i++) {
-            if (reminders[i].id !== id) {
-              newList.push(reminders[i])
-            }
-          }
-
-          newList = sortReminders(newList)
-          wx.setStorageSync(REMINDER_KEY, newList)
-
-          that.setData({
-            reminders: newList
-          })
-          that.refreshList()
-        }
-      }
+  handlePlanTap: function () {
+    wx.showToast({
+      title: '计划详情开发中',
+      icon: 'none'
     })
-  },
-
-  checkStrongReminders: function () {
-    var reminders = wx.getStorageSync(REMINDER_KEY) || []
-    var i
-    var strongCount = 0
-
-    for (i = 0; i < reminders.length; i++) {
-      if (
-        reminders[i].date === this.data.today &&
-        reminders[i].strong &&
-        !reminders[i].done
-      ) {
-        strongCount++
-      }
-    }
-
-    if (strongCount > 0) {
-      wx.showToast({
-        title: '今日有强提醒 ' + strongCount + ' 条',
-        icon: 'none'
-      })
-    }
   }
 })

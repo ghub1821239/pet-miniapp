@@ -1,13 +1,24 @@
 <view class="page-container community-page">
-  <view class="community-header">
-    <view>
-      <text class="community-title">萌宠广场</text>
-    </view>
-    <view class="community-header-actions">
-      <view class="community-search" bindtap="openSearch">搜索宠物、话题、同城玩伴</view>
-      <view class="community-top-plus" bindtap="goPublish">+</view>
+  <view class="community-search-section">
+    <view class="community-search-row">
+      <view class="community-search header-search" bindtap="openSearch">搜索宠物、话题、周边玩伴</view>
+      <view class="community-top-plus community-top-search" bindtap="openSearch">⌕</view>
     </view>
   </view>
+
+  <swiper class="community-banner-swiper" autoplay interval="3500" circular indicator-dots indicator-color="rgba(255,255,255,0.55)" indicator-active-color="#ffffff">
+    <block wx:for="{{banners}}" wx:key="id">
+      <swiper-item>
+        <view class="community-banner-card">
+          <image class="community-banner-image" src="{{item.image}}" mode="aspectFill"></image>
+          <view class="community-banner-mask">
+            <text class="community-banner-title">{{item.title}}</text>
+            <text class="community-banner-sub">{{item.subtitle}}</text>
+          </view>
+        </view>
+      </swiper-item>
+    </block>
+  </swiper>
 
   <scroll-view class="channel-scroll" scroll-x enable-flex show-scrollbar="false">
     <view class="channel-list">
@@ -15,7 +26,7 @@
         <view
           class="channel-item {{activeChannel === item ? 'active' : ''}}"
           data-channel="{{item}}"
-          bindtap="switchChannel"
+          bindtap="handleTabChange"
         >
           {{item}}
         </view>
@@ -26,42 +37,30 @@
   <view class="community-grid">
     <view class="community-column">
       <block wx:for="{{leftColumn}}" wx:key="id">
-        <view class="feed-card">
+        <view class="feed-card" bindtap="handlePostTap" data-id="{{item.id}}">
           <view class="feed-cover-wrap">
-            <image wx:if="{{item.coverImage}}" class="feed-cover" src="{{item.coverImage}}" mode="aspectFill"></image>
+            <image wx:if="{{item.coverImage}}" class="feed-cover" src="{{item.coverImage}}" mode="widthFix"></image>
             <view wx:else class="feed-cover feed-cover-placeholder {{'tone-' + item.coverTone}}">
               <text class="feed-cover-emoji">{{item.coverEmoji}}</text>
               <text class="feed-cover-label">{{item.petName}}</text>
             </view>
-            <view wx:if="{{item.mediaType === 'video'}}" class="feed-video-badge">视频</view>
           </view>
 
           <view class="feed-body">
             <text class="feed-title">{{item.title}}</text>
 
-            <view class="feed-tags">
-              <block wx:for="{{item.tags}}" wx:key="*this">
-                <text class="feed-tag">{{item}}</text>
-              </block>
-            </view>
-
-            <view class="feed-pet-card">
-              <text class="feed-pet-name">{{item.petName}}</text>
-              <text class="feed-pet-meta">{{item.breed}} {{item.petCard.age}}</text>
-              <text class="feed-pet-meta">{{item.petCard.personality}}｜{{item.petCard.activity}}</text>
-            </view>
-
             <view class="feed-footer">
               <view class="feed-user">
-                <view class="feed-avatar">{{item.avatar}}</view>
+                <image wx:if="{{item.avatarImage}}" class="feed-avatar-image" src="{{item.avatarImage}}" mode="aspectFill"></image>
+                <view wx:else class="feed-avatar">{{item.avatar}}</view>
                 <view class="feed-user-copy">
                   <text class="feed-user-name">{{item.userName}}</text>
-                  <text class="feed-user-location">{{item.city}}｜{{item.distance}}</text>
                 </view>
               </view>
 
-              <view class="feed-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" bindtap="toggleLike">
-                ❤ {{item.likeCount}}
+              <view class="feed-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" catchtap="handleLike">
+                <text class="feed-like-icon">❤</text>
+                <text>{{item.likeCount}}</text>
               </view>
             </view>
           </view>
@@ -71,42 +70,30 @@
 
     <view class="community-column">
       <block wx:for="{{rightColumn}}" wx:key="id">
-        <view class="feed-card">
+        <view class="feed-card" bindtap="handlePostTap" data-id="{{item.id}}">
           <view class="feed-cover-wrap">
-            <image wx:if="{{item.coverImage}}" class="feed-cover" src="{{item.coverImage}}" mode="aspectFill"></image>
+            <image wx:if="{{item.coverImage}}" class="feed-cover" src="{{item.coverImage}}" mode="widthFix"></image>
             <view wx:else class="feed-cover feed-cover-placeholder {{'tone-' + item.coverTone}}">
               <text class="feed-cover-emoji">{{item.coverEmoji}}</text>
               <text class="feed-cover-label">{{item.petName}}</text>
             </view>
-            <view wx:if="{{item.mediaType === 'video'}}" class="feed-video-badge">视频</view>
           </view>
 
           <view class="feed-body">
             <text class="feed-title">{{item.title}}</text>
 
-            <view class="feed-tags">
-              <block wx:for="{{item.tags}}" wx:key="*this">
-                <text class="feed-tag">{{item}}</text>
-              </block>
-            </view>
-
-            <view class="feed-pet-card">
-              <text class="feed-pet-name">{{item.petName}}</text>
-              <text class="feed-pet-meta">{{item.breed}} {{item.petCard.age}}</text>
-              <text class="feed-pet-meta">{{item.petCard.personality}}｜{{item.petCard.activity}}</text>
-            </view>
-
             <view class="feed-footer">
               <view class="feed-user">
-                <view class="feed-avatar">{{item.avatar}}</view>
+                <image wx:if="{{item.avatarImage}}" class="feed-avatar-image" src="{{item.avatarImage}}" mode="aspectFill"></image>
+                <view wx:else class="feed-avatar">{{item.avatar}}</view>
                 <view class="feed-user-copy">
                   <text class="feed-user-name">{{item.userName}}</text>
-                  <text class="feed-user-location">{{item.city}}｜{{item.distance}}</text>
                 </view>
               </view>
 
-              <view class="feed-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" bindtap="toggleLike">
-                ❤ {{item.likeCount}}
+              <view class="feed-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" catchtap="handleLike">
+                <text class="feed-like-icon">❤</text>
+                <text>{{item.likeCount}}</text>
               </view>
             </view>
           </view>
@@ -116,11 +103,11 @@
   </view>
 
   <view wx:if="{{filteredPosts.length === 0}}" class="card community-empty">
-    <text class="section-title">这个频道还很安静</text>
-    <text class="section-sub">先发一条你家萌宠的动态吧。</text>
+    <text class="section-title">还没有动态</text>
+    <text class="section-sub">发布第一条萌宠日常吧</text>
   </view>
 
-  <view class="community-fab" bindtap="goPublish">
+  <view class="community-fab" bindtap="handlePublish">
     <text class="community-fab-icon">+</text>
   </view>
 

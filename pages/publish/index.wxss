@@ -1,10 +1,40 @@
+.publish-page {
+  padding-top: 18rpx;
+}
+
+.publish-tip {
+  margin-bottom: 20rpx;
+  padding: 0 6rpx;
+}
+
+.publish-tip-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #5b4a3a;
+}
+
+.publish-tip-sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #968472;
+}
+
+.publish-card {
+  padding-top: 18rpx;
+}
+
 .publish-action-row {
   display: flex;
   margin-top: 12rpx;
+  gap: 16rpx;
 }
 
 .publish-action-row button {
-  margin-right: 16rpx;
+  flex: 1;
+  margin-right: 0;
 }
 
 .publish-media-list {
@@ -19,7 +49,7 @@
   border-radius: 18rpx;
   margin-right: 2%;
   margin-bottom: 12rpx;
-  background: #f7f0dd;
+  background: #f7f2e5;
 }
 
 .publish-video-box {
@@ -31,7 +61,7 @@
   width: 100%;
   height: 320rpx;
   border-radius: 20rpx;
-  background: #f7f0dd;
+  background: #f7f2e5;
 }
 
 .publish-video-tag {
@@ -45,24 +75,86 @@
   font-size: 22rpx;
 }
 
-.publish-tag-hint {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: 10rpx;
-}
-
 .publish-switch-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: 18rpx;
+}
+
+.publish-tag-list {
+  display: flex;
+  flex-wrap: wrap;
   margin-top: 12rpx;
+  gap: 12rpx;
+}
+
+.publish-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: #eef5ea;
+  color: #87966f;
+  font-size: 24rpx;
+  line-height: 1.2;
+  border: 1px solid #e1ead7;
+}
+
+.publish-tag-chip.active {
+  background: linear-gradient(180deg, #acc28d, #95ac78);
+  color: #fffdf8;
+  border-color: #95ac78;
 }
 
 .publish-inline-label {
   margin-top: 0;
 }
 
+.publish-input,
+.publish-picker {
+  height: 88rpx;
+  padding: 0 22rpx;
+  line-height: 88rpx;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  color: #5a4632;
+}
+
+.publish-textarea {
+  min-height: 260rpx;
+  padding: 20rpx 22rpx;
+  font-size: 28rpx;
+  line-height: 1.7;
+  color: #5a4632;
+}
+
 .publish-submit {
-  width: 100%;
-  margin-top: 28rpx;
+  width: 78%;
+  margin: 28rpx auto 0;
+  display: block;
+}
+
+.publish-page .field-label {
+  margin-top: 18rpx;
+}
+
+.publish-page .section-title {
+  margin-top: 8rpx;
+}
+
+.publish-page .secondary-btn {
+  height: 84rpx;
+  line-height: 84rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+}
+
+.publish-media-btn {
+  background: linear-gradient(180deg, #acc28d, #95ac78);
+  color: #fffdf8;
+  border-color: #95ac78;
+  box-shadow: 0 10rpx 20rpx rgba(149, 172, 120, 0.18);
 }

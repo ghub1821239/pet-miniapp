@@ -12,7 +12,7 @@
   background: rgba(255, 252, 246, 0.98);
   border-top: 2rpx solid #eadfc9;
   border-radius: 0;
-  padding: 4rpx 24rpx calc(4rpx + env(safe-area-inset-bottom));
+  padding: 6rpx 24rpx calc(6rpx + env(safe-area-inset-bottom));
   box-shadow: 0 -8rpx 24rpx rgba(188, 177, 145, 0.1);
 }
 
@@ -25,7 +25,7 @@
 .tab-center-slot {
   width: 168rpx;
   flex-shrink: 0;
-  height: 104rpx;
+  height: 98rpx;
   position: relative;
 }
 
@@ -33,7 +33,7 @@
   flex: 1;
   min-width: 0;
   text-align: center;
-  padding: 4rpx 0;
+  padding: 6rpx 0 2rpx;
   color: #a3927d;
   border-radius: 999rpx;
 }
@@ -45,7 +45,25 @@
 
 .tab-icon {
   display: block;
-  font-size: 28rpx;
+  width: 50rpx;
+  height: 50rpx;
+  margin: 0 auto;
+}
+
+.tab-icon-community,
+.tab-icon-calendar {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.tab-icon-diary {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.tab-icon-pet {
+  width: 42rpx;
+  height: 42rpx;
 }
 
 .tab-text {
@@ -78,8 +96,8 @@
 
 .tab-center-icon {
   display: block;
-  font-size: 38rpx;
-  line-height: 1;
+  width: 58rpx;
+  height: 58rpx;
 }
 
 .tab-center-text {

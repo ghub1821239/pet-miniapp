@@ -9,9 +9,9 @@
   ],
   "window": {
     "navigationBarTitleText": "萌宠日记",
-    "navigationBarBackgroundColor": "#f4e3b2",
+    "navigationBarBackgroundColor": "#F4DDA0",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#fffaf0",
+    "backgroundColor": "#FDF9EF",
     "backgroundTextStyle": "light"
   },
   "style": "v2",

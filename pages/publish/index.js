@@ -20,11 +20,11 @@ function getNowText() {
 Page({
   data: {
     sections: ['日常分享', '找玩伴', '求助', '同城', '周边'],
-    sectionIndex: 0,
-    tagOptions: ['柴犬', '猫猫', '同城', '找玩伴', '遛狗', '日常', '求助', '拍照打卡'],
+    tagOptions: ['日常分享', '找玩伴', '求助', '周边', '晒宠', '猫猫', '狗狗', '拍照打卡'],
     pets: [],
     petNames: ['暂不关联'],
     petIndex: 0,
+    selectedTags: [],
     form: {
       title: '',
       content: '',
@@ -34,7 +34,6 @@ Page({
       petName: '',
       breed: '',
       city: '天津',
-      distance: '同城',
       tagsText: '',
       showLocation: true
     }
@@ -66,41 +65,54 @@ Page({
     })
   },
 
-  chooseImages: function () {
+  chooseAlbumMedia: function () {
+    this.pickMedia(['album'])
+  },
+
+  chooseCameraMedia: function () {
+    this.pickMedia(['camera'])
+  },
+
+  pickMedia: function (sourceType) {
     var that = this
-    wx.chooseImage({
+
+    if (!wx.chooseMedia) {
+      wx.showToast({
+        title: '当前基础库暂不支持',
+        icon: 'none'
+      })
+      return
+    }
+
+    wx.chooseMedia({
       count: 3,
+      mediaType: ['image', 'video'],
+      sourceType: sourceType,
+      maxDuration: 30,
       sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
       success: function (res) {
+        var files = res.tempFiles || []
+        var firstVideo = files.find(function (item) {
+          return item.fileType === 'video'
+        })
+
+        if (firstVideo) {
+          that.setData({
+            'form.videoCover': firstVideo.thumbTempFilePath || '',
+            'form.images': [],
+            'form.mediaType': 'video'
+          })
+          return
+        }
+
         that.setData({
-          'form.images': res.tempFilePaths,
+          'form.images': files.map(function (item) {
+            return item.tempFilePath
+          }),
           'form.mediaType': 'image',
           'form.videoCover': ''
         })
       }
-    })
-  },
-
-  chooseVideo: function () {
-    var that = this
-    wx.chooseVideo({
-      sourceType: ['album', 'camera'],
-      maxDuration: 30,
-      compressed: true,
-      success: function (res) {
-        that.setData({
-          'form.videoCover': res.thumbTempFilePath || '',
-          'form.images': [],
-          'form.mediaType': 'video'
-        })
-      }
-    })
-  },
-
-  changeSection: function (e) {
-    this.setData({
-      sectionIndex: Number(e.detail.value)
     })
   },
 
@@ -122,11 +134,30 @@ Page({
     })
   },
 
+  handleTagTap: function (e) {
+    var tag = e.currentTarget.dataset.tag
+    var selectedTags = this.data.selectedTags.slice()
+    var index = selectedTags.indexOf(tag)
+
+    if (index > -1) {
+      selectedTags.splice(index, 1)
+    } else {
+      selectedTags.push(tag)
+    }
+
+    this.setData({
+      selectedTags: selectedTags
+    })
+  },
+
   submitPost: function () {
     var form = this.data.form
     var list = wx.getStorageSync(COMMUNITY_KEY) || []
-    var section = this.data.sections[this.data.sectionIndex]
+    var customTags = []
+    var selectedTags = this.data.selectedTags || []
     var tags = []
+    var channel = '日常分享'
+    var distanceText = '同城'
 
     if (!form.title) {
       wx.showToast({
@@ -145,12 +176,26 @@ Page({
     }
 
     if (form.tagsText) {
-      tags = form.tagsText.split(/[,，\s]+/).filter(Boolean)
+      customTags = form.tagsText.split(/[,，\s]+/).filter(Boolean)
     }
 
+    tags = selectedTags.concat(customTags).filter(Boolean)
+
     if (tags.length === 0) {
-      tags.push(section)
+      tags = ['日常分享']
     }
+
+    if (tags.indexOf('找玩伴') > -1) {
+      channel = '找玩伴'
+    } else if (tags.indexOf('求助') > -1) {
+      channel = '求助'
+    } else if (tags.indexOf('周边') > -1) {
+      channel = '周边'
+    } else {
+      channel = '推荐'
+    }
+
+    distanceText = channel === '周边' ? '约 2km' : channel === '找玩伴' ? '同城玩伴' : '同城'
 
     list.unshift({
       id: 'community_' + Date.now(),
@@ -164,9 +209,9 @@ Page({
       petName: form.petName || '我家宝贝',
       breed: form.breed || '萌宠',
       city: form.showLocation ? form.city : '同城宠友',
-      distance: form.showLocation ? form.distance : '同城',
+      distance: form.showLocation ? distanceText : '同城',
       tags: tags,
-      channel: section,
+      channel: channel,
       createdAt: getNowText(),
       likeCount: 0,
       liked: false,
@@ -174,7 +219,7 @@ Page({
       petCard: {
         age: '',
         personality: '亲人',
-        activity: section === '找玩伴' ? '遛弯交友' : '日常分享'
+        activity: channel === '找玩伴' ? '遛弯交友' : '日常分享'
       }
     })
 
