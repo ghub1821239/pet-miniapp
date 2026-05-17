@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "萌宠识别",
+  "navigationStyle": "custom",
   "usingComponents": {
     "pet-tabbar": "/components/tabbar/index"
   }

@@ -1,4 +1,10 @@
 <view class="page-container community-page">
+  <view class="page-topbar">
+    <view class="page-topbar-inner">
+      <text class="page-topbar-title">萌宠广场</text>
+    </view>
+  </view>
+
   <view class="community-search-section">
     <view class="community-search-row">
       <view class="community-search header-search" bindtap="openSearch">搜索宠物、话题、周边玩伴</view>

@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "萌宠日历",
+  "navigationStyle": "custom",
   "usingComponents": {
     "pet-tabbar": "/components/tabbar/index"
   }

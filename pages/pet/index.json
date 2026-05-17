@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "宠物档案",
+  "navigationStyle": "custom",
   "usingComponents": {
     "pet-tabbar": "/components/tabbar/index"
   }

@@ -1,20 +1,21 @@
 <view class="page-container identify-page">
+  <view class="page-topbar">
+    <view class="page-topbar-inner">
+      <text class="page-topbar-title">萌宠识别</text>
+    </view>
+  </view>
+
   <view class="hero identify-hero">
     <text class="hero-title">拍一拍，认识你的毛孩子</text>
     <text class="hero-sub">支持宠物品种识别、外观特征分析和养护建议生成。</text>
   </view>
 
-  <view class="card">
-    <text class="section-title">识别入口</text>
-    <view class="identify-action-grid">
-      <block wx:for="{{identifyActions}}" wx:key="id">
-        <view class="identify-action-item" bindtap="handleActionTap" data-id="{{item.id}}">
-          <view class="identify-action-icon">{{item.icon}}</view>
-          <text class="identify-action-title">{{item.title}}</text>
-          <text class="identify-action-desc">{{item.desc}}</text>
-        </view>
-      </block>
+  <view class="card identify-status-card {{serviceReady ? 'is-ready' : 'is-fallback'}}">
+    <view class="identify-status-head">
+      <text class="identify-status-mode">{{serviceModeText}}</text>
+      <text class="identify-status-title">{{serviceReady ? '识别服务可用' : '当前使用示例模式'}}</text>
     </view>
+    <text class="identify-status-copy">{{serviceStatusText}}</text>
   </view>
 
   <view class="card">
@@ -37,7 +38,7 @@
   <view class="card">
     <view class="row-between">
       <view>
-        <text class="section-title">示例识别结果</text>
+        <text class="section-title">{{hasRecognizedResult ? '识别结果' : '识别示例'}}</text>
         <text class="section-sub">{{result.createdAt}}</text>
       </view>
       <text class="identify-confidence">{{result.confidence}}%</text>
@@ -45,11 +46,14 @@
 
     <image class="identify-demo-image" src="{{result.image}}" mode="aspectFill"></image>
 
-    <view class="identify-result-head">
-      <view class="identify-pet-badge">🐾</view>
-      <view class="identify-pet-copy">
-        <text class="identify-pet-name">{{result.petName}}</text>
-        <text class="identify-pet-meta">{{result.species}} · {{result.breed}}</text>
+    <view class="identify-core-grid">
+      <view class="identify-core-item">
+        <text class="identify-core-label">宠物种类</text>
+        <text class="identify-core-value">{{result.species}}</text>
+      </view>
+      <view class="identify-core-item">
+        <text class="identify-core-label">识别品种</text>
+        <text class="identify-core-value">{{result.breed}}</text>
       </view>
     </view>
 
@@ -59,7 +63,10 @@
       </block>
     </view>
 
-    <view class="tip-box identify-advice-box">{{result.advice}}</view>
+    <view class="identify-advice-card">
+      <text class="identify-advice-title">饲养建议</text>
+      <text class="identify-advice-copy">{{result.advice}}</text>
+    </view>
 
     <view class="identify-result-actions">
       <button class="secondary-btn identify-action-btn" bindtap="handleSaveToArchive">保存到档案</button>
