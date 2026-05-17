@@ -21,7 +21,7 @@ var upload = multer({
   }
 })
 
-var port = Number(process.env.PORT || 3007)
+var port = getRuntimePort()
 var provider = process.env.MODEL_PROVIDER || 'qwen'
 var model = process.env.QWEN_MODEL || 'qwen-vl-max-latest'
 var baseURL = process.env.QWEN_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1'
@@ -150,8 +150,8 @@ app.post('/pet-recognize', upload.single('file'), async function (req, res) {
   }
 })
 
-app.listen(port, function () {
-  console.log('pet identify server running at http://localhost:' + port)
+app.listen(port, '0.0.0.0', function () {
+  console.log('pet identify server running at http://0.0.0.0:' + port)
 })
 
 function safeParseRecognitionResult(rawText) {
@@ -211,4 +211,22 @@ function formatNow() {
 
 function pad(num) {
   return num < 10 ? '0' + num : String(num)
+}
+
+function getRuntimePort() {
+  var candidates = [
+    process.env.PORT,
+    process.env.SERVER_PORT,
+    process.env.WX_CLOUDRUN_PORT,
+    3007
+  ]
+
+  for (var i = 0; i < candidates.length; i += 1) {
+    var value = Number(candidates[i])
+    if (!Number.isNaN(value) && value > 0) {
+      return value
+    }
+  }
+
+  return 3007
 }
