@@ -1,0 +1,43 @@
+<view class="pet-tabbar-shell">
+  <view class="pet-tabbar">
+    <view class="tab-side">
+      <block wx:for="{{leftItems}}" wx:key="key">
+        <view
+          class="tab-item {{current === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          data-url="{{item.url}}"
+          bindtap="goPage"
+        >
+          <image class="tab-icon tab-icon-{{item.key}}" src="{{current === item.key ? item.activeIcon : item.icon}}" mode="aspectFit"></image>
+          <text class="tab-text">{{item.text}}</text>
+        </view>
+      </block>
+    </view>
+
+    <view class="tab-center-slot">
+      <view
+        class="tab-center-item {{current === centerItem.key ? 'active' : ''}}"
+        data-key="{{centerItem.key}}"
+        data-url="{{centerItem.url}}"
+        bindtap="goPage"
+      >
+        <image class="tab-center-icon" src="{{centerItem.icon}}" mode="aspectFit"></image>
+        <text class="tab-center-text">{{centerItem.text}}</text>
+      </view>
+    </view>
+
+    <view class="tab-side">
+      <block wx:for="{{rightItems}}" wx:key="key">
+        <view
+          class="tab-item {{current === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          data-url="{{item.url}}"
+          bindtap="goPage"
+        >
+          <image class="tab-icon tab-icon-{{item.key}}" src="{{current === item.key ? item.activeIcon : item.icon}}" mode="aspectFit"></image>
+          <text class="tab-text">{{item.text}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,244 @@
+.identify-page {
+  background: linear-gradient(180deg, #fbf7eb 0%, #fff8e7 24%, #f7f9f0 100%);
+}
+
+.identify-status-card {
+  margin-top: -2rpx;
+}
+
+.identify-status-card.is-ready {
+  background: linear-gradient(180deg, #f9fcf6 0%, #f4f9ef 100%);
+}
+
+.identify-status-card.is-fallback {
+  background: linear-gradient(180deg, #fffdf8 0%, #fff8ec 100%);
+}
+
+.identify-status-head {
+  display: flex;
+  align-items: center;
+}
+
+.identify-status-mode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 112rpx;
+  height: 44rpx;
+  padding: 0 16rpx;
+  border-radius: 999rpx;
+  background: #eef5ea;
+  color: #7f956d;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.identify-status-title {
+  margin-left: 14rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #5a4632;
+}
+
+.identify-status-copy {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #8f7b67;
+}
+
+.upload-box {
+  width: 100%;
+  height: 360rpx;
+  border-radius: 24rpx;
+  background: #fbfbf3;
+  border: 2rpx dashed #b1c29e;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.upload-empty {
+  text-align: center;
+  color: #9f8d78;
+}
+
+.upload-icon {
+  display: block;
+  font-size: 64rpx;
+  margin-bottom: 14rpx;
+}
+
+.upload-text {
+  font-size: 28rpx;
+}
+
+.identify-btn-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20rpx;
+}
+
+.identify-btn-row button {
+  width: 48%;
+}
+
+.identify-confidence {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #87996e;
+}
+
+.identify-demo-image {
+  width: 100%;
+  height: 320rpx;
+  display: block;
+  margin-top: 18rpx;
+  border-radius: 24rpx;
+}
+
+.identify-core-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+
+.identify-core-item {
+  padding: 22rpx 20rpx;
+  border-radius: 22rpx;
+  background: linear-gradient(180deg, #fffef8 0%, #f8fbf2 100%);
+  border: 1px solid #ece2cf;
+}
+
+.identify-core-label {
+  display: block;
+  font-size: 22rpx;
+  color: #9a8b7a;
+}
+
+.identify-core-value {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 30rpx;
+  line-height: 1.4;
+  font-weight: 700;
+  color: #5a4632;
+}
+
+.identify-feature-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 18rpx;
+}
+
+.identify-feature-tag {
+  margin-top: 10rpx;
+}
+
+.identify-advice-card {
+  margin-top: 20rpx;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: #fffdf6;
+  border: 1px solid #ece2cf;
+}
+
+.identify-advice-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #5a4632;
+}
+
+.identify-advice-copy {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #8f7b67;
+}
+
+.identify-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 22rpx;
+}
+
+.identify-action-btn {
+  margin-right: 14rpx;
+  margin-top: 12rpx;
+}
+
+.identify-record-item {
+  display: flex;
+  align-items: center;
+  padding: 18rpx 0;
+  border-bottom: 1px solid #efe5d4;
+}
+
+.identify-record-item:last-child {
+  border-bottom: none;
+}
+
+.identify-record-image {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 20rpx;
+  margin-right: 18rpx;
+  flex-shrink: 0;
+}
+
+.identify-record-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #5a4632;
+}
+
+.identify-record-meta {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #8f7b67;
+}
+
+.identify-record-side {
+  margin-left: 20rpx;
+  text-align: right;
+}
+
+.identify-record-date {
+  display: block;
+  font-size: 22rpx;
+  color: #9a8b7a;
+}
+
+.identify-record-action {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #87996e;
+}
+
+.empty-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #5a4632;
+}
+
+.empty-copy {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #9a8b7a;
+  line-height: 1.7;
+}

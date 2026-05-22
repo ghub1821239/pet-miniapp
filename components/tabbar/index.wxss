@@ -1,0 +1,113 @@
+.pet-tabbar-shell {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+.pet-tabbar {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 252, 246, 0.98);
+  border-top: 2rpx solid #eadfc9;
+  border-radius: 0;
+  padding: 6rpx 24rpx calc(6rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -8rpx 24rpx rgba(188, 177, 145, 0.1);
+}
+
+.tab-side {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.tab-center-slot {
+  width: 168rpx;
+  flex-shrink: 0;
+  height: 98rpx;
+  position: relative;
+}
+
+.tab-item {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  padding: 6rpx 0 2rpx;
+  color: #a3927d;
+  border-radius: 999rpx;
+}
+
+.tab-item.active {
+  background: #f3f6ea;
+  color: #8b9b72;
+}
+
+.tab-icon {
+  display: block;
+  width: 50rpx;
+  height: 50rpx;
+  margin: 0 auto;
+}
+
+.tab-icon-community,
+.tab-icon-calendar {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.tab-icon-diary {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.tab-icon-consult {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.tab-icon-pet {
+  width: 42rpx;
+  height: 42rpx;
+}
+
+.tab-text {
+  display: block;
+  font-size: 18rpx;
+  margin-top: 2rpx;
+}
+
+.tab-center-item {
+  position: absolute;
+  left: 18rpx;
+  right: 18rpx;
+  top: -24rpx;
+  height: 112rpx;
+  border-radius: 40rpx;
+  background: linear-gradient(180deg, #a8c08a, #91aa74);
+  color: #fffef8;
+  box-shadow: 0 22rpx 42rpx rgba(146, 168, 114, 0.28);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 8rpx solid #fffdf6;
+  margin: 0 auto;
+}
+
+.tab-center-item.active {
+  box-shadow: 0 26rpx 50rpx rgba(146, 168, 114, 0.34);
+}
+
+.tab-center-icon {
+  display: block;
+  width: 58rpx;
+  height: 58rpx;
+}
+
+.tab-center-text {
+  display: block;
+  font-size: 20rpx;
+  margin-top: 6rpx;
+  line-height: 1;
+}

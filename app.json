@@ -1,0 +1,25 @@
+{
+  "pages": [
+    "pages/forum/index",
+    "pages/index/index",
+    "pages/consult/index",
+    "pages/identify/index",
+    "pages/calendar/index",
+    "pages/pet/index",
+    "pages/publish/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "萌宠日记",
+    "navigationBarBackgroundColor": "#F4DDA0",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#FDF9EF",
+    "backgroundTextStyle": "light"
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于为你推荐附近宠物医院"
+    }
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

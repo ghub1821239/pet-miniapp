@@ -1,0 +1,196 @@
+<view class="page-container pet-page">
+  <view class="page-topbar">
+    <view class="page-topbar-inner">
+      <text class="page-topbar-title">宠物档案</text>
+    </view>
+  </view>
+
+  <view class="hero archive-hero">
+    <view class="hero-copy">
+      <text class="hero-title">建立毛孩子的专属档案</text>
+      <text class="hero-sub">记录生日、品种、健康提醒和成长瞬间，生成专属萌宠名片。</text>
+      <button class="primary-btn hero-btn" bindtap="handleAddPet">+ 新增宠物</button>
+    </view>
+    <view class="hero-decor">
+      <view class="hero-paw">🐾</view>
+      <view class="hero-bubble">♡</view>
+      <view class="hero-dot hero-dot-green"></view>
+      <view class="hero-dot hero-dot-yellow"></view>
+    </view>
+  </view>
+
+  <block wx:if="{{currentPet}}">
+    <view class="card current-pet-card">
+      <view class="section-row">
+        <view>
+          <text class="section-title">当前宠物名片</text>
+          <text class="section-sub">把最重要的资料，整理成一张一眼就能看到的萌宠名片</text>
+        </view>
+        <button class="small-btn current-edit-btn" bindtap="handleEditProfile" data-id="{{currentPet.id}}">编辑资料</button>
+      </view>
+
+      <view class="current-pet-main">
+        <view class="current-pet-avatar-wrap" style="background: {{currentPet.softColor}};">
+          <image wx:if="{{currentPet.avatarType === 'image'}}" class="current-pet-avatar" src="{{currentPet.avatarValue}}" mode="aspectFill"></image>
+          <view wx:else class="current-pet-avatar current-pet-avatar-fallback" style="background: {{currentPet.color}};">
+            <text class="current-pet-avatar-text">{{currentPet.initial}}</text>
+          </view>
+        </view>
+
+        <view class="current-pet-info">
+          <text class="current-pet-name">{{currentPet.name}}</text>
+          <text class="current-pet-meta">{{currentPet.breed}} · {{currentPet.gender}} · {{currentPet.ageText}}</text>
+
+          <view class="current-pet-stats">
+            <view class="current-stat">
+              <text class="current-stat-label">生日</text>
+              <text class="current-stat-value">{{currentPet.birthday || '未填写'}}</text>
+            </view>
+            <view class="current-stat">
+              <text class="current-stat-label">体重</text>
+              <text class="current-stat-value">{{currentPet.weight}}</text>
+            </view>
+          </view>
+
+          <view class="current-tag-row">
+            <block wx:for="{{currentPet.tags}}" wx:key="*this">
+              <text class="tag current-tag">{{item}}</text>
+            </block>
+          </view>
+        </view>
+      </view>
+
+      <view class="current-reminder">
+        <text class="current-reminder-icon">⏰</text>
+        <text class="current-reminder-text">{{currentPet.nextReminder}}</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="section-title">养宠概览</text>
+      <view class="overview-grid">
+        <block wx:for="{{overviewList}}" wx:key="key">
+          <view class="overview-item">
+            <text class="overview-value">{{item.value}}</text>
+            <text class="overview-label">{{item.label}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <view class="card pet-list-card">
+      <view class="section-row">
+        <view>
+          <text class="section-title">我的宠物</text>
+          <text class="section-sub">点开不同的小家伙，切换它们的专属档案</text>
+        </view>
+      </view>
+
+      <view class="pet-list">
+        <block wx:for="{{petList}}" wx:key="id">
+          <view class="pet-item {{currentPetId === item.id ? 'pet-item-active' : ''}}" bindtap="handlePetTap" data-id="{{item.id}}">
+            <view class="pet-item-top">
+              <view class="pet-item-avatar-wrap" style="background: {{item.softColor}};">
+                <image wx:if="{{item.avatarType === 'image'}}" class="pet-item-avatar" src="{{item.avatarValue}}" mode="aspectFill"></image>
+                <view wx:else class="pet-item-avatar pet-item-avatar-fallback" style="background: {{item.color}};">
+                  <text class="pet-item-avatar-text">{{item.initial}}</text>
+                </view>
+              </view>
+
+              <view class="pet-item-main">
+                <view class="pet-item-name-row">
+                  <text class="pet-item-name">{{item.name}}</text>
+                  <text class="pet-item-type">{{item.species}}</text>
+                </view>
+                <text class="pet-item-sub">{{item.breed}} · {{item.ageText}}</text>
+                <text class="pet-item-reminder">下次提醒：{{item.nextReminder}}</text>
+              </view>
+            </view>
+
+            <view class="pet-item-bottom">
+              <text class="pet-item-stat">成长日记 {{item.diaryCount}}</text>
+              <text class="pet-item-stat">识别记录 {{item.identifyCount}}</text>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <view class="tip-note">
+      <view class="tip-note-badge">🐾</view>
+      <view class="tip-note-copy">
+        <text class="tip-note-title">今日养宠小贴士</text>
+        <text class="tip-note-text">定期记录体重、驱虫和疫苗时间，可以帮助你更好地观察毛孩子的健康变化。</text>
+      </view>
+    </view>
+  </block>
+
+  <view wx:else class="card empty-profile-card">
+    <text class="empty-pet-emoji">🐾</text>
+    <text class="empty-pet-title">还没有毛孩子的档案</text>
+    <text class="empty-pet-copy">先为它建立一张专属萌宠名片吧</text>
+    <button class="primary-btn empty-pet-btn" bindtap="handleCreateFirstPet">+ 创建第一只宠物</button>
+    <button class="secondary-btn empty-pet-btn secondary-empty-btn" bindtap="handleImportFromIdentify">使用识别结果导入</button>
+  </view>
+
+  <view wx:if="{{showForm}}" class="mask" bindtap="closeForm">
+    <view class="modal pet-form-modal" catchtap="noop">
+      <text class="modal-title">{{formMode === 'add' ? '新增宠物' : '编辑宠物'}}</text>
+
+      <text class="field-label">宠物名称</text>
+      <input class="input" placeholder="例如：奶糖" value="{{form.name}}" data-field="name" bindinput="bindInput" />
+
+      <text class="field-label">宠物类别</text>
+      <input class="input" placeholder="例如：猫咪 / 狗狗" value="{{form.type}}" data-field="type" bindinput="bindInput" />
+
+      <text class="field-label">品种</text>
+      <input class="input" placeholder="例如：蓝金渐层长毛猫 / 萨摩耶" value="{{form.breed}}" data-field="breed" bindinput="bindInput" />
+
+      <text class="field-label">性别</text>
+      <input class="input" placeholder="例如：弟弟 / 妹妹" value="{{form.gender}}" data-field="gender" bindinput="bindInput" />
+
+      <text class="field-label">生日</text>
+      <picker mode="date" value="{{form.birthday}}" bindchange="changeBirthday">
+        <view class="picker-box">{{form.birthday || '请选择生日'}}</view>
+      </picker>
+
+      <text class="field-label">年龄</text>
+      <view class="picker-box pet-readonly-box">{{form.age || '填写生日后自动计算'}}</view>
+
+      <text class="field-label">体重</text>
+      <input class="input" placeholder="例如：4.2kg" value="{{form.weight}}" data-field="weight" bindinput="bindInput" />
+
+      <text class="field-label">喜好</text>
+      <input class="input" placeholder="例如：喜欢罐头、爱散步" value="{{form.likes}}" data-field="likes" bindinput="bindInput" />
+
+      <text class="field-label">性格</text>
+      <input class="input" placeholder="例如：温顺、活泼、黏人" value="{{form.personality}}" data-field="personality" bindinput="bindInput" />
+
+      <text class="field-label">下一次提醒</text>
+      <input class="input" placeholder="例如：5月20日 驱虫提醒" value="{{form.nextReminder}}" data-field="nextReminder" bindinput="bindInput" />
+
+      <text class="field-label">默认头像</text>
+      <view class="flex-wrap">
+        <block wx:for="{{defaultAvatars}}" wx:key="*this">
+          <view
+            class="avatar-choice {{form.avatarType === 'emoji' && form.avatarValue === item ? 'active' : ''}}"
+            data-value="{{item}}"
+            bindtap="chooseDefaultAvatar"
+          >
+            {{item}}
+          </view>
+        </block>
+      </view>
+
+      <text class="field-label">或上传自定义头像</text>
+      <button class="secondary-btn mt12" bindtap="uploadAvatar">上传头像</button>
+
+      <view class="modal-actions pet-form-actions">
+        <button class="secondary-btn" bindtap="closeForm">取消</button>
+        <button class="primary-btn" bindtap="savePet">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <pet-tabbar current="pet"></pet-tabbar>
+</view>

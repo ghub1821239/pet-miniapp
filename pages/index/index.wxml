@@ -1,0 +1,103 @@
+<view class="page-container diary-page">
+  <view class="page-topbar">
+    <view class="page-topbar-inner">
+      <text class="page-topbar-title">萌宠日记</text>
+    </view>
+  </view>
+
+  <view class="hero diary-hero">
+    <text class="hero-title">{{hero.title}}</text>
+    <text class="hero-sub">{{hero.subtitle}}</text>
+    <text class="hero-copy">{{hero.description}}</text>
+
+    <view class="hero-tags">
+      <block wx:for="{{hero.tags}}" wx:key="*this">
+        <text class="hero-tag">{{item}}</text>
+      </block>
+    </view>
+  </view>
+
+  <view class="card overview-card">
+    <view class="section-head">
+      <text class="section-title">记录概览</text>
+      <text class="section-sub">陪伴会慢慢长成看得见的时间刻度</text>
+    </view>
+
+    <view class="overview-grid">
+      <block wx:for="{{overview}}" wx:key="key">
+        <view class="overview-item">
+          <text class="overview-value">{{item.value}}<text class="overview-suffix">{{item.suffix}}</text></text>
+          <text class="overview-label">{{item.label}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view class="card timeline-card">
+    <view class="section-head">
+      <text class="section-title">成长时间轴</text>
+      <text class="section-sub">把每一次小进步，都收进毛孩子的成长手账</text>
+    </view>
+
+    <block wx:if="{{diaryList.length}}">
+      <view class="timeline-list">
+        <block wx:for="{{diaryList}}" wx:key="id">
+          <view class="timeline-item" bindtap="handleDiaryTap" data-id="{{item.id}}">
+            <view class="timeline-line"></view>
+            <view class="timeline-dot"></view>
+
+            <view class="timeline-main">
+              <view class="timeline-top">
+                <text class="timeline-date">{{item.dateLabel}}</text>
+                <text class="timeline-visibility {{item.isPublic ? 'is-public' : ''}}">{{item.visibilityText}}</text>
+              </view>
+
+              <view class="timeline-card-inner">
+                <image wx:if="{{item.images.length}}" class="timeline-photo" src="{{item.images[0]}}" mode="aspectFill"></image>
+
+                <view class="timeline-cover" wx:if="{{!item.images.length}}">
+                  <text class="timeline-cover-icon">🐾</text>
+                  <text class="timeline-cover-text">{{item.coverText}}</text>
+                </view>
+
+                <view class="timeline-meta">
+                  <view class="timeline-pet">
+                    <view class="timeline-avatar">
+                      <text class="timeline-avatar-text">{{item.petInitial}}</text>
+                    </view>
+                    <view class="timeline-pet-copy">
+                      <text class="timeline-pet-name">{{item.petName}}</text>
+                      <text class="timeline-time">{{item.time}}</text>
+                    </view>
+                  </view>
+
+                  <text class="timeline-title">{{item.title}}</text>
+                  <text class="timeline-content">{{item.content}}</text>
+
+                  <view class="timeline-tags">
+                    <block wx:for="{{item.tags}}" wx:key="*this">
+                      <text class="tag timeline-tag">{{item}}</text>
+                    </block>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </block>
+
+    <view class="empty diary-empty" wx:else>
+      <text class="empty-icon">🐾</text>
+      <text class="empty-title">还没有日记</text>
+      <text class="empty-copy">第一条记录，就从今天开始吧</text>
+      <button class="primary-btn empty-btn" bindtap="handleAddDiary" data-type="note">写第一篇日记</button>
+    </view>
+  </view>
+
+  <view class="fab-add" bindtap="handleAddDiary" data-type="note">
+    <text class="fab-plus">+</text>
+  </view>
+
+  <pet-tabbar current="diary"></pet-tabbar>
+</view>

@@ -1,0 +1,52 @@
+<view class="page-container publish-page">
+  <view class="publish-tip">
+    <text class="publish-tip-title">记录这一刻</text>
+    <text class="publish-tip-sub">分享宠物日常、找玩伴或求助内容</text>
+  </view>
+
+  <view class="card publish-card">
+    <text class="section-title">动态内容</text>
+
+    <view class="publish-action-row">
+      <button class="secondary-btn publish-media-btn" bindtap="chooseAlbumMedia">从相册选择</button>
+      <button class="secondary-btn publish-media-btn" bindtap="chooseCameraMedia">直接拍摄</button>
+    </view>
+
+    <view wx:if="{{form.images.length > 0}}" class="publish-media-list">
+      <block wx:for="{{form.images}}" wx:key="*this">
+        <image class="publish-thumb" src="{{item}}" mode="aspectFill"></image>
+      </block>
+    </view>
+
+    <view wx:if="{{form.videoCover}}" class="publish-video-box">
+      <image class="publish-video-cover" src="{{form.videoCover}}" mode="aspectFill"></image>
+      <text class="publish-video-tag">视频封面</text>
+    </view>
+
+    <text class="field-label">标题</text>
+    <input class="input publish-input" placeholder="写一个简短标题" value="{{form.title}}" data-field="title" bindinput="bindInput" />
+
+    <text class="field-label">正文</text>
+    <textarea class="textarea publish-textarea" placeholder="分享今天发生的可爱瞬间..." value="{{form.content}}" data-field="content" bindinput="bindInput"></textarea>
+
+    <text class="field-label">关联宠物</text>
+    <picker range="{{petNames}}" value="{{petIndex}}" bindchange="changePet">
+      <view class="picker-box publish-picker">{{petNames[petIndex]}}</view>
+    </picker>
+
+    <text class="field-label">标签</text>
+    <input class="input publish-input" placeholder="自定义标签，多个可用空格或逗号分隔" value="{{form.tagsText}}" data-field="tagsText" bindinput="bindInput" />
+    <view class="publish-tag-list">
+      <block wx:for="{{tagOptions}}" wx:key="*this">
+        <text class="publish-tag-chip {{selectedTags.indexOf(item) > -1 ? 'active' : ''}}" data-tag="{{item}}" bindtap="handleTagTap">{{item}}</text>
+      </block>
+    </view>
+
+    <view class="publish-switch-row">
+      <text class="field-label publish-inline-label">显示位置</text>
+      <switch checked="{{form.showLocation}}" color="#B1C29E" bindchange="switchLocation" />
+    </view>
+
+    <button class="primary-btn publish-submit" bindtap="submitPost">发布动态</button>
+  </view>
+</view>

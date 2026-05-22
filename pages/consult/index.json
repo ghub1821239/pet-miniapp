@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "萌宠问诊",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "pet-tabbar": "/components/tabbar/index"
+  }
+}

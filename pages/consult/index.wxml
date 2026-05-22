@@ -1,0 +1,116 @@
+<view class="page-container consult-page">
+  <view class="page-topbar">
+    <view class="page-topbar-inner">
+      <text class="page-topbar-title">萌宠问诊</text>
+    </view>
+  </view>
+
+  <view class="consult-toolbar card">
+    <view class="search-row">
+      <input
+        class="search-input"
+        placeholder="搜索宠物医院、动物诊所"
+        value="{{keyword}}"
+        bindinput="handleKeywordInput"
+        confirm-type="search"
+        bindconfirm="handleKeywordConfirm"
+      />
+      <view class="search-btn" bindtap="handleKeywordSearch">搜索</view>
+    </view>
+
+    <view class="filter-row">
+      <picker mode="region" value="{{regionValue}}" bindchange="handleRegionChange">
+        <view class="filter-pill">{{displayCity}}</view>
+      </picker>
+
+      <picker range="{{districtOptions}}" value="{{districtIndex}}" bindchange="handleDistrictChange">
+        <view class="filter-pill">{{selectedDistrict}}</view>
+      </picker>
+
+      <view class="filter-refresh" bindtap="handleRelocate">重新定位</view>
+      <view wx:if="{{locationDenied}}" class="filter-permission" bindtap="handleOpenSetting">开启定位</view>
+    </view>
+    <text class="toolbar-tip">提示：未配置地图 KEY 时将自动展示可联调的示例医院数据</text>
+  </view>
+
+  <view class="map-card card">
+    <view class="map-head">
+      <view class="row-between">
+        <text class="section-title map-title">附近宠物医院</text>
+        <text class="map-range-tag">{{mapRangeText}}</text>
+      </view>
+      <text class="section-sub">{{statusText}}</text>
+    </view>
+
+    <view class="map-shell">
+      <map
+        id="consultMap"
+        class="consult-map"
+        latitude="{{mapCenter.latitude}}"
+        longitude="{{mapCenter.longitude}}"
+        scale="{{mapScale}}"
+        markers="{{markers}}"
+        circles="{{circles}}"
+        polyline="{{polyline}}"
+        show-location="true"
+        enable-poi="false"
+        enable-building="false"
+        layer-style="{{mapLayerStyle}}"
+        bindmarkertap="handleMarkerTap"
+        bindtap="handleMapTap"
+      ></map>
+      <view class="map-decor map-decor-left">✎</view>
+      <view class="map-decor map-decor-right">🐾</view>
+    </view>
+
+    <view wx:if="{{selectedHospital}}" class="map-hint-card">
+      <text class="map-hint-name">{{selectedHospital.name}}</text>
+      <text class="map-hint-meta">{{selectedHospital.distanceText}} · {{selectedHospital.rating}}分 · {{selectedHospital.businessStatus}}</text>
+      <text class="map-hint-meta" wx:if="{{selectedHospital.tel}}">电话：{{selectedHospital.tel}}</text>
+      <view class="map-hint-actions">
+        <button class="small-btn map-hint-btn" bindtap="handleNavigateSelected">导航</button>
+        <button class="small-btn map-hint-btn" bindtap="handleCallSelected">拨号</button>
+      </view>
+    </view>
+
+    <view wx:if="{{loadFailed}}" class="map-error-row">
+      <button class="secondary-btn map-retry-btn" bindtap="handleRetry">重试加载</button>
+    </view>
+  </view>
+
+  <view class="card hospital-list-card">
+    <view class="row-between">
+      <text class="section-title">医院列表</text>
+      <text class="section-sub">{{filteredHospitals.length}} 家</text>
+    </view>
+
+    <block wx:if="{{filteredHospitals.length}}">
+      <block wx:for="{{filteredHospitals}}" wx:key="id">
+        <view
+          class="hospital-item {{selectedHospitalId === item.id ? 'is-active' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="handleHospitalTap"
+        >
+          <view class="hospital-main">
+            <text class="hospital-name">{{item.name}}</text>
+            <text class="hospital-meta">{{item.distanceText}} · 评分 {{item.rating}}</text>
+            <text class="hospital-status">{{item.businessStatus}}</text>
+            <text class="hospital-address">{{item.address}}</text>
+            <text class="hospital-status" wx:if="{{item.tel}}">电话：{{item.tel}}</text>
+          </view>
+          <view class="hospital-side">
+            <text class="hospital-tag">{{item.district}}</text>
+          </view>
+        </view>
+      </block>
+    </block>
+
+    <view wx:else class="empty consult-empty">
+      <text class="empty-title">没有找到医院</text>
+      <text class="empty-copy">请调整关键词、城市或商圈后重试</text>
+      <button class="secondary-btn empty-reset-btn" bindtap="clearFilters">清空筛选</button>
+    </view>
+  </view>
+
+  <pet-tabbar current="consult"></pet-tabbar>
+</view>

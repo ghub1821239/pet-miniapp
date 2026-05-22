@@ -1,0 +1,294 @@
+.consult-page {
+  background: linear-gradient(180deg, #fbf7eb 0%, #fff8e7 30%, #f7f9f0 100%);
+}
+
+.consult-toolbar {
+  margin-bottom: 20rpx;
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  flex: 1;
+  height: 72rpx;
+  padding: 0 22rpx;
+  border-radius: 999rpx;
+  background: #fffdf8;
+  border: 1px solid #ece2cf;
+  font-size: 24rpx;
+  color: #5a4632;
+}
+
+.search-btn {
+  margin-left: 14rpx;
+  min-width: 120rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  text-align: center;
+  border-radius: 999rpx;
+  background: linear-gradient(180deg, #acc28d, #95ac78);
+  color: #fffdf8;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  margin-top: 16rpx;
+}
+
+.filter-pill,
+.filter-refresh,
+.filter-permission {
+  height: 58rpx;
+  line-height: 58rpx;
+  padding: 0 22rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+}
+
+.filter-pill {
+  margin-right: 12rpx;
+  background: #fff8e8;
+  color: #9c875f;
+  border: 1px solid #f0dfba;
+}
+
+.filter-refresh {
+  margin-left: auto;
+  background: #eef3e5;
+  color: #87996e;
+  border: 1px solid #dde4cd;
+}
+
+.filter-permission {
+  margin-left: 12rpx;
+  background: #fff1e7;
+  color: #c77758;
+  border: 1px solid #f2d6c8;
+}
+
+.toolbar-tip {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 20rpx;
+  color: #a38f79;
+  line-height: 1.6;
+}
+
+.map-card {
+  padding: 22rpx;
+  position: relative;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(
+      -18deg,
+      rgba(255, 250, 236, 0.45) 0,
+      rgba(255, 250, 236, 0.45) 18rpx,
+      rgba(248, 244, 230, 0.45) 18rpx,
+      rgba(248, 244, 230, 0.45) 36rpx
+    );
+}
+
+.map-card::before {
+  content: '';
+  position: absolute;
+  left: 14rpx;
+  right: 14rpx;
+  top: 14rpx;
+  bottom: 14rpx;
+  border: 2rpx dashed rgba(157, 139, 120, 0.35);
+  border-radius: 26rpx;
+  pointer-events: none;
+}
+
+.map-card::after {
+  content: '';
+  position: absolute;
+  width: 180rpx;
+  height: 180rpx;
+  right: -42rpx;
+  bottom: -40rpx;
+  background: radial-gradient(circle, rgba(177, 194, 158, 0.16) 0, rgba(177, 194, 158, 0) 72%);
+  pointer-events: none;
+}
+
+.map-head {
+  margin-bottom: 14rpx;
+  position: relative;
+  z-index: 3;
+}
+
+.map-title {
+  margin: 0;
+}
+
+.map-range-tag {
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  color: #8d7b67;
+  background: rgba(255, 253, 246, 0.86);
+  border: 1px solid #efe4cf;
+}
+
+.map-shell {
+  position: relative;
+  z-index: 2;
+}
+
+.consult-map {
+  width: 100%;
+  height: 360rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  border: 1px solid #ece2cf;
+}
+
+.map-decor {
+  position: absolute;
+  z-index: 2;
+  width: 44rpx;
+  height: 44rpx;
+  line-height: 44rpx;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 24rpx;
+  color: #8d7b67;
+  background: rgba(255, 253, 246, 0.88);
+  border: 1px solid #efe4cf;
+}
+
+.map-decor-left {
+  left: 16rpx;
+  top: 16rpx;
+  transform: rotate(-8deg);
+}
+
+.map-decor-right {
+  right: 16rpx;
+  top: 16rpx;
+  transform: rotate(10deg);
+}
+
+.map-hint-card {
+  margin-top: 14rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 18rpx;
+  background: rgba(255, 253, 246, 0.92);
+  border: 1px solid #ece2cf;
+  box-shadow: 0 8rpx 18rpx rgba(190, 176, 147, 0.1);
+  position: relative;
+  z-index: 2;
+}
+
+.map-hint-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #5a4632;
+}
+
+.map-hint-meta {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #8f7b67;
+}
+
+.map-hint-actions {
+  display: flex;
+  align-items: center;
+  margin-top: 12rpx;
+}
+
+.map-hint-btn {
+  margin-right: 10rpx;
+}
+
+.map-error-row {
+  margin-top: 14rpx;
+}
+
+.map-retry-btn {
+  width: 220rpx;
+}
+
+.hospital-list-card {
+  margin-bottom: 0;
+}
+
+.hospital-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1px solid #efe5d4;
+}
+
+.hospital-item:last-child {
+  border-bottom: none;
+}
+
+.hospital-item.is-active .hospital-name {
+  color: #7f906f;
+}
+
+.hospital-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.hospital-name {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #5a4632;
+}
+
+.hospital-meta {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #8f7b67;
+}
+
+.hospital-status {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #87996e;
+}
+
+.hospital-address {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #9d8b78;
+  line-height: 1.6;
+}
+
+.hospital-side {
+  margin-left: 16rpx;
+}
+
+.hospital-tag {
+  display: inline-block;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background: #fff4db;
+  color: #a9814a;
+  font-size: 20rpx;
+}
+
+.consult-empty {
+  padding: 48rpx 12rpx 18rpx;
+}
+
+.empty-reset-btn {
+  margin-top: 22rpx;
+}

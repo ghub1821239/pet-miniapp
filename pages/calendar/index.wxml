@@ -1,0 +1,241 @@
+<view class="page-container">
+  <view class="page-topbar">
+    <view class="page-topbar-inner">
+      <text class="page-topbar-title">萌宠日历</text>
+    </view>
+  </view>
+
+  <view class="card calendar-panel">
+    <view class="calendar-toolbar">
+      <button class="month-switch" bindtap="handlePrevMonth">‹</button>
+      <view class="calendar-title-wrap">
+        <text class="section-title calendar-title">{{currentMonthTitle}}</text>
+      </view>
+      <button class="month-switch" bindtap="handleNextMonth">›</button>
+    </view>
+
+    <view class="calendar-week-row">
+      <block wx:for="{{weekDays}}" wx:key="*this">
+        <text class="calendar-weekday">{{item}}</text>
+      </block>
+    </view>
+
+    <view class="calendar-grid">
+      <block wx:for="{{calendarDays}}" wx:key="date">
+        <view
+          class="calendar-cell {{item.isCurrentMonth ? '' : 'is-other-month'}} {{item.isSelected ? 'is-selected' : ''}} {{item.isToday ? 'is-today' : ''}}"
+          data-date="{{item.date}}"
+          bindtap="handleDateTap"
+        >
+          <text class="calendar-day-number">{{item.day}}</text>
+          <view class="calendar-markers">
+            <view wx:if="{{item.hasReminder}}" class="calendar-dot {{item.hasStrong ? 'is-strong' : ''}}"></view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="calendar-actions">
+      <view class="calendar-selected-date">当前查看：{{selectedDate}}</view>
+      <button class="secondary-btn" bindtap="jumpToToday">回到今天</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="row-between selected-day-head">
+      <view>
+        <text class="section-title">今日计划</text>
+        <text class="section-sub">{{selectedDate}}</text>
+      </view>
+      <view class="plan-add-btn" bindtap="handleAddPlan">
+        <text class="plan-add-icon">+</text>
+      </view>
+    </view>
+
+    <block wx:if="{{dayList.length > 0}}">
+      <block wx:for="{{dayList}}" wx:key="id">
+        <view class="reminder-item {{item.done ? 'is-done' : ''}}" bindtap="handlePlanTap" data-id="{{item.id}}">
+          <view class="row-between reminder-row">
+            <view class="reminder-check {{item.done ? 'is-done' : ''}}" data-id="{{item.id}}" catchtap="togglePlanDone">
+              <text wx:if="{{item.done}}" class="reminder-check-icon">✓</text>
+            </view>
+            <image wx:if="{{item.petAvatar}}" class="reminder-avatar" src="{{item.petAvatar}}" mode="aspectFill"></image>
+            <view class="reminder-copy">
+              <view class="reminder-title-row">
+                <text class="reminder-pet">{{item.petName}}</text>
+                <text class="tag">{{item.type}}</text>
+              </view>
+              <text class="reminder-main-title">{{item.title}}</text>
+              <text class="reminder-time">{{item.time}} · {{item.reminderText}}</text>
+              <text class="reminder-repeat">{{item.repeatText}}</text>
+              <text class="reminder-note">{{item.note}}</text>
+              <view wx:if="{{item.subtasks.length}}" class="reminder-subtasks">
+                <block wx:for="{{item.subtasks}}" wx:key="text">
+                  <text class="reminder-subtask {{item.done ? 'is-done' : ''}}">{{item.text}}</text>
+                </block>
+              </view>
+            </view>
+            <view class="reminder-side-dot" style="background: {{item.color}};"></view>
+          </view>
+        </view>
+      </block>
+    </block>
+
+    <view wx:else class="empty compact-empty">
+      <text class="empty-title">今天还没有安排</text>
+      <text class="empty-copy">给毛孩子添加一个护理提醒吧</text>
+    </view>
+  </view>
+
+  <view wx:if="{{showForm}}" class="mask" bindtap="closeForm">
+    <view class="modal calendar-modal" catchtap="noop">
+      <view class="calendar-modal-head">
+        <text class="modal-title">编辑提醒</text>
+        <text class="calendar-modal-sub">把照护安排设置得更清楚一些</text>
+      </view>
+
+      <view class="calendar-edit-card">
+        <view class="calendar-title-row">
+          <view class="calendar-check"></view>
+          <input class="calendar-title-input" placeholder="输入提醒内容" value="{{form.title}}" data-field="title" bindinput="bindInput" />
+        </view>
+
+        <view class="calendar-mini-row">
+          <picker range="{{categories}}" value="{{categoryIndex}}" bindchange="changeCategory">
+            <view class="calendar-pill">{{form.category}}</view>
+          </picker>
+          <view class="calendar-pill">{{form.petName || '毛孩子'}}</view>
+          <view class="calendar-pill {{form.strong ? 'is-strong' : ''}}">{{form.strong ? '强提醒' : '普通提醒'}}</view>
+        </view>
+      </view>
+
+      <view class="calendar-edit-card">
+        <view class="calendar-time-row">
+          <view class="calendar-time-block">
+            <text class="calendar-time-label">提醒日期</text>
+            <picker mode="date" value="{{form.date}}" bindchange="changeFormDate">
+              <view class="calendar-time-value">{{form.date}}</view>
+            </picker>
+          </view>
+          <text class="calendar-time-arrow">›</text>
+          <view class="calendar-time-block">
+            <text class="calendar-time-label">提醒时间</text>
+            <picker mode="time" value="{{form.time}}" bindchange="changeFormTime">
+              <view class="calendar-time-value">{{form.time}}</view>
+            </picker>
+          </view>
+        </view>
+
+        <view class="calendar-setting-row" bindtap="chooseReminderOption">
+          <view class="calendar-setting-copy">
+            <text class="calendar-setting-title">提醒方式</text>
+            <text class="calendar-setting-desc">按设定时间提醒你完成安排</text>
+          </view>
+          <view class="calendar-setting-right">
+            <text class="calendar-setting-value">{{form.reminderText}}</text>
+            <text class="calendar-setting-arrow">›</text>
+          </view>
+        </view>
+
+        <view class="calendar-setting-row" bindtap="chooseRepeatOption">
+          <view class="calendar-setting-copy">
+            <text class="calendar-setting-title">重复规则</text>
+            <text class="calendar-setting-desc">适合长期护理、喂食和周期提醒</text>
+          </view>
+          <view class="calendar-setting-right">
+            <text class="calendar-setting-value">{{form.repeatText}}</text>
+            <text class="calendar-setting-arrow">›</text>
+          </view>
+        </view>
+
+        <view class="calendar-setting-row no-border">
+          <view class="calendar-setting-copy">
+            <text class="calendar-setting-title">强提醒</text>
+            <text class="calendar-setting-desc">开启后会用更醒目的方式标记提醒</text>
+          </view>
+          <switch checked="{{form.strong}}" color="#B1C29E" bindchange="switchStrong" />
+        </view>
+      </view>
+
+      <view class="calendar-edit-card">
+        <view class="calendar-subtask-head">
+          <text class="section-title calendar-subtask-title">子任务</text>
+          <text class="calendar-subtask-count">{{formSubtaskDoneCount}}/{{form.subtasks.length}}</text>
+        </view>
+
+        <view class="calendar-subtask-add-row">
+          <text class="calendar-subtask-plus">+</text>
+          <input class="calendar-subtask-inline-input" placeholder="添加子任务" value="{{form.subtaskInput}}" data-field="subtaskInput" bindinput="bindInput" confirm-type="done" bindconfirm="addSubtask" />
+        </view>
+
+        <view wx:if="{{form.subtasks.length}}" class="calendar-subtask-list">
+          <block wx:for="{{form.subtasks}}" wx:key="text">
+            <view class="calendar-subtask-item {{item.done ? 'is-done' : ''}}">
+              <view class="calendar-subtask-drag">
+                <text class="calendar-subtask-drag-line"></text>
+                <text class="calendar-subtask-drag-line"></text>
+                <text class="calendar-subtask-drag-line"></text>
+              </view>
+              <view class="calendar-subtask-check {{item.done ? 'is-done' : ''}}" data-index="{{index}}" bindtap="toggleFormSubtaskDone">
+                <text wx:if="{{item.done}}" class="calendar-subtask-check-icon">✓</text>
+              </view>
+              <text class="calendar-subtask-text">{{item.text}}</text>
+              <view class="calendar-subtask-remove" data-index="{{index}}" bindtap="removeSubtask">
+                <text class="calendar-subtask-remove-line"></text>
+              </view>
+            </view>
+          </block>
+        </view>
+      </view>
+
+      <view class="calendar-edit-card">
+        <view class="calendar-member-row">
+          <view class="calendar-member-title">
+            <text class="calendar-member-icon">◔</text>
+            <text class="calendar-member-text">关联宠物</text>
+          </view>
+          <view class="calendar-member-list">
+            <block wx:for="{{petOptions}}" wx:key="id">
+              <view class="calendar-member-avatar-wrap" data-id="{{item.id}}" bindtap="selectPetOption">
+                <view class="calendar-member-avatar {{form.petId == item.id ? 'is-selected' : ''}}">
+                  <image class="calendar-member-image" src="{{item.avatar}}" mode="aspectFill"></image>
+                </view>
+                <text wx:if="{{form.petId == item.id}}" class="calendar-member-name">{{item.name}}</text>
+              </view>
+            </block>
+          </view>
+        </view>
+      </view>
+
+      <view class="calendar-edit-card">
+        <text class="field-label calendar-field-label">备注说明</text>
+        <input class="input calendar-form-input" placeholder="补充说明，例如：检查前空腹8小时" value="{{form.note}}" data-field="note" bindinput="bindInput" />
+      </view>
+
+      <view class="calendar-modal-actions">
+        <button class="secondary-btn calendar-action-btn" bindtap="closeForm">取消</button>
+        <button class="primary-btn calendar-action-btn" bindtap="saveReminder">保存提醒</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{optionSheet.visible}}" class="mask option-mask" bindtap="closeOptionSheet">
+    <view class="option-sheet" catchtap="noop">
+      <text class="option-sheet-title">{{optionSheet.title}}</text>
+
+      <block wx:for="{{optionSheet.options}}" wx:key="*this">
+        <view class="option-sheet-item" data-value="{{item}}" bindtap="selectOptionItem">
+          <view class="option-sheet-radio {{optionSheet.selected === item ? 'is-selected' : ''}}"></view>
+          <text class="option-sheet-text">{{item}}</text>
+        </view>
+      </block>
+
+      <view class="option-sheet-actions">
+        <button class="secondary-btn option-sheet-btn" bindtap="closeOptionSheet">取消</button>
+        <button class="primary-btn option-sheet-btn" bindtap="confirmOptionSheet">确定</button>
+      </view>
+    </view>
+  </view>
+
+  <pet-tabbar current="calendar"></pet-tabbar>
+</view>

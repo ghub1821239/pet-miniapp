@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "萌宠广场",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "pet-tabbar": "/components/tabbar/index"
+  }
+}
