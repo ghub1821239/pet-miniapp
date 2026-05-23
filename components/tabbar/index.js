@@ -75,7 +75,6 @@ Component({
   data: {
     leftItems: [
       createItem('community', '社区', '/pages/forum/index'),
-      createItem('diary', '日记', '/pages/index/index'),
       createItem('consult', '问诊', '/pages/consult/index')
     ],
     centerItem: {

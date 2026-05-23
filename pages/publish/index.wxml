@@ -1,15 +1,15 @@
 <view class="page-container publish-page">
   <view class="publish-tip">
-    <text class="publish-tip-title">记录这一刻</text>
-    <text class="publish-tip-sub">分享宠物日常、找玩伴或求助内容</text>
+    <text class="publish-tip-title">{{pageTitle}}</text>
+    <text class="publish-tip-sub">{{pageSubtitle}}</text>
   </view>
 
   <view class="card publish-card">
     <text class="section-title">动态内容</text>
 
     <view class="publish-action-row">
-      <button class="secondary-btn publish-media-btn" bindtap="chooseAlbumMedia">从相册选择</button>
-      <button class="secondary-btn publish-media-btn" bindtap="chooseCameraMedia">直接拍摄</button>
+      <button class="secondary-btn publish-media-btn publish-media-btn-album" bindtap="chooseAlbumMedia">从相册选择</button>
+      <button class="secondary-btn publish-media-btn publish-media-btn-camera" bindtap="chooseCameraMedia">直接拍摄</button>
     </view>
 
     <view wx:if="{{form.images.length > 0}}" class="publish-media-list">
@@ -47,6 +47,6 @@
       <switch checked="{{form.showLocation}}" color="#B1C29E" bindchange="switchLocation" />
     </view>
 
-    <button class="primary-btn publish-submit" bindtap="submitPost">发布动态</button>
+    <button class="primary-btn publish-submit" bindtap="submitPost">{{submitButtonText}}</button>
   </view>
 </view>

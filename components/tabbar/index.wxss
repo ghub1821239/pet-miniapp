@@ -56,11 +56,6 @@
   height: 48rpx;
 }
 
-.tab-icon-diary {
-  width: 44rpx;
-  height: 44rpx;
-}
-
 .tab-icon-consult {
   width: 44rpx;
   height: 44rpx;

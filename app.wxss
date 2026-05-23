@@ -15,29 +15,25 @@ button::after {
 }
 
 .page-topbar {
-  margin: -24rpx -24rpx 24rpx;
-  padding: calc(env(safe-area-inset-top) + 52rpx) 24rpx 22rpx;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  height: calc(env(safe-area-inset-top) + 184rpx);
+  margin: -24rpx -24rpx 0;
+  padding: 0 24rpx;
   background: linear-gradient(180deg, #f7e3ae 0%, #f1d28a 100%);
-  border-bottom: 1px solid #e7cc8a;
+  box-sizing: border-box;
 }
 
 .page-topbar-inner {
-  min-height: 88rpx;
-  padding: 10rpx 170rpx 0;
+  height: 100%;
+  min-height: 0;
+  padding: 0 170rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-}
-
-.page-topbar-title {
-  display: block;
-  text-align: center;
-  font-size: 42rpx;
-  line-height: 1.25;
-  font-weight: 800;
-  color: #6b4c2d;
-  letter-spacing: 1rpx;
 }
 
 .hero {

@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "萌宠日记",
-  "navigationStyle": "custom",
-  "usingComponents": {
-    "pet-tabbar": "/components/tabbar/index"
-  }
-}

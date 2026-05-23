@@ -1,7 +1,6 @@
 <view class="page-container identify-page">
   <view class="page-topbar">
     <view class="page-topbar-inner">
-      <text class="page-topbar-title">萌宠识别</text>
     </view>
   </view>
 

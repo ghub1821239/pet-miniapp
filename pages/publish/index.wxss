@@ -153,6 +153,19 @@
 }
 
 .publish-media-btn {
+  border-width: 2rpx;
+  border-style: solid;
+  box-shadow: 0 10rpx 20rpx rgba(149, 172, 120, 0.12);
+}
+
+.publish-media-btn-album {
+  background: linear-gradient(180deg, #fff7dd, #f8e7b7);
+  color: #b58435;
+  border-color: #f0d493;
+  box-shadow: 0 10rpx 20rpx rgba(240, 210, 133, 0.18);
+}
+
+.publish-media-btn-camera {
   background: linear-gradient(180deg, #acc28d, #95ac78);
   color: #fffdf8;
   border-color: #95ac78;

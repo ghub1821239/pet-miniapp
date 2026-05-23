@@ -1,30 +1,23 @@
-var COMMUNITY_KEY = 'forumPosts'
-var PETS_KEY = 'pets'
-
-function getNowText() {
-  var d = new Date()
-  var y = d.getFullYear()
-  var m = d.getMonth() + 1
-  var day = d.getDate()
-  var h = d.getHours()
-  var min = d.getMinutes()
-
-  m = m < 10 ? '0' + m : m
-  day = day < 10 ? '0' + day : day
-  h = h < 10 ? '0' + h : h
-  min = min < 10 ? '0' + min : min
-
-  return y + '-' + m + '-' + day + ' ' + h + ':' + min
-}
+var POSTS_KEY = 'postList'
+var LEGACY_POSTS_KEY = 'forumPosts'
+var DIARY_KEY = 'diaryList'
+var PETS_KEY = 'petList'
+var LEGACY_PETS_KEY = 'pets'
+var DEFAULT_CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
+var DEFAULT_DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
 
 Page({
   data: {
-    sections: ['日常分享', '找玩伴', '求助', '同城', '周边'],
-    tagOptions: ['日常分享', '找玩伴', '求助', '周边', '晒宠', '猫猫', '狗狗', '拍照打卡'],
+    pageTitle: '记录这一刻',
+    pageSubtitle: '分享宠物日常、找玩伴或求助内容',
+    submitButtonText: '发布动态',
+    entryMode: 'community',
+    visibility: 'public',
     pets: [],
     petNames: ['暂不关联'],
     petIndex: 0,
     selectedTags: [],
+    tagOptions: ['日常分享', '找玩伴', '求助', '周边', '晒宠', '猫猫', '狗狗', '拍照打卡'],
     form: {
       title: '',
       content: '',
@@ -33,20 +26,38 @@ Page({
       mediaType: 'image',
       petName: '',
       breed: '',
-      city: '天津',
       tagsText: '',
       showLocation: true
     }
   },
 
-  onLoad: function () {
+  onLoad: function (options) {
+    var entryMode = options.from === 'diary' ? 'diary' : 'community'
+    var visibility = options.visibility === 'private' ? 'private' : 'public'
+
+    this.setData({
+      entryMode: entryMode,
+      visibility: visibility,
+      pageTitle: entryMode === 'diary' ? '写一篇日记' : '发布动态',
+      pageSubtitle: entryMode === 'diary'
+        ? (visibility === 'public' ? '这篇记录会同步到社区，也会保存在日记里' : '这篇记录只会保存在日记里')
+        : '发布到社区的内容，也会同步收进日记里',
+      submitButtonText: entryMode === 'diary'
+        ? (visibility === 'public' ? '保存并同步' : '保存日记')
+        : '发布动态'
+    })
+
     this.loadPets()
   },
 
   loadPets: function () {
-    var pets = wx.getStorageSync(PETS_KEY) || []
+    var storedPets = wx.getStorageSync(PETS_KEY)
+    var legacyPets = wx.getStorageSync(LEGACY_PETS_KEY)
+    var pets = Array.isArray(storedPets) && storedPets.length ? storedPets : legacyPets
     var petNames = ['暂不关联']
     var i
+
+    pets = Array.isArray(pets) ? pets : []
 
     for (i = 0; i < pets.length; i++) {
       petNames.push(pets[i].name)
@@ -152,12 +163,16 @@ Page({
 
   submitPost: function () {
     var form = this.data.form
-    var list = wx.getStorageSync(COMMUNITY_KEY) || []
-    var customTags = []
-    var selectedTags = this.data.selectedTags || []
-    var tags = []
-    var channel = '日常分享'
-    var distanceText = '同城'
+    var entryMode = this.data.entryMode
+    var visibility = this.data.visibility
+    var selectedPet = this.getSelectedPet()
+    var tags = this.collectTags()
+    var diaryList
+    var postList
+    var diaryEntry
+    var communityPost
+    var shouldSyncCommunity = entryMode === 'community' || visibility === 'public'
+    var shouldSaveDiary = entryMode === 'diary' || shouldSyncCommunity
 
     if (!form.title) {
       wx.showToast({
@@ -175,63 +190,233 @@ Page({
       return
     }
 
-    if (form.tagsText) {
-      customTags = form.tagsText.split(/[,，\s]+/).filter(Boolean)
+    if (shouldSaveDiary) {
+      diaryList = this.readStorageList(DIARY_KEY)
+      diaryEntry = this.buildDiaryEntry(form, tags, selectedPet, shouldSyncCommunity)
+      diaryList.unshift(diaryEntry)
+      wx.setStorageSync(DIARY_KEY, diaryList)
     }
 
-    tags = selectedTags.concat(customTags).filter(Boolean)
-
-    if (tags.length === 0) {
-      tags = ['日常分享']
+    if (shouldSyncCommunity) {
+      postList = this.readStorageList(POSTS_KEY)
+      communityPost = this.buildCommunityPost(form, tags, selectedPet)
+      postList.unshift(communityPost)
+      wx.setStorageSync(POSTS_KEY, postList)
+      wx.setStorageSync(LEGACY_POSTS_KEY, postList)
     }
-
-    if (tags.indexOf('找玩伴') > -1) {
-      channel = '找玩伴'
-    } else if (tags.indexOf('求助') > -1) {
-      channel = '求助'
-    } else if (tags.indexOf('周边') > -1) {
-      channel = '周边'
-    } else {
-      channel = '推荐'
-    }
-
-    distanceText = channel === '周边' ? '约 2km' : channel === '找玩伴' ? '同城玩伴' : '同城'
-
-    list.unshift({
-      id: 'community_' + Date.now(),
-      title: form.title,
-      content: form.content,
-      images: form.images,
-      videoCover: form.videoCover,
-      mediaType: form.mediaType,
-      userName: '我',
-      avatar: '🐾',
-      petName: form.petName || '我家宝贝',
-      breed: form.breed || '萌宠',
-      city: form.showLocation ? form.city : '同城宠友',
-      distance: form.showLocation ? distanceText : '同城',
-      tags: tags,
-      channel: channel,
-      createdAt: getNowText(),
-      likeCount: 0,
-      liked: false,
-      isFollowing: false,
-      petCard: {
-        age: '',
-        personality: '亲人',
-        activity: channel === '找玩伴' ? '遛弯交友' : '日常分享'
-      }
-    })
-
-    wx.setStorageSync(COMMUNITY_KEY, list)
 
     wx.showToast({
-      title: '发布成功',
+      title: entryMode === 'community'
+        ? '已发布并存入日记'
+        : (visibility === 'public' ? '已同步社区' : '日记已保存'),
       icon: 'success'
     })
 
     setTimeout(function () {
       wx.navigateBack()
-    }, 600)
+    }, 500)
+  },
+
+  readStorageList: function (key) {
+    var list = wx.getStorageSync(key)
+    return Array.isArray(list) ? list.slice() : []
+  },
+
+  collectTags: function () {
+    var customTags = []
+    var selectedTags = this.data.selectedTags || []
+    var tags = []
+    var text = this.data.form.tagsText
+
+    if (text) {
+      customTags = text.split(/[,，\s]+/).filter(Boolean)
+    }
+
+    tags = selectedTags.concat(customTags).filter(Boolean)
+
+    if (!tags.length) {
+      tags = this.data.entryMode === 'diary' ? ['温暖日常'] : ['日常分享']
+    }
+
+    return tags
+  },
+
+  getSelectedPet: function () {
+    var pets = this.data.pets
+    var petIndex = Number(this.data.petIndex)
+    return petIndex > 0 ? pets[petIndex - 1] : null
+  },
+
+  buildDiaryEntry: function (form, tags, pet, isPublic) {
+    var now = new Date()
+    var date = formatDate(now)
+    return {
+      id: 'diary_' + now.getTime(),
+      petId: pet ? pet.id : '',
+      petName: pet ? pet.name : (form.petName || '毛孩子'),
+      title: form.title,
+      content: form.content,
+      images: this.getEntryImages(form, pet),
+      tags: tags,
+      date: date,
+      displayDate: buildDisplayDate(now),
+      time: formatTime(now),
+      mood: tags[0] || '温暖',
+      isPublic: !!isPublic
+    }
+  },
+
+  buildCommunityPost: function (form, tags, pet) {
+    var now = Date.now()
+    var cover = this.getPrimaryMedia(form, pet)
+    var coverHeight = this.estimateCoverHeight(form, pet, tags)
+    return {
+      id: 'community_' + now,
+      title: form.title,
+      content: form.content,
+      author: '我',
+      petName: pet ? pet.name : (form.petName || '我家宝贝'),
+      breed: pet ? pet.breed : (form.breed || inferBreedByPetName(form.petName)),
+      tag: inferCommunityChannel(tags),
+      likes: 0,
+      cover: cover,
+      coverImage: cover,
+      avatarImage: pet && pet.avatar ? pet.avatar : cover,
+      coverHeight: coverHeight,
+      coverType: inferCoverType(pet, form),
+      isLiked: false,
+      isFollowing: false
+    }
+  },
+
+  getPrimaryMedia: function (form, pet) {
+    if (form.mediaType === 'video' && form.videoCover) {
+      return form.videoCover
+    }
+
+    if (Array.isArray(form.images) && form.images.length) {
+      return form.images[0]
+    }
+
+    if (pet && pet.avatar) {
+      return pet.avatar
+    }
+
+    return form.petName === '布丁' ? DEFAULT_DOG_IMAGE : DEFAULT_CAT_IMAGE
+  },
+
+  getEntryImages: function (form, pet) {
+    if (form.mediaType === 'video' && form.videoCover) {
+      return [form.videoCover]
+    }
+
+    if (Array.isArray(form.images) && form.images.length) {
+      return form.images.slice()
+    }
+
+    return [pet && pet.avatar ? pet.avatar : (form.petName === '布丁' ? DEFAULT_DOG_IMAGE : DEFAULT_CAT_IMAGE)]
+  },
+
+  estimateCoverHeight: function (form, pet, tags) {
+    var base = form.mediaType === 'video' ? 380 : 320
+    var titleLength = String(form.title || '').length
+    var tagCount = Array.isArray(tags) ? tags.length : 0
+    var petName = pet && pet.name ? pet.name : form.petName
+
+    if (titleLength > 10) {
+      base += 12
+    }
+
+    if (titleLength > 18) {
+      base += 10
+    }
+
+    if (tagCount >= 3) {
+      base += 8
+    }
+
+    if (petName === '毛孩子') {
+      base += 18
+    }
+
+    if (petName === '布丁') {
+      base += 4
+    }
+
+    if (base > 390) {
+      base = 390
+    }
+
+    return base
   }
 })
+
+function inferCommunityChannel(tags) {
+  if (tags.indexOf('找玩伴') > -1) {
+    return '找玩伴'
+  }
+  if (tags.indexOf('求助') > -1) {
+    return '求助'
+  }
+  if (tags.indexOf('周边') > -1) {
+    return '周边'
+  }
+  if (tags.indexOf('关注') > -1) {
+    return '关注'
+  }
+  return '推荐'
+}
+
+function inferBreedByPetName(name) {
+  if (name === '布丁') {
+    return '萨摩耶'
+  }
+  if (name === '毛孩子') {
+    return '蓝金渐层长毛猫'
+  }
+  return '萌宠'
+}
+
+function inferCoverType(pet, form) {
+  var breed = pet && pet.breed ? pet.breed : form.breed
+  var petName = pet && pet.name ? pet.name : form.petName
+  var text = [breed, petName].join(' ')
+
+  if (/猫|渐层|布偶|英短|波斯/.test(text)) {
+    return 'cat'
+  }
+
+  if (/狗|萨摩耶|柯基|柴犬|比熊|金毛/.test(text)) {
+    return 'dog'
+  }
+
+  return 'paw'
+}
+
+function formatDate(date) {
+  return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
+}
+
+function formatTime(date) {
+  return pad(date.getHours()) + ':' + pad(date.getMinutes())
+}
+
+function buildDisplayDate(date) {
+  var today = new Date()
+  var targetStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
+  var todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()
+  var diffDays = Math.round((todayStart - targetStart) / 86400000)
+  var base = date.getMonth() + 1 + '月' + date.getDate() + '日'
+
+  if (diffDays === 0) {
+    return base + ' 今天'
+  }
+  if (diffDays === 1) {
+    return base + ' 昨天'
+  }
+  return base
+}
+
+function pad(num) {
+  return num < 10 ? '0' + num : String(num)
+}

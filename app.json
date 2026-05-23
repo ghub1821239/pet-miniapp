@@ -1,7 +1,8 @@
 {
   "pages": [
     "pages/forum/index",
-    "pages/index/index",
+    "pages/search/index",
+    "pages/post-detail/index",
     "pages/consult/index",
     "pages/identify/index",
     "pages/calendar/index",

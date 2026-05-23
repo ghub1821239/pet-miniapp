@@ -19,5 +19,9 @@
     "ignoreDevUnusedFiles": true
   },
   "libVersion": "3.15.1",
-  "condition": {}
+  "condition": {
+    "miniprogram": {
+      "list": []
+    }
+  }
 }

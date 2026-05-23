@@ -5,7 +5,7 @@ var LEGACY_REMINDER_KEY = 'petReminders'
 var IDENTIFY_KEY = 'identifyRecords'
 var LEGACY_IDENTIFY_KEY = 'identifyHistory'
 var CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
-var DOG_IMAGE = '/assets/mock/posts/post-buding-flowers.jpg'
+var DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
 
 var MOCK_PETS = [
   {

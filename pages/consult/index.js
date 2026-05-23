@@ -1,7 +1,7 @@
 var mapApi = require('../../utils/map-api')
 
 // 在这里填写腾讯位置服务 KEY，也可以通过 wx.setStorageSync('tencentMapKey', '你的KEY') 注入
-var MAP_KEY = 'UV5BZ-KVU6Z-BEDX5-TDFC4-BYSZ2-P7BSN'
+var MAP_KEY ='UV5BZ-KVU6Z-BEDX5-TDFC4-BYSZ2-P7BSN'
 // 可选：微信 map 组件 layer-style（默认 1）
 var MAP_LAYER_STYLE = 1
 var HOSPITAL_MARKER_ICON = '/assets/icons/hospital-marker.png'

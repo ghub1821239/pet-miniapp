@@ -1,0 +1,97 @@
+<view class="post-detail-page">
+  <view class="detail-topbar">
+    <view class="detail-back" bindtap="goBack">‹</view>
+    <view class="detail-author">
+      <image wx:if="{{post.avatarImage}}" class="detail-author-avatar" src="{{post.avatarImage}}" mode="aspectFill"></image>
+      <view wx:else class="detail-author-avatar detail-author-text">{{post.avatarText}}</view>
+      <view class="detail-author-copy">
+        <text class="detail-author-name">{{post.userName}}</text>
+        <text class="detail-author-meta">{{post.petName}} · {{post.breed}}</text>
+      </view>
+    </view>
+    <button class="detail-follow {{post.isFollowing ? 'is-following' : ''}}" bindtap="toggleFollow">
+      {{post.isFollowing ? '已关注' : 'Follow'}}
+    </button>
+    <view class="detail-share" bindtap="sharePost">↗</view>
+  </view>
+
+  <swiper class="detail-gallery" current="{{currentImage}}" bindchange="handleSwiperChange">
+    <block wx:for="{{post.gallery}}" wx:key="*this">
+      <swiper-item>
+        <image class="detail-gallery-image" src="{{item}}" mode="aspectFill"></image>
+      </swiper-item>
+    </block>
+  </swiper>
+
+  <view wx:if="{{post.gallery.length > 1}}" class="detail-dots">
+    <block wx:for="{{post.gallery}}" wx:key="*this">
+      <view class="detail-dot {{currentImage === index ? 'active' : ''}}"></view>
+    </block>
+  </view>
+
+  <view class="detail-content">
+    <text class="detail-title">{{post.title}}</text>
+    <text class="detail-text">{{post.content}}</text>
+
+    <view class="detail-topic-row">
+      <block wx:for="{{post.topics}}" wx:key="*this">
+        <text class="detail-topic">#{{item}}</text>
+      </block>
+    </view>
+
+    <view class="detail-post-meta">
+      <text>{{post.publishTime}}</text>
+      <text>{{post.location}}</text>
+    </view>
+  </view>
+
+  <view class="detail-comments">
+    <view class="detail-comments-head">
+      <text class="detail-comments-title">评论 {{post.commentCount}}</text>
+      <text class="detail-comments-sort">最热</text>
+    </view>
+
+    <block wx:for="{{comments}}" wx:key="id">
+      <view class="detail-comment">
+        <view class="comment-avatar">{{item.avatarText}}</view>
+        <view class="comment-main">
+          <view class="comment-line">
+            <text class="comment-user">{{item.userName}}</text>
+            <text class="comment-time">{{item.time}}</text>
+          </view>
+          <text class="comment-content">{{item.content}}</text>
+        </view>
+        <view class="comment-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" bindtap="toggleCommentLike">
+          <text class="comment-like-icon">♡</text>
+          <text>{{item.likes}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view class="detail-actionbar">
+    <view class="comment-input-wrap">
+      <text class="comment-pencil">✎</text>
+      <input
+        class="comment-input"
+        value="{{commentText}}"
+        placeholder="Say something..."
+        confirm-type="send"
+        bindinput="bindCommentInput"
+        bindconfirm="submitComment"
+      />
+    </view>
+    <view class="action-item {{post.liked ? 'active' : ''}}" bindtap="toggleLike">
+      <text class="action-icon">{{post.liked ? '♥' : '♡'}}</text>
+      <text class="action-count">{{post.likeCount}}</text>
+    </view>
+    <view class="action-item {{post.favorited ? 'active' : ''}}" bindtap="toggleFavorite">
+      <text class="action-icon">{{post.favorited ? '★' : '☆'}}</text>
+      <text class="action-count">{{post.favoriteCount}}</text>
+    </view>
+    <view class="action-item" bindtap="submitComment">
+      <text class="action-icon">◌</text>
+      <text class="action-count">{{post.commentCount}}</text>
+    </view>
+  </view>
+</view>

@@ -1,324 +1,184 @@
+var mockData = require('../../data/mockPosts')
+var topicCluster = require('../../utils/topicCluster')
+var recommend = require('../../utils/recommend')
+var filterIndex = require('../../utils/filterIndex')
+var cloudPosts = require('../../utils/cloudPosts')
+
 var POSTS_KEY = 'postList'
 var LEGACY_POSTS_KEY = 'forumPosts'
-var CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
-var DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
-var POST_BUDING_MEADOW = '/assets/mock/posts/post-buding-meadow.jpg'
-var POST_MAOHAIZI_HYDRANGEA = '/assets/mock/posts/post-maohaizi-hydrangea.jpg'
-var POST_BUDING_WINDOW = '/assets/mock/posts/post-buding-window.jpg'
-var POST_TWO_PETS_SUNSET = '/assets/mock/posts/post-two-pets-sunset.jpg'
-var POST_BUDING_FLOWERS = '/assets/mock/posts/post-buding-flowers.jpg'
-var POST_SPRING_COMPANION = '/assets/mock/posts/post-spring-companion.jpg'
-var POST_CORGI_BEACH = '/assets/mock/posts/post-corgi-beach.jpg'
-var POST_IMAGE_POOL = [
-  POST_BUDING_MEADOW,
-  POST_MAOHAIZI_HYDRANGEA,
-  POST_BUDING_WINDOW,
-  POST_TWO_PETS_SUNSET,
-  POST_BUDING_FLOWERS,
-  POST_SPRING_COMPANION,
-  POST_CORGI_BEACH
-]
+var DETAIL_CACHE_KEY = 'currentPostDetail'
+var VIEWED_POSTS_KEY = 'communityViewedPosts'
+var CURRENT_CITY = '天津'
+
 var BANNER_LIST = [
   {
     id: 'banner_1',
     image: '/assets/mock/banners/banner-community-01.jpg.jpg',
     title: '萌宠广场',
-    subtitle: '发现有趣宠友和真实养宠日常'
+    subtitle: '智能推荐你可能关心的萌宠动态'
   },
   {
     id: 'banner_2',
     image: '/assets/mock/banners/banner-community-02.jpg.jpg',
-    title: '成长日记',
-    subtitle: '把毛孩子的每个瞬间认真记录下来'
+    title: '萌宠社区',
+    subtitle: '按日常、交友、求助和经验快速浏览'
   }
 ]
 
-var COMMUNITY_TABS = ['推荐', '关注', '周边', '找玩伴', '求助']
-
-var DEFAULT_POSTS = [
-  {
-    id: 1,
-    title: '草地上这张笑脸我能看一天',
-    content: '风吹过来的时候它一直眯着眼笑，趴在草里像一团会发光的小云。',
-    author: '布丁铲屎官',
-    petName: '布丁',
-    breed: '萨摩耶',
-    tag: '周边',
-    likes: 36,
-    coverImage: POST_BUDING_MEADOW,
-    coverType: 'dog',
-    isLiked: true,
-    isFollowing: true,
-    coverHeight: 360
-  },
-  {
-    id: 2,
-    title: '绣球花旁边的小白团子太像童话了',
-    content: '蓝紫色花海已经很梦幻了，它往边上一站，整个画面直接变成童话书。',
-    author: '糯米观察员',
-    petName: '糯米',
-    breed: '比熊',
-    tag: '推荐',
-    likes: 42,
-    coverImage: POST_MAOHAIZI_HYDRANGEA,
-    coverType: 'dog',
-    isLiked: false,
-    isFollowing: true,
-    coverHeight: 392
-  },
-  {
-    id: 3,
-    title: '窗台边探头的小柴一秒把人治愈',
-    content: '舌头一伸出来就知道今天心情超好，趴在木栏边像在等人夸它可爱。',
-    author: '泡芙成长簿',
-    petName: '泡芙',
-    breed: '柴犬幼犬',
-    tag: '推荐',
-    likes: 27,
-    coverImage: POST_BUDING_WINDOW,
-    coverType: 'dog',
-    isLiked: false,
-    isFollowing: true,
-    coverHeight: 360
-  },
-  {
-    id: 4,
-    title: '傍晚门口这束光像电影里的画面',
-    content: '金色树影、木门和一路跑来的两只小狗，随手一拍就是很有故事感的一张。',
-    author: '街角遛狗日常',
-    petName: '奶盖',
-    breed: '双宠日常',
-    tag: '周边',
-    likes: 12,
-    coverImage: POST_TWO_PETS_SUNSET,
-    coverType: 'dog',
-    isLiked: false,
-    isFollowing: true,
-    coverHeight: 348
-  },
-  {
-    id: 5,
-    title: '黄花丛里这张笑脸太犯规了',
-    content: '一边吐舌头一边看镜头，整张图都写着“今天真的很开心”。',
-    author: '小太阳日记',
-    petName: '奶酪',
-    breed: '金毛幼犬',
-    tag: '晒宠',
-    likes: 19,
-    coverImage: POST_BUDING_FLOWERS,
-    coverType: 'dog',
-    isLiked: false,
-    isFollowing: false,
-    coverHeight: 332
-  },
-  {
-    id: 6,
-    title: '春天和猫猫坐在湖边发呆真的很幸福',
-    content: '白花、湖水和两只猫的小动作都很轻，像一张会呼吸的春日海报。',
-    author: '春日猫猫册',
-    petName: '团子',
-    breed: '双猫日常',
-    tag: '推荐',
-    likes: 35,
-    coverImage: POST_SPRING_COMPANION,
-    coverType: 'cat',
-    isLiked: true,
-    isFollowing: true,
-    coverHeight: 388
-  },
-  {
-    id: 7,
-    title: '海边飞奔的小柯基像装了弹簧',
-    content: '刚好抓到腾空那一瞬间，耳朵和小短腿一起飞起来，越看越快乐。',
-    author: '海边遛狗计划',
-    petName: '豆包',
-    breed: '柯基幼犬',
-    tag: '周边',
-    likes: 28,
-    coverImage: POST_CORGI_BEACH,
-    coverType: 'dog',
-    isLiked: false,
-    isFollowing: true,
-    coverHeight: 286
-  },
-  {
-    id: 8,
-    title: '毛孩子抱着苹果发呆的时候像小公主',
-    content: '镜头一靠近就安安静静看着你，毛茸茸的一团连发呆都很有镜头感。',
-    author: '毛孩子家长',
-    petName: '毛孩子',
-    breed: '蓝金渐层长毛猫',
-    tag: '关注',
-    likes: 31,
-    coverImage: CAT_IMAGE,
-    coverType: 'cat',
-    isLiked: true,
-    isFollowing: true,
-    coverHeight: 300
-  },
-  {
-    id: 9,
-    title: '窗台边的泡芙又来探头看风景了',
-    content: '每次一听到声音就会趴到木栏边，像一只等人叫名字的小面包。',
-    author: '泡芙成长簿',
-    petName: '泡芙',
-    breed: '柴犬幼犬',
-    tag: '关注',
-    likes: 54,
-    coverImage: POST_BUDING_WINDOW,
-    coverType: 'dog',
-    isLiked: false,
-    isFollowing: true,
-    coverHeight: 360
-  },
-  {
-    id: 10,
-    title: '花丛里这一眼真的像童话里的小精灵',
-    content: '白白软软的一团藏在绣球花边，阳光一照，连空气都像变甜了一点。',
-    author: '糯米观察员',
-    petName: '糯米',
-    breed: '比熊',
-    tag: '推荐',
-    likes: 47,
-    coverImage: POST_MAOHAIZI_HYDRANGEA,
-    coverType: 'dog',
-    isLiked: true,
-    isFollowing: true,
-    coverHeight: 392
-  },
-  {
-    id: 11,
-    title: '门口那束光刚好落在它们跑来的瞬间',
-    content: '明明只是随手拍，结果氛围感直接拉满，像电影里很温柔的一幕。',
-    author: '街角遛狗日常',
-    petName: '奶盖',
-    breed: '双宠日常',
-    tag: '推荐',
-    likes: 44,
-    coverImage: POST_TWO_PETS_SUNSET,
-    coverType: 'dog',
-    isLiked: true,
-    isFollowing: true,
-    coverHeight: 348
-  },
-  {
-    id: 12,
-    title: '今天在花丛里收获了一张最灿烂的笑脸',
-    content: '黄花、阳光和软乎乎的小狗一起出现的时候，心情真的会被瞬间点亮。',
-    author: '小太阳日记',
-    petName: '奶酪',
-    breed: '金毛幼犬',
-    tag: '推荐',
-    likes: 39,
-    coverImage: POST_BUDING_FLOWERS,
-    coverType: 'dog',
-    isLiked: false,
-    isFollowing: true,
-    coverHeight: 332
-  },
-  {
-    id: 13,
-    title: '草地上这张笑脸真的会让人想立刻出门',
-    content: '云很低，风很轻，布丁趴在草里眯眼笑的时候，整片草地都像亮起来了。',
-    author: '布丁铲屎官',
-    petName: '布丁',
-    breed: '萨摩耶',
-    tag: '推荐',
-    likes: 33,
-    coverImage: POST_BUDING_MEADOW,
-    coverType: 'dog',
-    isLiked: false,
-    isFollowing: true,
-    coverHeight: 360
-  },
-  {
-    id: 14,
-    title: '春天的湖边真的很适合和猫猫一起发呆',
-    content: '白色花枝垂下来的一瞬间，两只小猫刚好对视，画面温柔得不像话。',
-    author: '春日猫猫册',
-    petName: '团子',
-    breed: '双猫日常',
-    tag: '推荐',
-    likes: 29,
-    coverImage: POST_SPRING_COMPANION,
-    coverType: 'cat',
-    isLiked: false,
-    isFollowing: true,
-    coverHeight: 388
-  }
+var CHANNELS = ['推荐', '关注', '周边']
+var FILTER_OPTIONS = [
+  { label: '全部', value: '全部', desc: '默认展示所有帖子' },
+  { label: '晒宠日常', value: '晒宠日常', desc: '分享宠物照片、视频、趣事' },
+  { label: '交友约玩', value: '交友约玩', desc: '找同城宠友、一起遛狗、猫友交流' },
+  { label: '寻宠启事', value: '寻宠求助', desc: '宠物走失、捡到宠物、寻主' },
+  { label: '就医问诊', value: '就医问诊', desc: '生病症状、医院推荐、护理经验' },
+  { label: '养宠经验', value: '养宠经验', desc: '喂养、训练、驱虫、绝育、洗护' },
+  { label: '好物分享', value: '好物分享', desc: '猫粮狗粮、玩具、用品、测评' },
+  { label: '领养救助', value: '领养救助', desc: '无偿领养、救助流浪动物' },
+  { label: '宠物活动', value: '宠物活动', desc: '线下聚会、宠物展、打卡活动' }
 ]
+
+function buildFilterOptions(selectedCategory) {
+  return FILTER_OPTIONS.map(function (item) {
+    return Object.assign({}, item, {
+      active: item.value === selectedCategory
+    })
+  })
+}
+
+function getCategoryLabel(value) {
+  var i
+  for (i = 0; i < FILTER_OPTIONS.length; i++) {
+    if (FILTER_OPTIONS[i].value === value) {
+      return FILTER_OPTIONS[i].label
+    }
+  }
+  return value || '全部'
+}
 
 function clone(data) {
   return JSON.parse(JSON.stringify(data))
 }
 
-function isPostsAsset(path) {
-  return typeof path === 'string' && path.indexOf('/assets/mock/posts/') === 0
+function isCloudFileId(value) {
+  return /^cloud:\/\//.test(String(value || ''))
 }
 
-function getDefaultPostMap() {
-  var map = {}
+function getRenderableImages(post) {
+  var source = Array.isArray(post.images) ? post.images : []
+  var result = []
   var i
 
-  for (i = 0; i < DEFAULT_POSTS.length; i++) {
-    map[String(DEFAULT_POSTS[i].id)] = DEFAULT_POSTS[i]
+  for (i = 0; i < source.length; i++) {
+    if (source[i] && !isCloudFileId(source[i])) {
+      result.push(source[i])
+    }
   }
 
-  return map
+  return result
 }
 
-function getCoverMeta(type) {
-  var map = {
-    paw: { emoji: '🐾', tone: 'gold' },
-    cat: { emoji: '🐱', tone: 'soft' },
-    help: { emoji: '💬', tone: 'cream' },
-    dog: { emoji: '🐶', tone: 'gold' },
-    cake: { emoji: '🎂', tone: 'cream' },
-    health: { emoji: '🩺', tone: 'soft' },
-    walk: { emoji: '🌿', tone: 'gold' },
-    guide: { emoji: '📒', tone: 'cream' }
-  }
-  return map[type] || map.paw
-}
+function normalizeLegacyPost(post, index) {
+  var authorName = post.author && post.author.name ? post.author.name : (post.author || post.userName || '萌宠用户')
+  var imageFileIds = Array.isArray(post.imageFileIds) ? post.imageFileIds : []
+  var images = getRenderableImages(post)
+  var cover = post.coverImage || post.cover || images[0] || '/assets/mock/pets/pet-buding.jpg.jpg'
 
-function normalizePost(post, index) {
-  var coverMeta = getCoverMeta(post.coverType)
-  var sourceTag = post.tag || post.section || '推荐'
-  var petName = post.petName === '小布丁' ? '布丁' : (post.petName || '毛孩子')
-  var channel = sourceTag === '晒宠' || sourceTag === '攻略' || sourceTag === '经验' || sourceTag === '推荐'
-    ? '推荐'
-    : sourceTag
-  var fallbackPostImage = POST_IMAGE_POOL[index % POST_IMAGE_POOL.length]
-
-  if (channel === '同城') {
-    channel = '周边'
+  if (isCloudFileId(cover)) {
+    cover = images[0] || '/assets/mock/pets/pet-buding.jpg.jpg'
   }
 
-  return {
-    id: post.id || 'post_' + index,
+  return Object.assign({}, post, {
+    id: post.id || post._id || 'post_' + index,
+    _cloudId: post._cloudId || post._id || '',
     title: post.title || '萌宠日常分享',
     content: post.content || '',
-    userName: post.author || post.userName || '萌宠用户',
-    avatar: post.avatar || coverMeta.emoji,
-    avatarImage: post.avatarImage || post.cover || post.coverImage || fallbackPostImage,
-    petName: petName,
-    breed: petName === '毛孩子' ? '蓝金渐层长毛猫' : petName === '布丁' ? '萨摩耶' : (post.breed || ''),
-    channel: channel || '推荐',
-    coverEmoji: coverMeta.emoji,
-    coverTone: coverMeta.tone,
-    mediaType: 'image',
-    coverImage: post.cover || post.coverImage || fallbackPostImage,
-    coverHeight: Number(post.coverHeight || 320),
-    likeCount: Number(post.likes || post.likeCount || 0),
-    liked: !!(post.isLiked || post.liked),
-    isFollowing: !!post.isFollowing
+    petName: post.petName || '毛孩子',
+    petType: post.petType || inferPetType(post),
+    breed: post.breed || '萌宠',
+    category: post.category || inferCategory(post),
+    city: post.city || CURRENT_CITY,
+    tags: Array.isArray(post.tags) ? post.tags : [post.tag || '日常'],
+    images: images.length ? images : [cover],
+    imageFileIds: imageFileIds,
+    coverImage: cover,
+    createdAt: post.createdAt || '2026-05-22 10:00:00',
+    likeCount: Number(post.likeCount || post.likes || 0),
+    commentCount: Number(post.commentCount || 0),
+    collectCount: Number(post.collectCount || 0),
+    viewCount: Number(post.viewCount || 100),
+    isSolved: post.isSolved === undefined ? true : !!post.isSolved,
+    urgency: post.urgency || '普通',
+    isFollowing: !!post.isFollowing,
+    author: {
+      name: authorName,
+      avatar: post.avatarImage || (post.author && (post.author.avatar || post.author.avatarFileId)) || cover
+    }
+  })
+}
+
+function inferPetType(post) {
+  var text = [post.petName, post.breed, post.content, post.title].join(' ')
+  if (/兔/.test(text)) {
+    return '兔子'
   }
+  if (/仓鼠/.test(text)) {
+    return '仓鼠'
+  }
+  if (/猫|渐层|布偶|英短/.test(text)) {
+    return '猫'
+  }
+  return '狗'
+}
+
+function inferCategory(post) {
+  var tag = post.tag || post.channel || ''
+  if (tag === '找玩伴' || tag === '周边') {
+    return '交友约玩'
+  }
+  if (tag === '求助') {
+    return '寻宠求助'
+  }
+  if (tag === '攻略' || tag === '经验') {
+    return '养宠经验'
+  }
+  return '晒宠日常'
+}
+
+function mergeStoragePosts() {
+  var stored = wx.getStorageSync(POSTS_KEY)
+  var legacy = wx.getStorageSync(LEGACY_POSTS_KEY)
+  var source = Array.isArray(stored) && stored.length ? stored : legacy
+  var mockPosts = clone(mockData.mockPosts)
+  var ids = {}
+  var result = mockPosts.slice()
+  var i
+  var normalized
+
+  for (i = 0; i < result.length; i++) {
+    ids[String(result[i].id)] = true
+  }
+
+  if (Array.isArray(source)) {
+    for (i = 0; i < source.length; i++) {
+      normalized = normalizeLegacyPost(source[i], i)
+      if (!ids[String(normalized.id)]) {
+        result.push(normalized)
+      }
+    }
+  }
+
+  wx.setStorageSync(POSTS_KEY, result)
+  wx.setStorageSync(LEGACY_POSTS_KEY, result)
+  return result
+}
+
+function formatScore(score) {
+  return Math.round(Number(score || 0) * 100)
 }
 
 function estimateCardWeight(post) {
-  var base = post.coverHeight || 320
-  base += post.title.length * 4
-  return base
+  return Number(post.coverHeight || 320) + String(post.title || '').length * 4
 }
 
 function buildColumns(list) {
@@ -333,7 +193,6 @@ function buildColumns(list) {
   for (i = 0; i < list.length; i++) {
     item = list[i]
     score = estimateCardWeight(item)
-
     if (leftScore <= rightScore) {
       left.push(item)
       leftScore += score
@@ -349,216 +208,295 @@ function buildColumns(list) {
   }
 }
 
-function mergeWithDefaultPosts(sourceList) {
-  var merged = clone(DEFAULT_POSTS)
-  var idMap = {}
-  var defaultMap = getDefaultPostMap()
-  var i
-  var current
-  var baseItem
-  var mergedItem
-  var replaced = false
-
-  for (i = 0; i < merged.length; i++) {
-    idMap[String(merged[i].id)] = i
-  }
-
-  if (!Array.isArray(sourceList)) {
-    return merged
-  }
-
-  for (i = 0; i < sourceList.length; i++) {
-    current = sourceList[i]
-    if (current && current.id != null && idMap[String(current.id)] != null) {
-      baseItem = merged[idMap[String(current.id)]]
-      mergedItem = Object.assign({}, baseItem, current)
-
-      if (!isPostsAsset(mergedItem.cover) && !isPostsAsset(mergedItem.coverImage)) {
-        mergedItem.cover = baseItem.coverImage
-        mergedItem.coverImage = baseItem.coverImage
-      }
-
-      if (!mergedItem.coverHeight && baseItem.coverHeight) {
-        mergedItem.coverHeight = baseItem.coverHeight
-      }
-
-      if (!isPostsAsset(mergedItem.avatarImage) && defaultMap[String(current.id)] && isPostsAsset(defaultMap[String(current.id)].coverImage)) {
-        mergedItem.avatarImage = defaultMap[String(current.id)].coverImage
-      }
-
-      merged[idMap[String(current.id)]] = mergedItem
-      replaced = true
-    } else if (current) {
-      if (!isPostsAsset(current.cover) && !isPostsAsset(current.coverImage)) {
-        current.cover = POST_IMAGE_POOL[i % POST_IMAGE_POOL.length]
-        current.coverImage = current.cover
-      }
-      if (!isPostsAsset(current.avatarImage)) {
-        current.avatarImage = current.coverImage || current.cover
-      }
-      merged.push(current)
-      replaced = true
-    }
-  }
-
-  return replaced ? merged : clone(DEFAULT_POSTS)
+function getDisplayPost(post) {
+  return Object.assign({}, post, {
+    userName: post.author && post.author.name ? post.author.name : '萌宠用户',
+    avatarImage: post.author && post.author.avatar ? post.author.avatar : post.coverImage,
+    coverHeight: post.coverHeight || 320
+  })
 }
 
 Page({
   data: {
     banners: BANNER_LIST,
-    channels: COMMUNITY_TABS,
+    channels: CHANNELS,
+    filterOptions: buildFilterOptions('全部'),
     activeChannel: '推荐',
-    posts: [],
+    selectedCategory: '全部',
+    allPosts: [],
+    recommendedPosts: [],
     filteredPosts: [],
     leftColumn: [],
-    rightColumn: []
+    rightColumn: [],
+    topics: [],
+    userProfile: {},
+    filterPanelVisible: false,
+    activeFilterSummary: [],
+    feedTitle: '为你推荐'
   },
 
   onLoad: function () {
-    this.ensureMockPosts()
+    this.prepareAlgorithmData()
   },
 
   onShow: function () {
-    this.loadPosts()
+    this.prepareAlgorithmData()
   },
 
-  ensureMockPosts: function () {
-    var posts = wx.getStorageSync(POSTS_KEY)
-    var legacyPosts = wx.getStorageSync(LEGACY_POSTS_KEY)
-    var merged
+  prepareAlgorithmData: function () {
+    var self = this
+    var ticket = Date.now()
 
-    if ((!Array.isArray(posts) || !posts.length) && (!Array.isArray(legacyPosts) || !legacyPosts.length)) {
-      wx.setStorageSync(POSTS_KEY, clone(DEFAULT_POSTS))
-      wx.setStorageSync(LEGACY_POSTS_KEY, clone(DEFAULT_POSTS))
-      return
-    }
+    this._loadTicket = ticket
 
-    merged = mergeWithDefaultPosts(Array.isArray(posts) && posts.length ? posts : legacyPosts)
-    wx.setStorageSync(POSTS_KEY, clone(merged))
-    wx.setStorageSync(LEGACY_POSTS_KEY, clone(merged))
+    cloudPosts.fetchPosts({ limit: 80 })
+      .then(function (cloudList) {
+        if (self._loadTicket !== ticket) {
+          return
+        }
+
+        if (cloudList.length) {
+          console.log('云数据库 posts 读取成功:', cloudList.length)
+          self.runAlgorithmData(cloudList, 'cloud')
+          return
+        }
+
+        console.log('云数据库 posts 暂无数据，使用本地 mock 数据')
+        self.runAlgorithmData(mergeStoragePosts(), 'mock')
+      })
+      .catch(function (err) {
+        console.warn('云数据库 posts 读取失败，使用本地 mock 数据:', err)
+        if (self._loadTicket === ticket) {
+          self.runAlgorithmData(mergeStoragePosts(), 'mock')
+        }
+      })
   },
 
-  loadPosts: function () {
-    var posts = wx.getStorageSync(POSTS_KEY)
-    var legacyPosts = wx.getStorageSync(LEGACY_POSTS_KEY)
-    var sourceList = Array.isArray(posts) && posts.length ? posts : legacyPosts
-    var normalized = []
-    var i
-
-    if (!Array.isArray(sourceList) || !sourceList.length) {
-      sourceList = clone(DEFAULT_POSTS)
-    }
-
-    sourceList = mergeWithDefaultPosts(sourceList)
-    wx.setStorageSync(POSTS_KEY, clone(sourceList))
-    wx.setStorageSync(LEGACY_POSTS_KEY, clone(sourceList))
-
-    for (i = 0; i < sourceList.length; i++) {
-      normalized.push(normalizePost(sourceList[i], i))
-    }
-
-    this.setData({
-      posts: normalized
+  runAlgorithmData: function (rawPosts, sourceName) {
+    var sourcePosts = rawPosts.map(normalizeLegacyPost)
+    var clusterResult = topicCluster.clusterPosts(sourcePosts, { k: 7, iterations: 10 })
+    var topics = clusterResult.topics.map(function (topic) {
+      return Object.assign({}, topic, {
+        keywordsText: topic.keywords.join(' / ')
+      })
     })
+    var userProfile = recommend.buildUserProfile(clusterResult.posts, recommend.mockUserBehavior)
+    var recommendedPosts = recommend.recommendPosts(clusterResult.posts, userProfile)
 
-    this.applyChannel()
-  },
+    wx.setStorageSync(POSTS_KEY, sourcePosts)
+    wx.setStorageSync(LEGACY_POSTS_KEY, sourcePosts)
 
-  applyChannel: function () {
-    var activeChannel = this.data.activeChannel
-    var posts = this.data.posts
-    var filtered = []
-    var i
-
-    for (i = 0; i < posts.length; i++) {
-      if (
-        activeChannel === '推荐' ||
-        (activeChannel === '关注' && posts[i].isFollowing) ||
-        posts[i].channel === activeChannel
-      ) {
-        filtered.push(posts[i])
+    console.log('社区帖子数据来源:', sourceName)
+    console.log('聚类主题结果 topics:', clusterResult.topics)
+    console.log('用户画像 userProfile:', userProfile)
+    console.log('推荐分最高前5:', recommendedPosts.slice(0, 5).map(function (item) {
+      return {
+        id: item.id,
+        title: item.title,
+        recommendScore: item.recommendScore,
+        scoreDetail: item.scoreDetail
       }
-    }
-
-    var columns = buildColumns(filtered)
+    }))
 
     this.setData({
-      filteredPosts: filtered,
+      allPosts: recommendedPosts,
+      recommendedPosts: recommendedPosts,
+      topics: topics,
+      userProfile: userProfile
+    })
+    this.applyFeed()
+  },
+
+  applyFeed: function () {
+    var filters = Object.assign({}, this.data.filters)
+    var activeChannel = this.data.activeChannel
+    var selectedCategory = this.data.selectedCategory
+    var basePosts = this.data.recommendedPosts
+    var visiblePosts = []
+    var index
+    var columns
+    var i
+    var post
+
+    for (i = 0; i < basePosts.length; i++) {
+      post = basePosts[i]
+      if (activeChannel === '关注' && !post.isFollowing) {
+        continue
+      }
+      if (activeChannel === '周边' && post.city !== CURRENT_CITY) {
+        continue
+      }
+      if (selectedCategory !== '全部' && post.category !== selectedCategory) {
+        continue
+      }
+      visiblePosts.push(post)
+    }
+
+    filters.sortType = 'recommend'
+    filters.currentCity = CURRENT_CITY
+
+    index = filterIndex.buildFilterIndex(visiblePosts)
+    visiblePosts = filterIndex.filterPosts(visiblePosts, filters, index)
+    visiblePosts = visiblePosts.map(getDisplayPost)
+    columns = buildColumns(visiblePosts)
+
+    console.log('当前筛选条件 filters:', filters)
+
+    this.setData({
+      filteredPosts: visiblePosts,
       leftColumn: columns.left,
-      rightColumn: columns.right
+      rightColumn: columns.right,
+      filterOptions: buildFilterOptions(selectedCategory),
+      activeFilterSummary: selectedCategory === '全部' ? [] : [getCategoryLabel(selectedCategory)],
+      feedTitle: selectedCategory === '全部' ? '为你推荐' : getCategoryLabel(selectedCategory)
     })
   },
 
-  handleTabChange: function (e) {
+  handleChannelChange: function (e) {
     this.setData({
       activeChannel: e.currentTarget.dataset.channel
     })
-    this.applyChannel()
+    this.applyFeed()
+  },
+
+  handleCategoryTap: function (e) {
+    this.setData({
+      selectedCategory: e.currentTarget.dataset.value
+    })
+    this.applyFeed()
+  },
+
+  handleDrawerCategoryTap: function (e) {
+    var value = e.currentTarget.dataset.value
+    this.setData({
+      selectedCategory: value,
+      filterPanelVisible: false
+    })
+    this.applyFeed()
+  },
+
+  resetFilters: function () {
+    this.setData({
+      selectedCategory: '全部',
+      filterOptions: buildFilterOptions('全部'),
+      filterPanelVisible: false
+    })
+    this.applyFeed()
+  },
+
+  toggleFilterPanel: function () {
+    this.setData({
+      filterPanelVisible: !this.data.filterPanelVisible
+    })
+  },
+
+  closeFilterPanel: function () {
+    this.setData({
+      filterPanelVisible: false
+    })
+  },
+
+  openSearch: function () {
+    wx.navigateTo({
+      url: '/pages/search/index'
+    })
   },
 
   handlePublish: function () {
     wx.navigateTo({
-      url: '/pages/publish/index'
+      url: '/pages/publish/index?from=community&visibility=public'
     })
   },
 
-  handlePostTap: function () {
-    wx.showToast({
-      title: '帖子详情开发中',
-      icon: 'none'
+  handlePostTap: function (e) {
+    var id = e.currentTarget.dataset.id
+    var posts = this.data.recommendedPosts
+    var target = null
+    var i
+
+    for (i = 0; i < posts.length; i++) {
+      if (String(posts[i].id) === String(id)) {
+        target = posts[i]
+        break
+      }
+    }
+
+    if (target) {
+      wx.setStorageSync(DETAIL_CACHE_KEY, target)
+      this.saveViewedPost(target)
+    }
+
+    wx.navigateTo({
+      url: '/pages/post-detail/index?id=' + encodeURIComponent(id)
     })
+  },
+
+  saveViewedPost: function (post) {
+    var viewedPosts = wx.getStorageSync(VIEWED_POSTS_KEY)
+    var nextList = []
+    var item
+    var i
+
+    viewedPosts = Array.isArray(viewedPosts) ? viewedPosts : []
+    nextList.push({
+      id: post.id,
+      title: post.title,
+      petName: post.petName,
+      breed: post.breed,
+      channel: post.category
+    })
+
+    for (i = 0; i < viewedPosts.length; i++) {
+      item = viewedPosts[i]
+      if (String(item.id) !== String(post.id) && nextList.length < 10) {
+        nextList.push(item)
+      }
+    }
+
+    wx.setStorageSync(VIEWED_POSTS_KEY, nextList)
   },
 
   handleLike: function (e) {
     var id = e.currentTarget.dataset.id
-    var posts = clone(this.data.posts)
-    var i
+    var posts = this.data.recommendedPosts.slice()
     var rawPosts
+    var i
+    var cloudId = ''
 
     for (i = 0; i < posts.length; i++) {
-      if (posts[i].id === id) {
+      if (String(posts[i].id) === String(id)) {
         posts[i].liked = !posts[i].liked
         posts[i].likeCount += posts[i].liked ? 1 : -1
         if (posts[i].likeCount < 0) {
           posts[i].likeCount = 0
         }
+        cloudId = posts[i]._cloudId
         break
       }
     }
 
     rawPosts = posts.map(function (item) {
-      return {
-        id: item.id,
-        title: item.title,
-        content: item.content,
-        author: item.userName,
-        petName: item.petName,
-        breed: item.breed,
-        tag: item.channel || '推荐',
+      return Object.assign({}, item, {
+        author: item.author,
         likes: item.likeCount,
-        cover: item.coverImage,
-        avatarImage: item.avatarImage,
-        coverHeight: item.coverHeight,
-        coverType: item.coverEmoji === '🐱' ? 'cat' : item.coverEmoji === '🐶' ? 'dog' : item.coverEmoji === '🎂' ? 'cake' : item.coverEmoji === '🩺' ? 'health' : item.coverEmoji === '🌿' ? 'walk' : item.coverEmoji === '📒' ? 'guide' : item.coverEmoji === '💬' ? 'help' : 'paw',
-        isLiked: item.liked,
-        isFollowing: item.isFollowing
-      }
+        isLiked: item.liked
+      })
     })
 
     wx.setStorageSync(POSTS_KEY, rawPosts)
     wx.setStorageSync(LEGACY_POSTS_KEY, rawPosts)
 
-    this.setData({
-      posts: posts
-    })
-    this.applyChannel()
-  },
+    if (cloudId) {
+      cloudPosts.updatePost(cloudId, {
+        likeCount: posts[i].likeCount
+      }).catch(function (err) {
+        console.warn('云数据库点赞数更新失败:', err)
+      })
+    }
 
-  openSearch: function () {
-    wx.showToast({
-      title: '搜索功能开发中',
-      icon: 'none'
+    this.setData({
+      recommendedPosts: posts
     })
+    this.applyFeed()
   }
 })

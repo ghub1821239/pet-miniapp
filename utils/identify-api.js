@@ -1,4 +1,9 @@
-var API_BASE_URLS = ['http://10.130.21.47:3007', 'http://127.0.0.1:3007', 'http://localhost:3007']
+var API_BASE_URLS = [
+  'https://express-6ii0-258937-9-1434048451.sh.run.tcloudbase.com',
+  'http://10.130.21.47:3007',
+  'http://127.0.0.1:3007',
+  'http://localhost:3007'
+]
 var RECOGNIZE_ENDPOINT = '/pet-recognize'
 var HEALTH_ENDPOINT = '/health'
 var activeBaseUrl = ''

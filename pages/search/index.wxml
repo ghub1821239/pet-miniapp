@@ -1,0 +1,117 @@
+<view class="search-page">
+  <view class="search-topbar">
+    <view class="search-exit" bindtap="exitSearch">
+      <view class="search-back-icon"></view>
+    </view>
+    <view class="search-input-wrap">
+      <text class="search-icon">⌕</text>
+      <input
+        class="search-input"
+        value="{{keyword}}"
+        placeholder="搜索宠物、话题、周边玩伴"
+        confirm-type="search"
+        focus="{{true}}"
+        bindinput="bindSearchInput"
+        bindconfirm="submitSearch"
+      />
+      <view wx:if="{{keyword}}" class="search-clear" bindtap="clearKeyword">×</view>
+    </view>
+    <view class="search-submit" bindtap="submitSearch">搜索</view>
+  </view>
+
+  <view wx:if="{{!hasSearched}}" class="search-discovery">
+    <view wx:if="{{searchHistory.length}}" class="search-section">
+      <view class="search-section-head">
+        <text class="search-section-title">搜索记录</text>
+        <text class="search-section-action" bindtap="clearSearchHistory">清空</text>
+      </view>
+      <view class="search-chip-list">
+        <block wx:for="{{searchHistory}}" wx:key="*this">
+          <text class="search-chip" data-keyword="{{item}}" bindtap="applySearchKeyword">{{item}}</text>
+        </block>
+      </view>
+    </view>
+
+    <view class="search-section">
+      <view class="search-section-head">
+        <text class="search-section-title">猜你想搜</text>
+        <text class="search-section-sub">根据浏览和档案</text>
+      </view>
+      <view class="search-chip-list">
+        <block wx:for="{{guessSearchList}}" wx:key="*this">
+          <text class="search-chip guess" data-keyword="{{item}}" bindtap="applySearchKeyword">{{item}}</text>
+        </block>
+      </view>
+    </view>
+
+    <view class="search-section">
+      <view class="search-section-head">
+        <text class="search-section-title">热搜榜</text>
+        <text class="search-section-sub">社区正在聊</text>
+      </view>
+      <block wx:for="{{hotSearchList}}" wx:key="keyword">
+        <view class="hot-item" data-keyword="{{item.keyword}}" bindtap="applySearchKeyword">
+          <text class="hot-rank {{index < 3 ? 'top' : ''}}">{{index + 1}}</text>
+          <text class="hot-keyword">{{item.keyword}}</text>
+          <text class="hot-heat">{{item.heat}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view wx:if="{{hasSearched}}" class="search-result-head">
+    <text class="search-result-title">搜索“{{keyword}}”</text>
+    <text class="search-result-count">找到 {{resultPosts.length}} 条相关动态</text>
+  </view>
+
+  <view wx:if="{{hasSearched && resultPosts.length}}" class="search-grid">
+    <view class="search-column">
+      <block wx:for="{{leftColumn}}" wx:key="id">
+        <view class="feed-card" bindtap="handlePostTap" data-id="{{item.id}}">
+          <image class="feed-cover" src="{{item.coverImage}}" mode="widthFix"></image>
+          <view class="feed-body">
+            <text class="feed-title">{{item.title}}</text>
+            <view class="feed-footer">
+              <view class="feed-user">
+                <image wx:if="{{item.avatarImage}}" class="feed-avatar-image" src="{{item.avatarImage}}" mode="aspectFill"></image>
+                <view wx:else class="feed-avatar">{{item.avatar}}</view>
+                <text class="feed-user-name">{{item.userName}}</text>
+              </view>
+              <view class="feed-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" catchtap="handleLike">
+                <text class="feed-like-icon">❤</text>
+                <text>{{item.likeCount}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="search-column">
+      <block wx:for="{{rightColumn}}" wx:key="id">
+        <view class="feed-card" bindtap="handlePostTap" data-id="{{item.id}}">
+          <image class="feed-cover" src="{{item.coverImage}}" mode="widthFix"></image>
+          <view class="feed-body">
+            <text class="feed-title">{{item.title}}</text>
+            <view class="feed-footer">
+              <view class="feed-user">
+                <image wx:if="{{item.avatarImage}}" class="feed-avatar-image" src="{{item.avatarImage}}" mode="aspectFill"></image>
+                <view wx:else class="feed-avatar">{{item.avatar}}</view>
+                <text class="feed-user-name">{{item.userName}}</text>
+              </view>
+              <view class="feed-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" catchtap="handleLike">
+                <text class="feed-like-icon">❤</text>
+                <text>{{item.likeCount}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view wx:if="{{hasSearched && resultPosts.length === 0}}" class="search-empty">
+    <text class="search-empty-title">没有找到相关动态</text>
+    <text class="search-empty-copy">换个宠物名、品种或话题试试</text>
+  </view>
+</view>
