@@ -34,6 +34,11 @@
       <view class="picker-box publish-picker">{{petNames[petIndex]}}</view>
     </picker>
 
+    <text class="field-label">帖子分区</text>
+    <picker range="{{categoryOptions}}" value="{{categoryIndex}}" bindchange="changeCategory">
+      <view class="picker-box publish-picker">{{categoryOptions[categoryIndex]}}</view>
+    </picker>
+
     <text class="field-label">标签</text>
     <input class="input publish-input" placeholder="自定义标签，多个可用空格或逗号分隔" value="{{form.tagsText}}" data-field="tagsText" bindinput="bindInput" />
     <view class="publish-tag-list">
@@ -45,6 +50,10 @@
     <view class="publish-switch-row">
       <text class="field-label publish-inline-label">显示位置</text>
       <switch checked="{{form.showLocation}}" color="#B1C29E" bindchange="switchLocation" />
+    </view>
+    <view wx:if="{{form.showLocation}}" class="publish-location-row">
+      <view class="picker-box publish-picker publish-location-text">{{form.locationText || '未选择位置，发布时将自动定位'}}</view>
+      <button class="secondary-btn publish-location-btn" bindtap="chooseLocation">选择位置</button>
     </view>
 
     <button class="primary-btn publish-submit" bindtap="submitPost">{{submitButtonText}}</button>

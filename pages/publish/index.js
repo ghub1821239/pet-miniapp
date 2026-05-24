@@ -1,10 +1,19 @@
 var POSTS_KEY = 'postList'
+var cloudPosts = require('../../utils/cloudPosts')
 var LEGACY_POSTS_KEY = 'forumPosts'
 var DIARY_KEY = 'diaryList'
 var PETS_KEY = 'petList'
 var LEGACY_PETS_KEY = 'pets'
 var DEFAULT_CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
 var DEFAULT_DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
+var DEFAULT_CITY = '天津'
+var CATEGORY_OPTIONS = ['晒宠日常', '交友约玩', '就医问诊', '养宠经验', '寻宠求助', '领养救助', '好物分享', '宠物活动']
+var CITY_GEO_BOXES = [
+  { city: '北京市', minLat: 39.4, maxLat: 41.1, minLng: 115.4, maxLng: 117.6 },
+  { city: '天津市', minLat: 38.4, maxLat: 40.4, minLng: 116.7, maxLng: 118.3 },
+  { city: '上海市', minLat: 30.7, maxLat: 31.9, minLng: 120.8, maxLng: 122.2 },
+  { city: '重庆市', minLat: 28.1, maxLat: 32.3, minLng: 105.2, maxLng: 110.2 }
+]
 
 Page({
   data: {
@@ -16,6 +25,8 @@ Page({
     pets: [],
     petNames: ['暂不关联'],
     petIndex: 0,
+    categoryOptions: CATEGORY_OPTIONS,
+    categoryIndex: 0,
     selectedTags: [],
     tagOptions: ['日常分享', '找玩伴', '求助', '周边', '晒宠', '猫猫', '狗狗', '拍照打卡'],
     form: {
@@ -26,8 +37,13 @@ Page({
       mediaType: 'image',
       petName: '',
       breed: '',
+      category: CATEGORY_OPTIONS[0],
       tagsText: '',
-      showLocation: true
+      showLocation: true,
+      locationText: '',
+      city: '',
+      latitude: 0,
+      longitude: 0
     }
   },
 
@@ -139,9 +155,38 @@ Page({
     })
   },
 
+  changeCategory: function (e) {
+    var index = Number(e.detail.value || 0)
+    var category = CATEGORY_OPTIONS[index] || CATEGORY_OPTIONS[0]
+    this.setData({
+      categoryIndex: index,
+      'form.category': category
+    })
+  },
+
   switchLocation: function (e) {
     this.setData({
       'form.showLocation': e.detail.value
+    })
+  },
+
+  chooseLocation: function () {
+    var that = this
+    wx.chooseLocation({
+      success: function (res) {
+        var city = resolveCityFromText((res.address || '') + ' ' + (res.name || '')) || inferCityByLocation({
+          latitude: res.latitude,
+          longitude: res.longitude
+        }) || DEFAULT_CITY
+        city = normalizeCityName(city)
+        var locationText = resolveLocationText(res.name, res.address, city)
+        that.setData({
+          'form.locationText': locationText,
+          'form.city': city,
+          'form.latitude': Number(res.latitude || 0),
+          'form.longitude': Number(res.longitude || 0)
+        })
+      }
     })
   },
 
@@ -190,31 +235,84 @@ Page({
       return
     }
 
-    if (shouldSaveDiary) {
-      diaryList = this.readStorageList(DIARY_KEY)
-      diaryEntry = this.buildDiaryEntry(form, tags, selectedPet, shouldSyncCommunity)
-      diaryList.unshift(diaryEntry)
-      wx.setStorageSync(DIARY_KEY, diaryList)
-    }
-
-    if (shouldSyncCommunity) {
-      postList = this.readStorageList(POSTS_KEY)
-      communityPost = this.buildCommunityPost(form, tags, selectedPet)
-      postList.unshift(communityPost)
-      wx.setStorageSync(POSTS_KEY, postList)
-      wx.setStorageSync(LEGACY_POSTS_KEY, postList)
-    }
-
-    wx.showToast({
-      title: entryMode === 'community'
-        ? '已发布并存入日记'
-        : (visibility === 'public' ? '已同步社区' : '日记已保存'),
-      icon: 'success'
+    wx.showLoading({
+      title: '发布中...'
     })
 
-    setTimeout(function () {
-      wx.navigateBack()
-    }, 500)
+    this.resolvePostLocation(form).then(function (locationPayload) {
+      var cloudResult = {
+        success: false,
+        error: null,
+        post: null
+      }
+
+      if (shouldSyncCommunity) {
+        communityPost = this.buildCommunityPost(form, tags, selectedPet, locationPayload)
+      }
+
+      return Promise.resolve().then(function () {
+        if (!shouldSyncCommunity) {
+          return cloudResult
+        }
+        return cloudPosts.createPost(communityPost).then(function (cloudPost) {
+          return {
+            success: true,
+            error: null,
+            post: cloudPost
+          }
+        }).catch(function (err) {
+          console.warn('社区帖子云端发布失败，将回退本地保存:', err)
+          return {
+            success: false,
+            error: err,
+            post: communityPost
+          }
+        })
+      }.bind(this)).then(function (result) {
+        cloudResult = result
+
+        if (shouldSyncCommunity) {
+          postList = this.readStorageList(POSTS_KEY)
+          communityPost = cloudResult.post || communityPost
+          postList.unshift(communityPost)
+          wx.setStorageSync(POSTS_KEY, postList)
+          wx.setStorageSync(LEGACY_POSTS_KEY, postList)
+        }
+
+      if (shouldSaveDiary) {
+        diaryList = this.readStorageList(DIARY_KEY)
+        diaryEntry = this.buildDiaryEntry(form, tags, selectedPet, shouldSyncCommunity, locationPayload)
+        diaryList.unshift(diaryEntry)
+        wx.setStorageSync(DIARY_KEY, diaryList)
+      }
+        wx.hideLoading()
+        if (shouldSyncCommunity && !cloudResult.success) {
+          wx.showToast({
+            title: '云端发布失败，已存本地',
+            icon: 'none'
+          })
+          return
+        }
+
+        wx.showToast({
+          title: entryMode === 'community'
+            ? '已发布并存入日记'
+            : (visibility === 'public' ? '已同步社区' : '日记已保存'),
+          icon: 'success'
+        })
+
+        setTimeout(function () {
+          wx.navigateBack()
+        }, 500)
+      }.bind(this))
+    }.bind(this)).catch(function (err) {
+      wx.hideLoading()
+      console.warn('发布失败:', err)
+      wx.showToast({
+        title: '发布失败，请重试',
+        icon: 'none'
+      })
+    }.bind(this))
   },
 
   readStorageList: function (key) {
@@ -247,7 +345,7 @@ Page({
     return petIndex > 0 ? pets[petIndex - 1] : null
   },
 
-  buildDiaryEntry: function (form, tags, pet, isPublic) {
+  buildDiaryEntry: function (form, tags, pet, isPublic, locationPayload) {
     var now = new Date()
     var date = formatDate(now)
     return {
@@ -262,12 +360,17 @@ Page({
       displayDate: buildDisplayDate(now),
       time: formatTime(now),
       mood: tags[0] || '温暖',
-      isPublic: !!isPublic
+      isPublic: !!isPublic,
+      city: locationPayload.city || '',
+      location: locationPayload.locationText || '',
+      latitude: locationPayload.latitude || 0,
+      longitude: locationPayload.longitude || 0
     }
   },
 
-  buildCommunityPost: function (form, tags, pet) {
+  buildCommunityPost: function (form, tags, pet, locationPayload) {
     var now = Date.now()
+    var createdAt = formatDateTime(new Date(now))
     var cover = this.getPrimaryMedia(form, pet)
     var coverHeight = this.estimateCoverHeight(form, pet, tags)
     return {
@@ -277,6 +380,18 @@ Page({
       author: '我',
       petName: pet ? pet.name : (form.petName || '我家宝贝'),
       breed: pet ? pet.breed : (form.breed || inferBreedByPetName(form.petName)),
+      category: form.category || CATEGORY_OPTIONS[0],
+      city: locationPayload.city || '',
+      location: locationPayload.locationText || '',
+      latitude: locationPayload.latitude || 0,
+      longitude: locationPayload.longitude || 0,
+      createdAt: createdAt,
+      commentCount: 0,
+      collectCount: 0,
+      viewCount: 0,
+      isSolved: shouldDefaultSolved(form.category),
+      urgency: '普通',
+      tags: tags,
       tag: inferCommunityChannel(tags),
       likes: 0,
       cover: cover,
@@ -287,6 +402,55 @@ Page({
       isLiked: false,
       isFollowing: false
     }
+  },
+
+  resolvePostLocation: function (form) {
+    var currentCity = normalizeCityName(form.city)
+    var locationText = String(form.locationText || '').trim()
+
+    if (!form.showLocation) {
+      return Promise.resolve({
+        city: '',
+        locationText: '',
+        latitude: 0,
+        longitude: 0
+      })
+    }
+
+    if (locationText || currentCity) {
+      return Promise.resolve({
+        city: currentCity || DEFAULT_CITY,
+        locationText: locationText || ((currentCity || DEFAULT_CITY) + ' · 附近'),
+        latitude: Number(form.latitude || 0),
+        longitude: Number(form.longitude || 0)
+      })
+    }
+
+    return new Promise(function (resolve) {
+      wx.getLocation({
+        type: 'gcj02',
+        success: function (res) {
+          var city = normalizeCityName(inferCityByLocation({
+            latitude: res.latitude,
+            longitude: res.longitude
+          }) || DEFAULT_CITY)
+          resolve({
+            city: city,
+            locationText: city + ' · 附近',
+            latitude: Number(res.latitude || 0),
+            longitude: Number(res.longitude || 0)
+          })
+        },
+        fail: function () {
+          resolve({
+            city: DEFAULT_CITY,
+            locationText: DEFAULT_CITY + ' · 附近',
+            latitude: 0,
+            longitude: 0
+          })
+        }
+      })
+    })
   },
 
   getPrimaryMedia: function (form, pet) {
@@ -367,6 +531,63 @@ function inferCommunityChannel(tags) {
   return '推荐'
 }
 
+function shouldDefaultSolved(category) {
+  var value = String(category || '')
+  return !(value === '就医问诊' || value === '养宠经验' || value === '寻宠求助' || value === '领养救助')
+}
+
+function trimCityText(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim()
+}
+
+function normalizeCityName(value) {
+  var city = trimCityText(value)
+  if (!city) {
+    return ''
+  }
+  city = city.replace(/(特别行政区|自治州|地区|盟)$/g, '')
+  city = city.replace(/(省|市)$/g, '')
+  return city
+}
+
+function resolveLocationText(name, address, city) {
+  var safeName = String(name || '').trim()
+  var safeAddress = String(address || '').trim()
+  if (safeName && safeAddress && safeAddress.indexOf(safeName) === -1) {
+    return safeName + ' · ' + safeAddress
+  }
+  if (safeAddress) {
+    return safeAddress
+  }
+  if (safeName) {
+    return safeName
+  }
+  return (city || DEFAULT_CITY) + ' · 附近'
+}
+
+function resolveCityFromText(text) {
+  var safe = String(text || '')
+  var match = safe.match(/([\u4e00-\u9fa5]{2,10}(?:市|地区|自治州|盟))/)
+  return match ? match[1] : ''
+}
+
+function inferCityByLocation(location) {
+  var lat = Number(location && location.latitude)
+  var lng = Number(location && location.longitude)
+  var i
+  var box
+  if (!lat || !lng) {
+    return ''
+  }
+  for (i = 0; i < CITY_GEO_BOXES.length; i += 1) {
+    box = CITY_GEO_BOXES[i]
+    if (lat >= box.minLat && lat <= box.maxLat && lng >= box.minLng && lng <= box.maxLng) {
+      return box.city
+    }
+  }
+  return ''
+}
+
 function inferBreedByPetName(name) {
   if (name === '布丁') {
     return '萨摩耶'
@@ -395,6 +616,10 @@ function inferCoverType(pet, form) {
 
 function formatDate(date) {
   return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
+}
+
+function formatDateTime(date) {
+  return formatDate(date) + ' ' + formatTime(date) + ':00'
 }
 
 function formatTime(date) {

@@ -194,6 +194,20 @@
   box-shadow: 0 10rpx 24rpx rgba(191, 180, 150, 0.1);
 }
 
+.feed-card-share {
+  border-color: #f1e6d5;
+}
+
+.feed-card-qa {
+  border-color: #dbe7ce;
+  background: linear-gradient(180deg, #fbfff6 0%, #f7fbf1 100%);
+}
+
+.feed-card-help {
+  border-color: #edd4c7;
+  background: linear-gradient(180deg, #fffaf5 0%, #fff4ec 100%);
+}
+
 .feed-cover-wrap {
   position: relative;
 }
@@ -208,6 +222,11 @@
   padding: 18rpx 18rpx 20rpx;
 }
 
+.qa-body,
+.help-body {
+  padding: 20rpx 18rpx 18rpx;
+}
+
 .feed-title {
   display: block;
   font-size: 30rpx;
@@ -220,6 +239,110 @@
   overflow: hidden;
 }
 
+.share-title {
+  -webkit-line-clamp: 2;
+}
+
+.qa-title,
+.help-title {
+  font-size: 28rpx;
+  line-height: 1.45;
+  -webkit-line-clamp: 2;
+}
+
+.qa-summary,
+.help-summary {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 23rpx;
+  line-height: 1.55;
+  color: #6a5946;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-chip-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-bottom: 10rpx;
+}
+
+.card-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 34rpx;
+  padding: 0 12rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  color: #7c6a53;
+  background: #f8efdf;
+}
+
+.card-chip-qa {
+  color: #5d7450;
+  background: #e9f3dd;
+}
+
+.card-chip-help {
+  color: #8e5f45;
+  background: #fde8db;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10rpx;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38rpx;
+  padding: 0 14rpx;
+  border-radius: 999rpx;
+  font-size: 21rpx;
+  font-weight: 800;
+  letter-spacing: 0.5rpx;
+}
+
+.status-done {
+  color: #4d6f40;
+  background: #dff0d4;
+}
+
+.status-pending {
+  color: #89672d;
+  background: #f8efcb;
+}
+
+.status-urgent {
+  color: #9f4732;
+  background: #fbdccf;
+}
+
+.status-neutral {
+  color: #7c6a53;
+  background: #f8efdf;
+}
+
+.status-meta {
+  margin-left: 10rpx;
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 21rpx;
+  color: #8b7a62;
+}
+
 .feed-footer {
   display: flex;
   align-items: center;
@@ -227,11 +350,21 @@
   margin-top: 14rpx;
 }
 
+.qa-footer,
+.help-footer {
+  margin-top: 12rpx;
+}
+
 .feed-user {
   display: flex;
   align-items: center;
   flex: 1;
   min-width: 0;
+}
+
+.share-user .feed-avatar-image {
+  width: 52rpx;
+  height: 52rpx;
 }
 
 .feed-avatar-image {
@@ -271,6 +404,11 @@
   column-gap: 6rpx;
   color: #ae9b82;
   font-size: 22rpx;
+}
+
+.share-like {
+  color: #bea78f;
+  font-size: 20rpx;
 }
 
 .feed-like.active {

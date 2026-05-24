@@ -239,6 +239,69 @@ function buildColumns(list) {
   }
 }
 
+function readLocalPostList() {
+  var posts = wx.getStorageSync(POSTS_KEY)
+  var legacyPosts = wx.getStorageSync(LEGACY_POSTS_KEY)
+  return Array.isArray(posts) && posts.length ? posts : legacyPosts
+}
+
+function mergeInteractionFromLocal(incomingPosts, localPosts) {
+  var localMap = {}
+  var result = []
+  var i
+  var incoming
+  var local
+
+  if (!Array.isArray(incomingPosts)) {
+    return []
+  }
+
+  if (Array.isArray(localPosts)) {
+    for (i = 0; i < localPosts.length; i++) {
+      localMap[String(localPosts[i].id)] = localPosts[i]
+    }
+  }
+
+  for (i = 0; i < incomingPosts.length; i++) {
+    incoming = incomingPosts[i]
+    local = localMap[String(incoming.id)]
+    if (!local) {
+      result.push(incoming)
+      continue
+    }
+    result.push(Object.assign({}, incoming, {
+      liked: local.liked !== undefined ? !!local.liked : !!incoming.liked,
+      isLiked: local.isLiked !== undefined ? !!local.isLiked : !!incoming.isLiked,
+      likeCount: Number(local.likeCount !== undefined ? local.likeCount : incoming.likeCount || incoming.likes || 0),
+      likes: Number(local.likes !== undefined ? local.likes : incoming.likes || incoming.likeCount || 0),
+      favorited: local.favorited !== undefined ? !!local.favorited : !!incoming.favorited,
+      isFavorited: local.isFavorited !== undefined ? !!local.isFavorited : !!incoming.isFavorited,
+      favoriteCount: Number(local.favoriteCount !== undefined ? local.favoriteCount : incoming.favoriteCount || incoming.favorites || 0),
+      favorites: Number(local.favorites !== undefined ? local.favorites : incoming.favorites || incoming.favoriteCount || 0),
+      collectCount: Number(local.collectCount !== undefined ? local.collectCount : incoming.collectCount || incoming.favoriteCount || incoming.favorites || 0),
+      commentCount: Number(local.commentCount !== undefined ? local.commentCount : incoming.commentCount || 0),
+      isFollowing: local.isFollowing !== undefined ? !!local.isFollowing : !!incoming.isFollowing,
+      comments: Array.isArray(local.comments) && local.comments.length ? local.comments.slice() : (Array.isArray(incoming.comments) ? incoming.comments.slice() : [])
+    }))
+  }
+
+  return result
+}
+
+function findPostFromLocalById(id) {
+  var list = readLocalPostList()
+  var i
+  if (!Array.isArray(list)) {
+    return null
+  }
+  for (i = 0; i < list.length; i++) {
+    if (String(list[i].id) === String(id)) {
+      return list[i]
+    }
+  }
+  return null
+}
+
 Page({
   data: {
     keyword: '',
@@ -259,14 +322,17 @@ Page({
 
   loadPosts: function () {
     var self = this
+    var localSource = readLocalPostList()
 
     cloudPosts.fetchPosts({ limit: 80 })
       .then(function (cloudList) {
+        var mergedCloudList
         if (cloudList.length) {
           console.log('搜索页云数据库 posts 读取成功:', cloudList.length)
-          wx.setStorageSync(POSTS_KEY, clone(cloudList))
-          wx.setStorageSync(LEGACY_POSTS_KEY, clone(cloudList))
-          self.applyLoadedPosts(cloudList)
+          mergedCloudList = mergeInteractionFromLocal(cloudList, localSource)
+          wx.setStorageSync(POSTS_KEY, clone(mergedCloudList))
+          wx.setStorageSync(LEGACY_POSTS_KEY, clone(mergedCloudList))
+          self.applyLoadedPosts(mergedCloudList)
           return
         }
 
@@ -466,6 +532,7 @@ Page({
     var id = e.currentTarget.dataset.id
     var posts = this.data.posts
     var target = null
+    var latestTarget = null
     var i
 
     for (i = 0; i < posts.length; i++) {
@@ -476,8 +543,9 @@ Page({
     }
 
     if (target) {
-      wx.setStorageSync(DETAIL_CACHE_KEY, target)
-      this.saveViewedPost(target)
+      latestTarget = findPostFromLocalById(id) || target
+      wx.setStorageSync(DETAIL_CACHE_KEY, latestTarget)
+      this.saveViewedPost(latestTarget)
     }
 
     wx.navigateTo({
@@ -515,6 +583,7 @@ Page({
     var posts = clone(this.data.posts)
     var resultPosts
     var rawPosts
+    var cloudTarget = null
     var i
 
     for (i = 0; i < posts.length; i++) {
@@ -524,27 +593,18 @@ Page({
         if (posts[i].likeCount < 0) {
           posts[i].likeCount = 0
         }
+        cloudTarget = posts[i]
         break
       }
     }
 
     rawPosts = posts.map(function (item) {
-      return {
-        id: item.id,
-        title: item.title,
-        content: item.content,
+      return Object.assign({}, item, {
         author: item.userName,
-        petName: item.petName,
-        breed: item.breed,
-        tag: item.channel || '推荐',
+        tag: item.channel || item.tag || '推荐',
         likes: item.likeCount,
-        cover: item.coverImage,
-        avatarImage: item.avatarImage,
-        coverHeight: item.coverHeight,
-        coverType: item.coverEmoji === '猫' ? 'cat' : item.coverEmoji === '狗' ? 'dog' : 'paw',
-        isLiked: item.liked,
-        isFollowing: item.isFollowing
-      }
+        isLiked: item.liked
+      })
     })
 
     wx.setStorageSync(POSTS_KEY, rawPosts)
@@ -553,6 +613,21 @@ Page({
     this.setData({
       posts: posts
     })
+
+    if (cloudTarget) {
+      cloudPosts.syncPostPatch(cloudTarget, {
+        likeCount: cloudTarget.likeCount,
+        likes: cloudTarget.likeCount,
+        liked: !!cloudTarget.liked,
+        isLiked: !!cloudTarget.liked
+      }).then(function (syncRes) {
+        if (!syncRes || !syncRes.synced) {
+          console.warn('搜索页点赞云同步未完成:', syncRes && syncRes.reason)
+        }
+      }).catch(function (err) {
+        console.warn('搜索页点赞云同步失败:', err)
+      })
+    }
 
     if (this.data.keyword) {
       resultPosts = []

@@ -47,60 +47,104 @@
     </block>
   </swiper>
 
-  <view class="community-grid">
-    <view class="community-column">
-      <block wx:for="{{leftColumn}}" wx:key="id">
-        <view class="feed-card" bindtap="handlePostTap" data-id="{{item.id}}">
-          <view class="feed-cover-wrap">
-            <image class="feed-cover" src="{{item.coverImage}}" mode="widthFix"></image>
+  <template name="communityFeedCard">
+    <view class="feed-card feed-card-{{item.postDisplayType}}" bindtap="handlePostTap" data-id="{{item.id}}">
+      <block wx:if="{{item.postDisplayType === 'share'}}">
+        <view class="feed-cover-wrap">
+          <image class="feed-cover" src="{{item.coverImage}}" mode="widthFix"></image>
+        </view>
+
+        <view class="feed-body">
+          <view class="card-chip-row">
+            <block wx:for="{{item.quickTags}}" wx:key="*this" wx:for-item="tag">
+              <text class="card-chip">{{tag}}</text>
+            </block>
           </view>
+          <text class="feed-title share-title">{{item.title}}</text>
 
-          <view class="feed-body">
-            <text class="feed-title">{{item.title}}</text>
-
-            <view class="feed-footer">
-              <view class="feed-user">
-                <image class="feed-avatar-image" src="{{item.avatarImage}}" mode="aspectFill"></image>
-                <view class="feed-user-copy">
-                  <text class="feed-user-name">{{item.userName}}</text>
-                </view>
+          <view class="feed-footer">
+            <view class="feed-user share-user">
+              <image class="feed-avatar-image" src="{{item.avatarImage}}" mode="aspectFill"></image>
+              <view class="feed-user-copy">
+                <text class="feed-user-name">{{item.userName}}</text>
               </view>
+            </view>
+            <view class="feed-like share-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" catchtap="handleLike">
+              <text class="feed-like-icon">❤</text>
+              <text>{{item.likeCount}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
 
-              <view class="feed-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" catchtap="handleLike">
-                <text class="feed-like-icon">❤</text>
-                <text>{{item.likeCount}}</text>
+      <block wx:elif="{{item.postDisplayType === 'qa'}}">
+        <view class="feed-body qa-body">
+          <view class="status-row">
+            <text class="status-badge status-{{item.statusTone}}">{{item.statusBadge}}</text>
+            <text class="status-meta">{{item.statusMeta}}</text>
+          </view>
+          <text class="feed-title qa-title">{{item.title}}</text>
+          <text class="qa-summary">{{item.summaryText}}</text>
+          <view class="card-chip-row">
+            <block wx:for="{{item.quickTags}}" wx:key="*this" wx:for-item="tag">
+              <text class="card-chip card-chip-qa">{{tag}}</text>
+            </block>
+          </view>
+          <view class="feed-footer qa-footer">
+            <view class="feed-user">
+              <image class="feed-avatar-image" src="{{item.avatarImage}}" mode="aspectFill"></image>
+              <view class="feed-user-copy">
+                <text class="feed-user-name">{{item.userName}}</text>
               </view>
+            </view>
+            <view class="feed-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" catchtap="handleLike">
+              <text class="feed-like-icon">❤</text>
+              <text>{{item.likeCount}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view class="feed-body help-body">
+          <view class="status-row">
+            <text class="status-badge status-{{item.statusTone}}">{{item.statusBadge}}</text>
+            <text class="status-meta">{{item.statusMeta}}</text>
+          </view>
+          <text class="feed-title help-title">{{item.title}}</text>
+          <text class="help-summary">{{item.summaryText}}</text>
+          <view class="card-chip-row">
+            <block wx:for="{{item.quickTags}}" wx:key="*this" wx:for-item="tag">
+              <text class="card-chip card-chip-help">{{tag}}</text>
+            </block>
+          </view>
+          <view class="feed-footer help-footer">
+            <view class="feed-user">
+              <image class="feed-avatar-image" src="{{item.avatarImage}}" mode="aspectFill"></image>
+              <view class="feed-user-copy">
+                <text class="feed-user-name">{{item.userName}}</text>
+              </view>
+            </view>
+            <view class="feed-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" catchtap="handleLike">
+              <text class="feed-like-icon">❤</text>
+              <text>{{item.likeCount}}</text>
             </view>
           </view>
         </view>
       </block>
     </view>
+  </template>
+
+  <view class="community-grid">
+    <view class="community-column">
+      <block wx:for="{{leftColumn}}" wx:key="id">
+        <template is="communityFeedCard" data="{{item:item}}"></template>
+      </block>
+    </view>
 
     <view class="community-column">
       <block wx:for="{{rightColumn}}" wx:key="id">
-        <view class="feed-card" bindtap="handlePostTap" data-id="{{item.id}}">
-          <view class="feed-cover-wrap">
-            <image class="feed-cover" src="{{item.coverImage}}" mode="widthFix"></image>
-          </view>
-
-          <view class="feed-body">
-            <text class="feed-title">{{item.title}}</text>
-
-            <view class="feed-footer">
-              <view class="feed-user">
-                <image class="feed-avatar-image" src="{{item.avatarImage}}" mode="aspectFill"></image>
-                <view class="feed-user-copy">
-                  <text class="feed-user-name">{{item.userName}}</text>
-                </view>
-              </view>
-
-              <view class="feed-like {{item.liked ? 'active' : ''}}" data-id="{{item.id}}" catchtap="handleLike">
-                <text class="feed-like-icon">❤</text>
-                <text>{{item.likeCount}}</text>
-              </view>
-            </view>
-          </view>
-        </view>
+        <template is="communityFeedCard" data="{{item:item}}"></template>
       </block>
     </view>
   </view>

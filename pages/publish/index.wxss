@@ -82,6 +82,32 @@
   margin-top: 18rpx;
 }
 
+.publish-location-row {
+  margin-top: 12rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.publish-location-text {
+  flex: 1;
+  min-width: 0;
+  color: #7f6b58;
+  font-size: 24rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.publish-location-btn {
+  flex-shrink: 0;
+  margin-right: 0;
+  height: 72rpx;
+  line-height: 72rpx;
+  padding: 0 20rpx;
+  font-size: 24rpx;
+}
+
 .publish-tag-list {
   display: flex;
   flex-wrap: wrap;

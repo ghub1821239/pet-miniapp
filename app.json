@@ -18,7 +18,7 @@
   },
   "permission": {
     "scope.userLocation": {
-      "desc": "用于为你推荐附近宠物医院"
+      "desc": "用于发布动态定位和推荐附近宠物医院"
     }
   },
   "style": "v2",

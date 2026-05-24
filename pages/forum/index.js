@@ -26,6 +26,20 @@ var BANNER_LIST = [
 ]
 
 var CHANNELS = ['推荐', '关注', '周边']
+var SHARE_CATEGORIES = {
+  '晒宠日常': true,
+  '交友约玩': true,
+  '好物分享': true,
+  '宠物活动': true
+}
+var QA_CATEGORIES = {
+  '就医问诊': true,
+  '养宠经验': true
+}
+var HELP_CATEGORIES = {
+  '寻宠求助': true,
+  '领养救助': true
+}
 var FILTER_OPTIONS = [
   { label: '全部', value: '全部', desc: '默认展示所有帖子' },
   { label: '晒宠日常', value: '晒宠日常', desc: '分享宠物照片、视频、趣事' },
@@ -173,12 +187,220 @@ function mergeStoragePosts() {
   return result
 }
 
+function mergeInteractionFromLocal(incomingPosts, localPosts) {
+  var localMap = {}
+  var result = []
+  var i
+  var incoming
+  var local
+
+  if (!Array.isArray(incomingPosts)) {
+    return []
+  }
+
+  if (Array.isArray(localPosts)) {
+    for (i = 0; i < localPosts.length; i++) {
+      localMap[String(localPosts[i].id)] = localPosts[i]
+    }
+  }
+
+  for (i = 0; i < incomingPosts.length; i++) {
+    incoming = incomingPosts[i]
+    local = localMap[String(incoming.id)]
+    if (!local) {
+      result.push(incoming)
+      continue
+    }
+    result.push(Object.assign({}, incoming, {
+      liked: local.liked !== undefined ? !!local.liked : !!incoming.liked,
+      isLiked: local.isLiked !== undefined ? !!local.isLiked : !!incoming.isLiked,
+      likeCount: Number(local.likeCount !== undefined ? local.likeCount : incoming.likeCount || incoming.likes || 0),
+      likes: Number(local.likes !== undefined ? local.likes : incoming.likes || incoming.likeCount || 0),
+      favorited: local.favorited !== undefined ? !!local.favorited : !!incoming.favorited,
+      isFavorited: local.isFavorited !== undefined ? !!local.isFavorited : !!incoming.isFavorited,
+      favoriteCount: Number(local.favoriteCount !== undefined ? local.favoriteCount : incoming.favoriteCount || incoming.favorites || 0),
+      favorites: Number(local.favorites !== undefined ? local.favorites : incoming.favorites || incoming.favoriteCount || 0),
+      collectCount: Number(local.collectCount !== undefined ? local.collectCount : incoming.collectCount || incoming.favoriteCount || incoming.favorites || 0),
+      commentCount: Number(local.commentCount !== undefined ? local.commentCount : incoming.commentCount || 0),
+      isFollowing: local.isFollowing !== undefined ? !!local.isFollowing : !!incoming.isFollowing,
+      comments: Array.isArray(local.comments) && local.comments.length ? local.comments.slice() : (Array.isArray(incoming.comments) ? incoming.comments.slice() : [])
+    }))
+  }
+
+  return result
+}
+
+function readLocalPostList() {
+  var posts = wx.getStorageSync(POSTS_KEY)
+  var legacyPosts = wx.getStorageSync(LEGACY_POSTS_KEY)
+  return Array.isArray(posts) && posts.length ? posts : legacyPosts
+}
+
+function findPostFromLocalById(id) {
+  var list = readLocalPostList()
+  var i
+  if (!Array.isArray(list)) {
+    return null
+  }
+  for (i = 0; i < list.length; i++) {
+    if (String(list[i].id) === String(id)) {
+      return list[i]
+    }
+  }
+  return null
+}
+
 function formatScore(score) {
   return Math.round(Number(score || 0) * 100)
 }
 
+function toSafeText(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim()
+}
+
+function trimText(text, maxLen) {
+  var safe = toSafeText(text)
+  if (!safe) {
+    return ''
+  }
+  if (safe.length <= maxLen) {
+    return safe
+  }
+  return safe.slice(0, maxLen) + '...'
+}
+
+function resolvePostDisplayType(category) {
+  var key = String(category || '')
+  if (QA_CATEGORIES[key]) {
+    return 'qa'
+  }
+  if (HELP_CATEGORIES[key]) {
+    return 'help'
+  }
+  if (SHARE_CATEGORIES[key]) {
+    return 'share'
+  }
+  return 'share'
+}
+
+function formatPostTime(createdAt) {
+  var safe = String(createdAt || '')
+  if (!safe) {
+    return '刚刚'
+  }
+  if (safe.length >= 16) {
+    return safe.slice(5, 16)
+  }
+  if (safe.length >= 10) {
+    return safe.slice(5, 10)
+  }
+  return safe
+}
+
+function buildDisplaySummary(post, postDisplayType) {
+  var title = trimText(post.title, 34)
+  var content = trimText(post.content, 46)
+
+  if (postDisplayType === 'qa') {
+    return content || title || '点击查看完整问答'
+  }
+  if (postDisplayType === 'help') {
+    return content || title || '点击查看求助详情'
+  }
+  return title || content || '点击查看详情'
+}
+
+function buildStatusMeta(post, postDisplayType) {
+  var urgency = toSafeText(post.urgency) || '普通'
+  var city = toSafeText(post.city) || CURRENT_CITY
+  var timeText = formatPostTime(post.createdAt)
+
+  if (postDisplayType === 'qa') {
+    if (post.isSolved) {
+      return {
+        statusBadge: '已解决',
+        statusTone: 'done',
+        statusMeta: post.category || '问答'
+      }
+    }
+    return {
+      statusBadge: '待解答',
+      statusTone: urgency === '紧急' || urgency === '较急' ? 'urgent' : 'pending',
+      statusMeta: urgency + ' · ' + city
+    }
+  }
+
+  if (postDisplayType === 'help') {
+    if (post.isSolved) {
+      return {
+        statusBadge: '已处理',
+        statusTone: 'done',
+        statusMeta: city + ' · ' + timeText
+      }
+    }
+    return {
+      statusBadge: '待扩散',
+      statusTone: urgency === '紧急' || urgency === '较急' ? 'urgent' : 'pending',
+      statusMeta: urgency + ' · ' + city + ' · ' + timeText
+    }
+  }
+
+  return {
+    statusBadge: post.category || '分享',
+    statusTone: 'neutral',
+    statusMeta: city + ' · ' + timeText
+  }
+}
+
+function buildQuickTags(post, postDisplayType) {
+  var sourceTags = Array.isArray(post.tags) ? post.tags : []
+  var tags = []
+  var i
+
+  if (postDisplayType === 'share') {
+    if (post.petType) {
+      tags.push(post.petType)
+    }
+    if (post.category) {
+      tags.push(post.category)
+    }
+  } else if (postDisplayType === 'qa') {
+    if (post.category) {
+      tags.push(post.category)
+    }
+    for (i = 0; i < sourceTags.length && tags.length < 2; i += 1) {
+      if (tags.indexOf(sourceTags[i]) === -1) {
+        tags.push(sourceTags[i])
+      }
+    }
+  } else {
+    if (post.city) {
+      tags.push(post.city)
+    }
+    if (post.urgency) {
+      tags.push(post.urgency)
+    }
+  }
+
+  for (i = 0; i < sourceTags.length && tags.length < 2; i += 1) {
+    if (tags.indexOf(sourceTags[i]) === -1) {
+      tags.push(sourceTags[i])
+    }
+  }
+
+  return tags.slice(0, 2)
+}
+
 function estimateCardWeight(post) {
-  return Number(post.coverHeight || 320) + String(post.title || '').length * 4
+  var type = post.postDisplayType || resolvePostDisplayType(post.category)
+  var titleWeight = String(post.title || '').length * 4
+  if (type === 'qa') {
+    return 280 + titleWeight
+  }
+  if (type === 'help') {
+    return 300 + titleWeight
+  }
+  return Number(post.coverHeight || 320) + titleWeight
 }
 
 function buildColumns(list) {
@@ -209,10 +431,19 @@ function buildColumns(list) {
 }
 
 function getDisplayPost(post) {
+  var postDisplayType = resolvePostDisplayType(post.category)
+  var statusMeta = buildStatusMeta(post, postDisplayType)
   return Object.assign({}, post, {
     userName: post.author && post.author.name ? post.author.name : '萌宠用户',
     avatarImage: post.author && post.author.avatar ? post.author.avatar : post.coverImage,
-    coverHeight: post.coverHeight || 320
+    coverHeight: post.coverHeight || 320,
+    postDisplayType: postDisplayType,
+    statusBadge: statusMeta.statusBadge,
+    statusTone: statusMeta.statusTone,
+    statusMeta: statusMeta.statusMeta,
+    summaryText: buildDisplaySummary(post, postDisplayType),
+    quickTags: buildQuickTags(post, postDisplayType),
+    timeText: formatPostTime(post.createdAt)
   })
 }
 
@@ -274,7 +505,9 @@ Page({
 
   runAlgorithmData: function (rawPosts, sourceName) {
     var sourcePosts = rawPosts.map(normalizeLegacyPost)
-    var clusterResult = topicCluster.clusterPosts(sourcePosts, { k: 7, iterations: 10 })
+    var localPosts = readLocalPostList()
+    var mergedPosts = mergeInteractionFromLocal(sourcePosts, localPosts)
+    var clusterResult = topicCluster.clusterPosts(mergedPosts, { k: 7, iterations: 10 })
     var topics = clusterResult.topics.map(function (topic) {
       return Object.assign({}, topic, {
         keywordsText: topic.keywords.join(' / ')
@@ -283,8 +516,8 @@ Page({
     var userProfile = recommend.buildUserProfile(clusterResult.posts, recommend.mockUserBehavior)
     var recommendedPosts = recommend.recommendPosts(clusterResult.posts, userProfile)
 
-    wx.setStorageSync(POSTS_KEY, sourcePosts)
-    wx.setStorageSync(LEGACY_POSTS_KEY, sourcePosts)
+    wx.setStorageSync(POSTS_KEY, mergedPosts)
+    wx.setStorageSync(LEGACY_POSTS_KEY, mergedPosts)
 
     console.log('社区帖子数据来源:', sourceName)
     console.log('聚类主题结果 topics:', clusterResult.topics)
@@ -412,6 +645,7 @@ Page({
     var id = e.currentTarget.dataset.id
     var posts = this.data.recommendedPosts
     var target = null
+    var latestTarget = null
     var i
 
     for (i = 0; i < posts.length; i++) {
@@ -422,8 +656,9 @@ Page({
     }
 
     if (target) {
-      wx.setStorageSync(DETAIL_CACHE_KEY, target)
-      this.saveViewedPost(target)
+      latestTarget = findPostFromLocalById(id) || target
+      wx.setStorageSync(DETAIL_CACHE_KEY, latestTarget)
+      this.saveViewedPost(latestTarget)
     }
 
     wx.navigateTo({
@@ -461,7 +696,7 @@ Page({
     var posts = this.data.recommendedPosts.slice()
     var rawPosts
     var i
-    var cloudId = ''
+    var cloudTarget = null
 
     for (i = 0; i < posts.length; i++) {
       if (String(posts[i].id) === String(id)) {
@@ -470,7 +705,7 @@ Page({
         if (posts[i].likeCount < 0) {
           posts[i].likeCount = 0
         }
-        cloudId = posts[i]._cloudId
+        cloudTarget = posts[i]
         break
       }
     }
@@ -486,11 +721,18 @@ Page({
     wx.setStorageSync(POSTS_KEY, rawPosts)
     wx.setStorageSync(LEGACY_POSTS_KEY, rawPosts)
 
-    if (cloudId) {
-      cloudPosts.updatePost(cloudId, {
-        likeCount: posts[i].likeCount
+    if (cloudTarget) {
+      cloudPosts.syncPostPatch(cloudTarget, {
+        likeCount: cloudTarget.likeCount,
+        likes: cloudTarget.likeCount,
+        liked: !!cloudTarget.liked,
+        isLiked: !!cloudTarget.liked
+      }).then(function (syncRes) {
+        if (!syncRes || !syncRes.synced) {
+          console.warn('云数据库点赞同步未完成:', syncRes && syncRes.reason)
+        }
       }).catch(function (err) {
-        console.warn('云数据库点赞数更新失败:', err)
+        console.warn('云数据库点赞同步失败:', err)
       })
     }
 

@@ -1,6 +1,7 @@
 var POSTS_KEY = 'postList'
 var LEGACY_POSTS_KEY = 'forumPosts'
 var DETAIL_CACHE_KEY = 'currentPostDetail'
+var cloudPosts = require('../../utils/cloudPosts')
 var CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
 var DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
 var FALLBACK_POST_IMAGE = DOG_IMAGE
@@ -148,6 +149,7 @@ function normalizePost(post) {
 
   return {
     id: post.id || 'post_detail',
+    _cloudId: post._cloudId || '',
     title: post.title || '萌宠日常分享',
     content: post.content || '',
     userName: userName,
@@ -165,7 +167,8 @@ function normalizePost(post) {
     isFollowing: !!post.isFollowing,
     publishTime: post.publishTime || '今天 15:31',
     location: post.location || '萌宠广场',
-    topics: buildTopicTags(post)
+    topics: buildTopicTags(post),
+    comments: Array.isArray(post.comments) ? clone(post.comments) : []
   }
 }
 
@@ -212,8 +215,14 @@ Page({
       }
     }
 
+    var normalizedPost = normalizePost(target || FALLBACK_POST)
+    var nextComments = Array.isArray(normalizedPost.comments) && normalizedPost.comments.length
+      ? clone(normalizedPost.comments)
+      : clone(COMMENT_LIST)
+
     this.setData({
-      post: normalizePost(target || FALLBACK_POST),
+      post: normalizedPost,
+      comments: nextComments,
       currentImage: 0
     })
   },
@@ -236,8 +245,12 @@ Page({
   },
 
   toggleFollow: function () {
+    var nextFollow = !this.data.post.isFollowing
     this.setData({
-      'post.isFollowing': !this.data.post.isFollowing
+      'post.isFollowing': nextFollow
+    })
+    this.persistPostAction({
+      isFollowing: nextFollow
     })
   },
 
@@ -279,7 +292,8 @@ Page({
       isFavorited: favorited,
       favorited: favorited,
       favorites: nextCount,
-      favoriteCount: nextCount
+      favoriteCount: nextCount,
+      collectCount: nextCount
     })
   },
 
@@ -317,16 +331,19 @@ Page({
     this.setData({
       comments: comments,
       commentText: '',
-      'post.commentCount': nextCommentCount
+      'post.commentCount': nextCommentCount,
+      'post.comments': comments
     })
     this.persistPostAction({
-      commentCount: nextCommentCount
+      commentCount: nextCommentCount,
+      comments: comments
     })
   },
 
   toggleCommentLike: function (e) {
     var id = e.currentTarget.dataset.id
     var comments = this.data.comments.slice()
+    var changed = false
     var i
 
     for (i = 0; i < comments.length; i++) {
@@ -336,13 +353,21 @@ Page({
         if (comments[i].likes < 0) {
           comments[i].likes = 0
         }
+        changed = true
         break
       }
     }
 
     this.setData({
-      comments: comments
+      comments: comments,
+      'post.comments': comments
     })
+
+    if (changed) {
+      this.persistPostAction({
+        comments: comments
+      })
+    }
   },
 
   sharePost: function () {
@@ -358,10 +383,14 @@ Page({
     var sourceList = Array.isArray(posts) && posts.length ? posts : legacyPosts
     var nextList
     var i
+    var cloudTarget = null
 
     wx.setStorageSync(DETAIL_CACHE_KEY, Object.assign({}, this.data.post, patch))
 
     if (!Array.isArray(sourceList)) {
+      cloudPosts.syncPostPatch(this.data.post, patch).catch(function (err) {
+        console.warn('帖子详情云同步失败:', err)
+      })
       return
     }
 
@@ -369,11 +398,20 @@ Page({
     for (i = 0; i < nextList.length; i++) {
       if (String(nextList[i].id) === String(this.data.post.id)) {
         nextList[i] = Object.assign({}, nextList[i], patch)
+        cloudTarget = nextList[i]
         break
       }
     }
 
     wx.setStorageSync(POSTS_KEY, nextList)
     wx.setStorageSync(LEGACY_POSTS_KEY, nextList)
+
+    cloudPosts.syncPostPatch(cloudTarget || this.data.post, patch).then(function (syncRes) {
+      if (!syncRes || !syncRes.synced) {
+        console.warn('帖子详情云同步未完成:', syncRes && syncRes.reason)
+      }
+    }).catch(function (err) {
+      console.warn('帖子详情云同步失败:', err)
+    })
   }
 })
