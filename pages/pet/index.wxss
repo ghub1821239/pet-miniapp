@@ -529,3 +529,109 @@
 .pet-form-actions {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* Pinterest theme overrides */
+.pet-page {
+  background: #f5f5f5;
+}
+
+.archive-hero,
+.current-pet-card,
+.overview-item,
+.pet-item,
+.tip-note,
+.empty-profile-card,
+.pet-form-modal {
+  background: #ffffff;
+  border-color: #ebebeb;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.hero-title,
+.section-title,
+.current-pet-name,
+.overview-value,
+.pet-item-name,
+.empty-pet-title,
+.tip-note-title,
+.modal-title {
+  color: #161616;
+}
+
+.hero-sub,
+.section-sub,
+.current-pet-meta,
+.current-stat-label,
+.current-stat-value,
+.overview-label,
+.pet-item-sub,
+.pet-item-reminder,
+.pet-item-stat,
+.empty-pet-copy,
+.tip-note-text {
+  color: #767676;
+}
+
+.hero-btn,
+.empty-pet-btn,
+.pet-form-actions .primary-btn {
+  background: #e60023;
+  color: #fff;
+}
+
+.secondary-empty-btn,
+.current-edit-btn,
+.pet-form-actions .secondary-btn {
+  background: #fff;
+  color: #2d2d2d;
+  border-color: #d8d8d8;
+}
+
+.hero-paw,
+.hero-bubble,
+.current-pet-avatar,
+.pet-item-avatar,
+.avatar-choice {
+  border-color: #f0f0f0;
+}
+
+.current-reminder,
+.tip-note {
+  background: #fff2f5;
+  border: 1px solid #ffd9e2;
+}
+
+.current-reminder-text,
+.tip-note-badge {
+  color: #a11f3a;
+}
+
+.current-tag,
+.tag {
+  background: #f3f3f3;
+  color: #505050;
+  border-color: #ececec;
+}
+
+.pet-item-active {
+  border-color: #e60023;
+  box-shadow: 0 12rpx 24rpx rgba(230, 0, 35, 0.16);
+}
+
+.pet-item-type {
+  background: #ffeef2;
+  color: #a62341;
+}
+
+.avatar-choice.active {
+  border-color: #e60023;
+  background: #ffeef2;
+  color: #b21638;
+}
+
+.input,
+.picker-box,
+.pet-readonly-box {
+  border-color: #e5e5e5;
+  color: #1f1f1f;
+}

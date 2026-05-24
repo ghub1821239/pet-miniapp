@@ -771,3 +771,145 @@
   line-height: 1.4;
   max-width: 96rpx;
 }
+
+/* Pinterest theme overrides */
+.page-container {
+  background: #f5f5f5;
+}
+
+.calendar-panel,
+.calendar-edit-card,
+.option-sheet {
+  background: #ffffff;
+  border-color: #ebebeb;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.calendar-title,
+.calendar-day-number,
+.reminder-main-title,
+.calendar-setting-title,
+.calendar-subtask-title,
+.calendar-member-text,
+.modal-title {
+  color: #161616;
+}
+
+.calendar-weekday,
+.calendar-selected-date,
+.reminder-time,
+.reminder-repeat,
+.reminder-note,
+.calendar-time-label,
+.calendar-setting-desc,
+.calendar-subtask-count,
+.calendar-member-name,
+.calendar-modal-sub,
+.option-sheet-title,
+.option-sheet-text,
+.calendar-field-label {
+  color: #7a7a7a;
+}
+
+.month-switch,
+.calendar-time-arrow,
+.calendar-setting-arrow {
+  color: #4e4e4e;
+}
+
+.calendar-cell {
+  background: #ffffff;
+  border-color: #e8e8e8;
+}
+
+.calendar-cell.is-other-month {
+  background: #fafafa;
+  border-color: #ededed;
+}
+
+.calendar-cell.is-today {
+  border-color: #e60023;
+}
+
+.calendar-cell.is-selected {
+  background: #fff0f4;
+  border-color: #e60023;
+  box-shadow: 0 8rpx 16rpx rgba(230, 0, 35, 0.18);
+}
+
+.calendar-cell.is-selected .calendar-day-number,
+.reminder-check.is-done .reminder-check-icon,
+.calendar-subtask-check.is-done .calendar-subtask-check-icon {
+  color: #b31537;
+}
+
+.calendar-dot,
+.reminder-side-dot,
+.plan-add-btn {
+  background: #e60023 !important;
+}
+
+.calendar-dot.is-strong {
+  background: #8f8f8f;
+}
+
+.plan-add-btn {
+  box-shadow: 0 10rpx 20rpx rgba(230, 0, 35, 0.28);
+  border-color: #ffffff;
+}
+
+.reminder-item,
+.calendar-setting-row,
+.calendar-subtask-item,
+.option-sheet-item {
+  border-color: #f0f0f0;
+}
+
+.reminder-check,
+.calendar-check,
+.calendar-subtask-check,
+.option-sheet-radio {
+  border-color: #d9d9d9;
+}
+
+.reminder-check.is-done,
+.calendar-subtask-check.is-done,
+.option-sheet-radio.is-selected {
+  background: #ffe8ee;
+  border-color: #e60023;
+}
+
+.calendar-pill {
+  background: #f3f3f3;
+  color: #4b4b4b;
+  border: 1px solid #e8e8e8;
+}
+
+.calendar-pill.is-strong {
+  background: #ffe8ee;
+  color: #b31739;
+  border-color: #ffd2dc;
+}
+
+.calendar-time-value,
+.calendar-title-input,
+.calendar-subtask-inline-input,
+.calendar-form-input {
+  color: #1f1f1f;
+  border-color: #e6e6e6;
+  background: #fff;
+}
+
+.calendar-member-avatar {
+  border-color: #e8e8e8;
+}
+
+.calendar-member-avatar.is-selected {
+  border-color: #e60023;
+  box-shadow: 0 6rpx 12rpx rgba(230, 0, 35, 0.2);
+}
+
+.option-sheet-btn,
+.calendar-action-btn {
+  min-width: 180rpx;
+}

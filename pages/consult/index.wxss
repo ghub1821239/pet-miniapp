@@ -1,9 +1,9 @@
 .consult-page {
-  background: linear-gradient(180deg, #fbf7eb 0%, #fff8e7 30%, #f7f9f0 100%);
+  background: #f5f5f5;
 }
 
 .consult-toolbar {
-  margin-bottom: 20rpx;
+  margin-bottom: 16rpx;
 }
 
 .search-row {
@@ -16,10 +16,10 @@
   height: 72rpx;
   padding: 0 22rpx;
   border-radius: 999rpx;
-  background: #fffdf8;
-  border: 1px solid #ece2cf;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
   font-size: 24rpx;
-  color: #5a4632;
+  color: #1f1f1f;
 }
 
 .search-btn {
@@ -29,8 +29,8 @@
   line-height: 72rpx;
   text-align: center;
   border-radius: 999rpx;
-  background: linear-gradient(180deg, #acc28d, #95ac78);
-  color: #fffdf8;
+  background: #e60023;
+  color: #fff;
   font-size: 24rpx;
   font-weight: 700;
 }
@@ -53,30 +53,30 @@
 
 .filter-pill {
   margin-right: 12rpx;
-  background: #fff8e8;
-  color: #9c875f;
-  border: 1px solid #f0dfba;
+  background: #f3f3f3;
+  color: #4a4a4a;
+  border: 1px solid #e8e8e8;
 }
 
 .filter-refresh {
   margin-left: auto;
-  background: #eef3e5;
-  color: #87996e;
-  border: 1px solid #dde4cd;
+  background: #ffffff;
+  color: #2f2f2f;
+  border: 1px solid #dddddd;
 }
 
 .filter-permission {
   margin-left: 12rpx;
-  background: #fff1e7;
-  color: #c77758;
-  border: 1px solid #f2d6c8;
+  background: #ffe8ee;
+  color: #b31739;
+  border: 1px solid #ffd0dc;
 }
 
 .toolbar-tip {
   display: block;
   margin-top: 12rpx;
   font-size: 20rpx;
-  color: #a38f79;
+  color: #8a8a8a;
   line-height: 1.6;
 }
 
@@ -84,14 +84,7 @@
   padding: 22rpx;
   position: relative;
   overflow: hidden;
-  background:
-    repeating-linear-gradient(
-      -18deg,
-      rgba(255, 250, 236, 0.45) 0,
-      rgba(255, 250, 236, 0.45) 18rpx,
-      rgba(248, 244, 230, 0.45) 18rpx,
-      rgba(248, 244, 230, 0.45) 36rpx
-    );
+  background: #ffffff;
 }
 
 .map-card::before {
@@ -101,19 +94,8 @@
   right: 14rpx;
   top: 14rpx;
   bottom: 14rpx;
-  border: 2rpx dashed rgba(157, 139, 120, 0.35);
+  border: 2rpx dashed rgba(230, 0, 35, 0.22);
   border-radius: 26rpx;
-  pointer-events: none;
-}
-
-.map-card::after {
-  content: '';
-  position: absolute;
-  width: 180rpx;
-  height: 180rpx;
-  right: -42rpx;
-  bottom: -40rpx;
-  background: radial-gradient(circle, rgba(177, 194, 158, 0.16) 0, rgba(177, 194, 158, 0) 72%);
   pointer-events: none;
 }
 
@@ -131,9 +113,9 @@
   padding: 8rpx 16rpx;
   border-radius: 999rpx;
   font-size: 20rpx;
-  color: #8d7b67;
-  background: rgba(255, 253, 246, 0.86);
-  border: 1px solid #efe4cf;
+  color: #5e5e5e;
+  background: #f4f4f4;
+  border: 1px solid #ececec;
 }
 
 .map-shell {
@@ -146,7 +128,7 @@
   height: 360rpx;
   border-radius: 24rpx;
   overflow: hidden;
-  border: 1px solid #ece2cf;
+  border: 1px solid #ebebeb;
 }
 
 .map-decor {
@@ -158,9 +140,9 @@
   text-align: center;
   border-radius: 50%;
   font-size: 24rpx;
-  color: #8d7b67;
-  background: rgba(255, 253, 246, 0.88);
-  border: 1px solid #efe4cf;
+  color: #666;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ececec;
 }
 
 .map-decor-left {
@@ -179,9 +161,9 @@
   margin-top: 14rpx;
   padding: 18rpx 20rpx;
   border-radius: 18rpx;
-  background: rgba(255, 253, 246, 0.92);
-  border: 1px solid #ece2cf;
-  box-shadow: 0 8rpx 18rpx rgba(190, 176, 147, 0.1);
+  background: #fff;
+  border: 1px solid #ececec;
+  box-shadow: 0 8rpx 18rpx rgba(0, 0, 0, 0.04);
   position: relative;
   z-index: 2;
 }
@@ -189,15 +171,15 @@
 .map-hint-name {
   display: block;
   font-size: 28rpx;
-  font-weight: 700;
-  color: #5a4632;
+  font-weight: 800;
+  color: #1f1f1f;
 }
 
 .map-hint-meta {
   display: block;
   margin-top: 8rpx;
   font-size: 22rpx;
-  color: #8f7b67;
+  color: #767676;
 }
 
 .map-hint-actions {
@@ -227,7 +209,7 @@
   align-items: flex-start;
   justify-content: space-between;
   padding: 20rpx 0;
-  border-bottom: 1px solid #efe5d4;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .hospital-item:last-child {
@@ -235,7 +217,7 @@
 }
 
 .hospital-item.is-active .hospital-name {
-  color: #7f906f;
+  color: #c3173a;
 }
 
 .hospital-main {
@@ -246,29 +228,29 @@
 .hospital-name {
   display: block;
   font-size: 30rpx;
-  font-weight: 700;
-  color: #5a4632;
+  font-weight: 800;
+  color: #1f1f1f;
 }
 
 .hospital-meta {
   display: block;
   margin-top: 10rpx;
   font-size: 24rpx;
-  color: #8f7b67;
+  color: #6f6f6f;
 }
 
 .hospital-status {
   display: block;
   margin-top: 8rpx;
   font-size: 22rpx;
-  color: #87996e;
+  color: #8a8a8a;
 }
 
 .hospital-address {
   display: block;
   margin-top: 10rpx;
   font-size: 22rpx;
-  color: #9d8b78;
+  color: #8a8a8a;
   line-height: 1.6;
 }
 
@@ -280,9 +262,10 @@
   display: inline-block;
   padding: 8rpx 16rpx;
   border-radius: 999rpx;
-  background: #fff4db;
-  color: #a9814a;
+  background: #ffeef2;
+  color: #a62542;
   font-size: 20rpx;
+  border: 1px solid #ffd7e0;
 }
 
 .consult-empty {

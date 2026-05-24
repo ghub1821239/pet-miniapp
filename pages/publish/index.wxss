@@ -1,5 +1,6 @@
 .publish-page {
   padding-top: 18rpx;
+  background: #f5f5f5;
 }
 
 .publish-tip {
@@ -10,8 +11,8 @@
 .publish-tip-title {
   display: block;
   font-size: 36rpx;
-  font-weight: 700;
-  color: #5b4a3a;
+  font-weight: 800;
+  color: #151515;
 }
 
 .publish-tip-sub {
@@ -19,7 +20,7 @@
   margin-top: 8rpx;
   font-size: 24rpx;
   line-height: 1.6;
-  color: #968472;
+  color: #747474;
 }
 
 .publish-card {
@@ -49,7 +50,7 @@
   border-radius: 18rpx;
   margin-right: 2%;
   margin-bottom: 12rpx;
-  background: #f7f2e5;
+  background: #efefef;
 }
 
 .publish-video-box {
@@ -61,7 +62,7 @@
   width: 100%;
   height: 320rpx;
   border-radius: 20rpx;
-  background: #f7f2e5;
+  background: #efefef;
 }
 
 .publish-video-tag {
@@ -70,8 +71,8 @@
   top: 18rpx;
   padding: 10rpx 16rpx;
   border-radius: 999rpx;
-  background: rgba(90, 70, 50, 0.72);
-  color: #fffef8;
+  background: rgba(23, 23, 23, 0.78);
+  color: #fff;
   font-size: 22rpx;
 }
 
@@ -92,7 +93,7 @@
 .publish-location-text {
   flex: 1;
   min-width: 0;
-  color: #7f6b58;
+  color: #5a5a5a;
   font-size: 24rpx;
   white-space: nowrap;
   overflow: hidden;
@@ -121,17 +122,17 @@
   justify-content: center;
   padding: 10rpx 18rpx;
   border-radius: 999rpx;
-  background: #eef5ea;
-  color: #87966f;
+  background: #f3f3f3;
+  color: #525252;
   font-size: 24rpx;
   line-height: 1.2;
-  border: 1px solid #e1ead7;
+  border: 1px solid #e9e9e9;
 }
 
 .publish-tag-chip.active {
-  background: linear-gradient(180deg, #acc28d, #95ac78);
-  color: #fffdf8;
-  border-color: #95ac78;
+  background: #e60023;
+  color: #fff;
+  border-color: #e60023;
 }
 
 .publish-inline-label {
@@ -146,7 +147,7 @@
   font-size: 28rpx;
   display: flex;
   align-items: center;
-  color: #5a4632;
+  color: #1d1d1d;
 }
 
 .publish-textarea {
@@ -154,7 +155,7 @@
   padding: 20rpx 22rpx;
   font-size: 28rpx;
   line-height: 1.7;
-  color: #5a4632;
+  color: #1d1d1d;
 }
 
 .publish-submit {
@@ -181,19 +182,16 @@
 .publish-media-btn {
   border-width: 2rpx;
   border-style: solid;
-  box-shadow: 0 10rpx 20rpx rgba(149, 172, 120, 0.12);
 }
 
 .publish-media-btn-album {
-  background: linear-gradient(180deg, #fff7dd, #f8e7b7);
-  color: #b58435;
-  border-color: #f0d493;
-  box-shadow: 0 10rpx 20rpx rgba(240, 210, 133, 0.18);
+  background: #ffffff;
+  color: #2f2f2f;
+  border-color: #dddddd;
 }
 
 .publish-media-btn-camera {
-  background: linear-gradient(180deg, #acc28d, #95ac78);
-  color: #fffdf8;
-  border-color: #95ac78;
-  box-shadow: 0 10rpx 20rpx rgba(149, 172, 120, 0.18);
+  background: #ffe8ee;
+  color: #b11436;
+  border-color: #ffd0db;
 }

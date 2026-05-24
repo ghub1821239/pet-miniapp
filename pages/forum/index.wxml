@@ -1,6 +1,11 @@
 <view class="page-container community-page">
   <view class="page-topbar">
     <view class="page-topbar-inner">
+      <view class="brand-lockup">
+        <view class="brand-dot"></view>
+        <text class="brand-text">Pet Pins</text>
+      </view>
+      <view class="brand-cta">发布</view>
     </view>
   </view>
 
@@ -10,6 +15,9 @@
         <text class="community-search-icon">⌕</text>
         <text class="community-search-placeholder">搜索宠物、话题、周边玩伴</text>
       </view>
+    </view>
+    <view class="search-tip-row">
+      <text class="search-tip">灵感来自真实宠物社区，按兴趣持续刷新</text>
     </view>
   </view>
 
@@ -33,7 +41,7 @@
     </view>
   </view>
 
-  <swiper class="community-banner-swiper" autoplay interval="3500" circular indicator-dots indicator-color="rgba(255,255,255,0.55)" indicator-active-color="#ffffff">
+  <swiper class="community-banner-swiper" autoplay interval="3500" circular indicator-dots indicator-color="rgba(0,0,0,0.18)" indicator-active-color="#e60023">
     <block wx:for="{{banners}}" wx:key="id">
       <swiper-item>
         <view class="community-banner-card">
@@ -47,11 +55,26 @@
     </block>
   </swiper>
 
+  <view class="feed-meta-row">
+    <view class="feed-meta-main">
+      <text class="feed-meta-title">{{feedTitle}}</text>
+      <text class="feed-meta-sub">{{filteredPosts.length}} 条内容</text>
+    </view>
+    <view class="feed-meta-tags" wx:if="{{activeFilterSummary.length}}">
+      <block wx:for="{{activeFilterSummary}}" wx:key="*this">
+        <text class="feed-meta-tag">{{item}}</text>
+      </block>
+    </view>
+  </view>
+
   <template name="communityFeedCard">
     <view class="feed-card feed-card-{{item.postDisplayType}}" bindtap="handlePostTap" data-id="{{item.id}}">
       <block wx:if="{{item.postDisplayType === 'share'}}">
         <view class="feed-cover-wrap">
           <image class="feed-cover" src="{{item.coverImage}}" mode="widthFix"></image>
+          <view class="cover-corner">
+            <text class="cover-corner-text">{{item.statusBadge}}</text>
+          </view>
         </view>
 
         <view class="feed-body">
