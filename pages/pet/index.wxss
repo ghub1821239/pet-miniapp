@@ -495,11 +495,15 @@
 }
 
 .pet-form-modal {
-  padding-bottom: calc(56rpx + env(safe-area-inset-bottom));
+  max-height: calc(100vh - env(safe-area-inset-top) - 40rpx);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(128rpx + env(safe-area-inset-bottom));
 }
 
 .pet-form-modal .field-label {
   line-height: 1.5;
+  margin-top: 18rpx;
 }
 
 .pet-form-modal .input,
@@ -527,7 +531,30 @@
 }
 
 .pet-form-actions {
-  padding-bottom: env(safe-area-inset-bottom);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 16rpx;
+  margin-top: 24rpx;
+  padding-bottom: calc(12rpx + env(safe-area-inset-bottom));
+  z-index: 2;
+}
+
+.pet-form-actions .secondary-btn,
+.pet-form-actions .primary-btn {
+  flex: 1;
+}
+
+.pet-form-actions .primary-btn {
+  margin-left: 16rpx;
+}
+
+.pet-page .mask {
+  z-index: 1201;
 }
 
 /* Pinterest theme overrides */

@@ -92,10 +92,21 @@ function clone(data) {
   return JSON.parse(JSON.stringify(data))
 }
 
+function normalizeName(value) {
+  return String(value || '').trim().toLowerCase()
+}
+
+function nameEquals(a, b) {
+  return normalizeName(a) === normalizeName(b)
+}
+
 function normalizeBreedByName(name, breed) {
-  if (name === '毛孩子') return '蓝金渐层长毛猫'
-  if (name === '布丁' || name === '小布丁') return '萨摩耶'
   return breed || '未填品种'
+}
+
+function isImageRef(value) {
+  var text = String(value || '')
+  return /^(\/assets\/|wxfile:|cloud:\/\/|https?:\/\/|data:image\/|file:|\/private\/|\/var\/|\/Users\/)/.test(text)
 }
 
 function normalizePet(item) {
@@ -106,15 +117,15 @@ function normalizePet(item) {
   var likeTags = toTagList(item.likes)
   var color = item.color || '#9CAF88'
   var fallbackAvatar = name === '布丁' ? DOG_IMAGE : CAT_IMAGE
-  var avatarValue = item.avatarValue || item.avatar || fallbackAvatar
-  var avatarType = item.avatarType || (avatarValue.indexOf('/assets/') === 0 ? 'image' : 'emoji')
+  var avatarValue = item.avatarValue || item.avatar || ''
+  var avatarType = item.avatarType || (isImageRef(avatarValue) ? 'image' : 'emoji')
 
-  if (name === '毛孩子' || name === '布丁') {
-    avatarType = 'image'
+  if (avatarType === 'image' && !avatarValue) {
     avatarValue = fallbackAvatar
-  } else if (avatarType !== 'image' && (!avatarValue || avatarValue === item.avatarValue)) {
-    avatarType = 'image'
-    avatarValue = fallbackAvatar
+  }
+  if (avatarType !== 'image' && !avatarValue) {
+    avatarType = 'emoji'
+    avatarValue = '🐾'
   }
 
   if (!tags.length) {
@@ -155,7 +166,7 @@ Page({
     currentPet: null,
     showForm: false,
     formMode: 'add',
-    defaultAvatars: ['🐶', '🐱', '🐰', '🐹', '🦊', '🐼'],
+    defaultAvatars: ['😺', '🐶', '🐰', '🦊', '🐻', '🐼'],
     overviewList: [],
     form: {
       id: '',
@@ -451,11 +462,51 @@ Page({
     })
   },
 
+  syncIdentifyRecordsByPet: function (pet, previousPet) {
+    var records = wx.getStorageSync(IDENTIFY_KEY)
+    var legacyRecords = wx.getStorageSync(LEGACY_IDENTIFY_KEY)
+    var source = Array.isArray(records) && records.length ? records : legacyRecords
+    var list = Array.isArray(source) ? clone(source) : []
+    var changed = false
+    var i
+
+    if (!pet || !pet.id || !list.length) {
+      return
+    }
+
+    for (i = 0; i < list.length; i++) {
+      var record = list[i] || {}
+      var boundById = record.petId && String(record.petId) === String(pet.id)
+      var canBindByLegacyName = !record.petId && previousPet && (nameEquals(record.petName, previousPet.name) || nameEquals(record.result, previousPet.breed))
+
+      if (boundById || canBindByLegacyName) {
+        if (String(record.petId || '') !== String(pet.id)) {
+          record.petId = pet.id
+          changed = true
+        }
+        if (record.petName !== pet.name) {
+          record.petName = pet.name
+          changed = true
+        }
+        if (pet.breed && record.result !== pet.breed) {
+          record.result = pet.breed
+          changed = true
+        }
+      }
+    }
+
+    if (changed) {
+      wx.setStorageSync(IDENTIFY_KEY, list)
+      wx.setStorageSync(LEGACY_IDENTIFY_KEY, list)
+    }
+  },
+
   savePet: function () {
     var form = clone(this.data.form)
     var storedPets = wx.getStorageSync(PETS_KEY)
     var legacyPets = wx.getStorageSync(LEGACY_PETS_KEY)
     var pets = Array.isArray(storedPets) && storedPets.length ? clone(storedPets) : legacyPets
+    var previousPet = null
     var i
 
     pets = Array.isArray(pets) && pets.length ? clone(pets) : clone(MOCK_PETS)
@@ -484,6 +535,7 @@ Page({
     } else {
       for (i = 0; i < pets.length; i++) {
         if (pets[i].id === form.id) {
+          previousPet = clone(pets[i])
           pets[i] = form
           break
         }
@@ -492,6 +544,7 @@ Page({
 
     wx.setStorageSync(PETS_KEY, pets)
     wx.setStorageSync(LEGACY_PETS_KEY, pets)
+    this.syncIdentifyRecordsByPet(form, previousPet)
 
     this.setData({
       showForm: false,

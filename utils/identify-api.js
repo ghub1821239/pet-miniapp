@@ -1,12 +1,54 @@
 var API_BASE_URLS = [
-  'https://express-6ii0-258937-9-1434048451.sh.run.tcloudbase.com',
-  'http://10.130.21.47:3007',
   'http://127.0.0.1:3007',
   'http://localhost:3007'
 ]
 var RECOGNIZE_ENDPOINT = '/pet-recognize'
 var HEALTH_ENDPOINT = '/health'
+var BASE_URL_STORAGE_KEY = 'identifyApiBaseUrl'
 var activeBaseUrl = ''
+
+function normalizeBaseUrl(url) {
+  return String(url || '').trim().replace(/\/+$/, '')
+}
+
+function getStoredBaseUrls() {
+  if (typeof wx === 'undefined' || !wx || typeof wx.getStorageSync !== 'function') {
+    return []
+  }
+
+  var raw = wx.getStorageSync(BASE_URL_STORAGE_KEY)
+  var list = Array.isArray(raw) ? raw : [raw]
+  var normalized = []
+  var i
+
+  for (i = 0; i < list.length; i++) {
+    var item = normalizeBaseUrl(list[i])
+    if (item) {
+      normalized.push(item)
+    }
+  }
+
+  return normalized
+}
+
+function getRuntimeBaseUrls() {
+  var list = []
+  var visited = {}
+  var stored = getStoredBaseUrls()
+  var merged = stored.concat(API_BASE_URLS)
+  var i
+
+  for (i = 0; i < merged.length; i++) {
+    var item = normalizeBaseUrl(merged[i])
+    if (!item || visited[item]) {
+      continue
+    }
+    visited[item] = true
+    list.push(item)
+  }
+
+  return list
+}
 
 function normalizeRemoteResult(data) {
   var payload = data && data.data ? data.data : data
@@ -38,12 +80,15 @@ function parseUploadResponse(raw) {
 }
 
 function hasRemoteIdentifyApi() {
-  return !!API_BASE_URLS.length
+  return !!getRuntimeBaseUrls().length
 }
 
 function checkIdentifyApi() {
   return new Promise(function (resolve, reject) {
-    if (!API_BASE_URLS.length) {
+    var targets = getRuntimeBaseUrls()
+    var lastError = ''
+
+    if (!targets.length) {
       reject(new Error('未配置识别接口地址'))
       return
     }
@@ -52,11 +97,11 @@ function checkIdentifyApi() {
 
     function tryRequest(index) {
       wx.request({
-        url: API_BASE_URLS[index] + HEALTH_ENDPOINT,
+        url: targets[index] + HEALTH_ENDPOINT,
         timeout: 5000,
         success: function (res) {
           if (res.statusCode === 200 && res.data && res.data.ok) {
-            activeBaseUrl = API_BASE_URLS[index]
+            activeBaseUrl = targets[index]
             resolve({
               ok: true,
               baseUrl: activeBaseUrl,
@@ -66,20 +111,24 @@ function checkIdentifyApi() {
             return
           }
 
-          if (index < API_BASE_URLS.length - 1) {
+          lastError = '健康检查失败: ' + targets[index] + HEALTH_ENDPOINT + ' status=' + res.statusCode
+
+          if (index < targets.length - 1) {
             tryRequest(index + 1)
             return
           }
 
-          reject(new Error('识别服务健康检查失败'))
+          reject(new Error(lastError))
         },
         fail: function (err) {
-          if (index < API_BASE_URLS.length - 1) {
+          lastError = '请求失败: ' + targets[index] + HEALTH_ENDPOINT + ' ' + ((err && err.errMsg) || '')
+
+          if (index < targets.length - 1) {
             tryRequest(index + 1)
             return
           }
 
-          reject(err)
+          reject(new Error(lastError))
         }
       })
     }
@@ -88,12 +137,14 @@ function checkIdentifyApi() {
 
 function recognizePetByApi(filePath) {
   return new Promise(function (resolve, reject) {
-    if (!API_BASE_URLS.length) {
+    var targets = getRuntimeBaseUrls()
+
+    if (!targets.length) {
       reject(new Error('未配置识别接口地址'))
       return
     }
 
-    var uploadTargets = activeBaseUrl ? [activeBaseUrl] : API_BASE_URLS.slice()
+    var uploadTargets = activeBaseUrl ? [activeBaseUrl] : targets.slice()
     tryUpload(0, uploadTargets)
 
     function tryUpload(index, uploadTargets) {
@@ -134,8 +185,10 @@ function recognizePetByApi(filePath) {
 
 module.exports = {
   API_BASE_URLS: API_BASE_URLS,
+  BASE_URL_STORAGE_KEY: BASE_URL_STORAGE_KEY,
   RECOGNIZE_ENDPOINT: RECOGNIZE_ENDPOINT,
   HEALTH_ENDPOINT: HEALTH_ENDPOINT,
+  getRuntimeBaseUrls: getRuntimeBaseUrls,
   hasRemoteIdentifyApi: hasRemoteIdentifyApi,
   checkIdentifyApi: checkIdentifyApi,
   recognizePetByApi: recognizePetByApi

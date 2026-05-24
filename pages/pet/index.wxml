@@ -32,7 +32,7 @@
         <view class="current-pet-avatar-wrap" style="background: {{currentPet.softColor}};">
           <image wx:if="{{currentPet.avatarType === 'image'}}" class="current-pet-avatar" src="{{currentPet.avatarValue}}" mode="aspectFill"></image>
           <view wx:else class="current-pet-avatar current-pet-avatar-fallback" style="background: {{currentPet.color}};">
-            <text class="current-pet-avatar-text">{{currentPet.initial}}</text>
+            <text class="current-pet-avatar-text">{{currentPet.avatarValue || currentPet.initial}}</text>
           </view>
         </view>
 
@@ -92,7 +92,7 @@
               <view class="pet-item-avatar-wrap" style="background: {{item.softColor}};">
                 <image wx:if="{{item.avatarType === 'image'}}" class="pet-item-avatar" src="{{item.avatarValue}}" mode="aspectFill"></image>
                 <view wx:else class="pet-item-avatar pet-item-avatar-fallback" style="background: {{item.color}};">
-                  <text class="pet-item-avatar-text">{{item.initial}}</text>
+                  <text class="pet-item-avatar-text">{{item.avatarValue || item.initial}}</text>
                 </view>
               </view>
 
