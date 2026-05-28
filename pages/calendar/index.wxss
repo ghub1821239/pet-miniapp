@@ -913,3 +913,131 @@
 .calendar-action-btn {
   min-width: 180rpx;
 }
+.calendar-modal {
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.calendar-modal-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  padding: 18rpx 0 0;
+  background: linear-gradient(180deg, rgba(255, 254, 251, 0), #FFFEFB 28%);
+}
+
+.calendar-subtask-add-btn {
+  min-width: 108rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  padding: 0 22rpx;
+  margin-left: 16rpx;
+  border-radius: 999rpx;
+  background: #9CAF88;
+  color: #FFFDF6;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.calendar-subtask-add-btn::after {
+  border: none;
+}
+/* calendar modal functional fix: make save button always reachable */
+.calendar-modal {
+  max-height: 88vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
+}
+
+.calendar-modal-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  gap: 18rpx;
+  margin-top: 24rpx;
+  padding: 20rpx 0 calc(18rpx + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(255, 253, 246, 0), #FFFDF6 28%, #FFFDF6 100%);
+}
+
+.calendar-action-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.calendar-subtask-add-row {
+  gap: 14rpx;
+}
+
+.calendar-subtask-add-btn {
+  min-width: 108rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  padding: 0 22rpx;
+  margin: 0;
+  border-radius: 999rpx;
+  background: #9CAF88;
+  color: #FFFDF6;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.calendar-subtask-add-btn::after {
+  border: none;
+}
+/* 子任务在今日计划列表中的独立完成状态 */
+.reminder-subtasks {
+  margin-top: 12rpx;
+}
+
+.reminder-subtask-row {
+  display: flex;
+  align-items: center;
+  min-height: 44rpx;
+  margin-top: 8rpx;
+}
+
+.reminder-subtask-check {
+  width: 28rpx;
+  height: 28rpx;
+  min-width: 28rpx;
+  border-radius: 50%;
+  border: 2rpx solid #d9d9d9;
+  box-sizing: border-box;
+  margin-right: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFDF6;
+}
+
+.reminder-subtask-check.is-done {
+  background: #EEF5EA;
+  border-color: #9CAF88;
+}
+
+.reminder-subtask-check-icon {
+  font-size: 18rpx;
+  line-height: 1;
+  color: #b31537;
+  font-weight: 700;
+}
+
+.reminder-subtask-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #8f7b67;
+  word-break: break-word;
+}
+
+.reminder-subtask-row.is-done .reminder-subtask-text {
+  color: #b4a998;
+  text-decoration: line-through;
+}

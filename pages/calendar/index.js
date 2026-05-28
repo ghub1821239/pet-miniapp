@@ -699,42 +699,56 @@ Page({
   saveReminder: function () {
     var form = this.data.form
     var reminders = this.data.reminders.slice()
-
-    if (!form.title) {
+    var pendingSubtask = (form.subtaskInput || '').trim()
+    var subtasks = Array.isArray(form.subtasks) ? form.subtasks.slice() : []
+  
+    if (!form.title || !form.title.trim()) {
       wx.showToast({
         title: '请填写提醒内容',
         icon: 'none'
       })
       return
     }
-
+  
+    if (pendingSubtask && !subtasks.some(function (item) { return item.text === pendingSubtask })) {
+      subtasks.push({
+        text: pendingSubtask,
+        done: false
+      })
+    }
+  
     reminders.unshift({
       id: 'plan_' + Date.now(),
       date: form.date,
       petName: form.petName || '毛孩子',
       petAvatar: form.petAvatar || (form.petName === '布丁' ? DOG_IMAGE : CAT_IMAGE),
       type: form.category,
-      title: form.title,
+      title: form.title.trim(),
       time: form.time,
       color: form.category === '驱虫' ? '#F0A04B' : form.category === '体重记录' ? '#9CAF88' : '#FADA7A',
       note: form.note || '记得按时完成这条提醒',
-      subtasks: Array.isArray(form.subtasks) ? form.subtasks : [],
+      subtasks: subtasks,
       reminderText: form.reminderText || '准时提醒',
       repeatText: form.repeatText || '不重复',
       strong: form.strong,
       done: false
     })
-
+  
     reminders = sortPlans(reminders)
+  
     wx.setStorageSync(CALENDAR_KEY, reminders)
     wx.setStorageSync(LEGACY_CALENDAR_KEY, reminders)
-
+  
     this.setData({
       showForm: false,
-      reminders: reminders
+      reminders: reminders,
+      'form.subtaskInput': '',
+      'form.subtasks': [],
+      formSubtaskDoneCount: 0
     })
+  
     this.refreshList()
-
+  
     wx.showToast({
       title: '新增成功',
       icon: 'success'
@@ -761,7 +775,35 @@ Page({
     })
     this.refreshList()
   },
-
+  togglePlanSubtaskDone: function (e) {
+    var planId = e.currentTarget.dataset.planId
+    var subIndex = Number(e.currentTarget.dataset.subIndex)
+    var reminders = this.data.reminders.slice()
+    var i
+  
+    for (i = 0; i < reminders.length; i++) {
+      if (String(reminders[i].id) === String(planId)) {
+        if (!Array.isArray(reminders[i].subtasks)) {
+          reminders[i].subtasks = []
+        }
+  
+        if (reminders[i].subtasks[subIndex]) {
+          reminders[i].subtasks[subIndex].done = !reminders[i].subtasks[subIndex].done
+        }
+  
+        break
+      }
+    }
+  
+    wx.setStorageSync(CALENDAR_KEY, reminders)
+    wx.setStorageSync(LEGACY_CALENDAR_KEY, reminders)
+  
+    this.setData({
+      reminders: reminders
+    })
+  
+    this.refreshList()
+  },
   handlePlanTap: function () {
     wx.showToast({
       title: '计划详情开发中',
