@@ -1,5 +1,5 @@
 .consult-page {
-  background: #f5f5f5;
+  background: #FCE7C8;
 }
 
 .consult-toolbar {
@@ -16,10 +16,10 @@
   height: 72rpx;
   padding: 0 22rpx;
   border-radius: 999rpx;
-  background: #ffffff;
-  border: 1px solid #e5e5e5;
+  background: #FFFDF6;
+  border: 1px solid rgba(250, 218, 122, 0.45);
   font-size: 24rpx;
-  color: #1f1f1f;
+  color: #5B4A3A;
 }
 
 .search-btn {
@@ -29,8 +29,8 @@
   line-height: 72rpx;
   text-align: center;
   border-radius: 999rpx;
-  background: #e60023;
-  color: #fff;
+  background: #9CAF88;
+  color: #FFFDF6;
   font-size: 24rpx;
   font-weight: 700;
 }
@@ -53,30 +53,30 @@
 
 .filter-pill {
   margin-right: 12rpx;
-  background: #f3f3f3;
-  color: #4a4a4a;
+  background: #EEF5EA;
+  color: #5B4A3A;
   border: 1px solid #e8e8e8;
 }
 
 .filter-refresh {
   margin-left: auto;
-  background: #ffffff;
-  color: #2f2f2f;
-  border: 1px solid #dddddd;
+  background: #FFFDF6;
+  color: #5B4A3A;
+  border: 1px solid rgba(250, 218, 122, 0.55);
 }
 
 .filter-permission {
   margin-left: 12rpx;
-  background: #ffe8ee;
-  color: #b31739;
-  border: 1px solid #ffd0dc;
+  background: #EEF5EA;
+  color: #7F956D;
+  border: 1px solid #FADA7A;
 }
 
 .toolbar-tip {
   display: block;
   margin-top: 12rpx;
   font-size: 20rpx;
-  color: #8a8a8a;
+  color: #9A8B7A;
   line-height: 1.6;
 }
 
@@ -84,7 +84,7 @@
   padding: 22rpx;
   position: relative;
   overflow: hidden;
-  background: #ffffff;
+  background: #FFFDF6;
 }
 
 .map-card::before {
@@ -94,7 +94,7 @@
   right: 14rpx;
   top: 14rpx;
   bottom: 14rpx;
-  border: 2rpx dashed rgba(230, 0, 35, 0.22);
+  border: 2rpx dashed rgba(156, 175, 136, 0.24);
   border-radius: 26rpx;
   pointer-events: none;
 }
@@ -113,9 +113,9 @@
   padding: 8rpx 16rpx;
   border-radius: 999rpx;
   font-size: 20rpx;
-  color: #5e5e5e;
-  background: #f4f4f4;
-  border: 1px solid #ececec;
+  color: #9A8B7A;
+  background: #EEF5EA;
+  border: 1px solid rgba(250, 218, 122, 0.35);
 }
 
 .map-shell {
@@ -128,7 +128,7 @@
   height: 360rpx;
   border-radius: 24rpx;
   overflow: hidden;
-  border: 1px solid #ebebeb;
+  border: 1px solid rgba(250, 218, 122, 0.45);
 }
 
 .map-decor {
@@ -140,9 +140,9 @@
   text-align: center;
   border-radius: 50%;
   font-size: 24rpx;
-  color: #666;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #ececec;
+  color: #9A8B7A;
+  background: rgba(255, 253, 246, 0.9);
+  border: 1px solid rgba(250, 218, 122, 0.35);
 }
 
 .map-decor-left {
@@ -161,9 +161,9 @@
   margin-top: 14rpx;
   padding: 18rpx 20rpx;
   border-radius: 18rpx;
-  background: #fff;
-  border: 1px solid #ececec;
-  box-shadow: 0 8rpx 18rpx rgba(0, 0, 0, 0.04);
+  background: #FFFDF6;
+  border: 1px solid rgba(250, 218, 122, 0.35);
+  box-shadow: 0 8rpx 18rpx rgba(91, 74, 58, 0.06);
   position: relative;
   z-index: 2;
 }
@@ -172,14 +172,14 @@
   display: block;
   font-size: 28rpx;
   font-weight: 800;
-  color: #1f1f1f;
+  color: #5B4A3A;
 }
 
 .map-hint-meta {
   display: block;
   margin-top: 8rpx;
   font-size: 22rpx;
-  color: #767676;
+  color: #9A8B7A;
 }
 
 .map-hint-actions {
@@ -209,7 +209,7 @@
   align-items: flex-start;
   justify-content: space-between;
   padding: 20rpx 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid rgba(250, 218, 122, 0.32);
 }
 
 .hospital-item:last-child {
@@ -217,7 +217,7 @@
 }
 
 .hospital-item.is-active .hospital-name {
-  color: #c3173a;
+  color: #7F956D;
 }
 
 .hospital-main {
@@ -229,28 +229,28 @@
   display: block;
   font-size: 30rpx;
   font-weight: 800;
-  color: #1f1f1f;
+  color: #5B4A3A;
 }
 
 .hospital-meta {
   display: block;
   margin-top: 10rpx;
   font-size: 24rpx;
-  color: #6f6f6f;
+  color: #9A8B7A;
 }
 
 .hospital-status {
   display: block;
   margin-top: 8rpx;
   font-size: 22rpx;
-  color: #8a8a8a;
+  color: #9A8B7A;
 }
 
 .hospital-address {
   display: block;
   margin-top: 10rpx;
   font-size: 22rpx;
-  color: #8a8a8a;
+  color: #9A8B7A;
   line-height: 1.6;
 }
 
@@ -262,10 +262,10 @@
   display: inline-block;
   padding: 8rpx 16rpx;
   border-radius: 999rpx;
-  background: #ffeef2;
-  color: #a62542;
+  background: #EEF5EA;
+  color: #7F956D;
   font-size: 20rpx;
-  border: 1px solid #ffd7e0;
+  border: 1px solid #FADA7A;
 }
 
 .consult-empty {

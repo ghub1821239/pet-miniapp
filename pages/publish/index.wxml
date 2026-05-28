@@ -49,7 +49,7 @@
 
     <view class="publish-switch-row">
       <text class="field-label publish-inline-label">显示位置</text>
-      <switch checked="{{form.showLocation}}" color="#E60023" bindchange="switchLocation" />
+      <switch checked="{{form.showLocation}}" color="#9CAF88" bindchange="switchLocation" />
     </view>
     <view wx:if="{{form.showLocation}}" class="publish-location-row">
       <view class="picker-box publish-picker publish-location-text">{{form.locationText || '未选择位置，发布时将自动定位'}}</view>

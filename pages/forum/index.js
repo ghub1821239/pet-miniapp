@@ -461,9 +461,7 @@ Page({
     rightColumn: [],
     topics: [],
     userProfile: {},
-    filterPanelVisible: false,
-    activeFilterSummary: [],
-    feedTitle: '为你推荐'
+    filterPanelVisible: false
   },
 
   onLoad: function () {
@@ -579,9 +577,7 @@ Page({
       filteredPosts: visiblePosts,
       leftColumn: columns.left,
       rightColumn: columns.right,
-      filterOptions: buildFilterOptions(selectedCategory),
-      activeFilterSummary: selectedCategory === '全部' ? [] : [getCategoryLabel(selectedCategory)],
-      feedTitle: selectedCategory === '全部' ? '为你推荐' : getCategoryLabel(selectedCategory)
+      filterOptions: buildFilterOptions(selectedCategory)
     })
   },
 

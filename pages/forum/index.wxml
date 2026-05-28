@@ -16,9 +16,6 @@
         <text class="community-search-placeholder">搜索宠物、话题、周边玩伴</text>
       </view>
     </view>
-    <view class="search-tip-row">
-      <text class="search-tip">灵感来自真实宠物社区，按兴趣持续刷新</text>
-    </view>
   </view>
 
   <view class="smart-nav-row">
@@ -41,7 +38,7 @@
     </view>
   </view>
 
-  <swiper class="community-banner-swiper" autoplay interval="3500" circular indicator-dots indicator-color="rgba(0,0,0,0.18)" indicator-active-color="#e60023">
+  <swiper class="community-banner-swiper" autoplay interval="3500" circular indicator-dots indicator-color="rgba(91,74,58,0.18)" indicator-active-color="#9CAF88">
     <block wx:for="{{banners}}" wx:key="id">
       <swiper-item>
         <view class="community-banner-card">
@@ -54,18 +51,6 @@
       </swiper-item>
     </block>
   </swiper>
-
-  <view class="feed-meta-row">
-    <view class="feed-meta-main">
-      <text class="feed-meta-title">{{feedTitle}}</text>
-      <text class="feed-meta-sub">{{filteredPosts.length}} 条内容</text>
-    </view>
-    <view class="feed-meta-tags" wx:if="{{activeFilterSummary.length}}">
-      <block wx:for="{{activeFilterSummary}}" wx:key="*this">
-        <text class="feed-meta-tag">{{item}}</text>
-      </block>
-    </view>
-  </view>
 
   <template name="communityFeedCard">
     <view class="feed-card feed-card-{{item.postDisplayType}}" bindtap="handlePostTap" data-id="{{item.id}}">

@@ -152,7 +152,7 @@
             <text class="calendar-setting-title">强提醒</text>
             <text class="calendar-setting-desc">开启后会用更醒目的方式标记提醒</text>
           </view>
-          <switch checked="{{form.strong}}" color="#E60023" bindchange="switchStrong" />
+          <switch checked="{{form.strong}}" color="#9CAF88" bindchange="switchStrong" />
         </view>
       </view>
 

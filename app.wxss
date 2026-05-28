@@ -1,6 +1,6 @@
 page {
-  background: #f5f5f5;
-  color: #151515;
+  background: #FCE7C8;
+  color: #5B4A3A;
   font-size: 28rpx;
   font-family: 'Avenir Next', 'Trebuchet MS', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
 }
@@ -13,7 +13,7 @@ button::after {
   min-height: 100vh;
   box-sizing: border-box;
   padding: 24rpx 24rpx 220rpx;
-  background: #f5f5f5;
+  background: #FFFDF6;
 }
 
 .page-topbar {
@@ -24,8 +24,8 @@ button::after {
   height: calc(env(safe-area-inset-top) + 160rpx);
   margin: -24rpx -24rpx 0;
   padding: 0 24rpx;
-  background: rgba(255, 255, 255, 0.96);
-  border-bottom: 1px solid #ebebeb;
+  background: #F7E3AE;
+  border-bottom: 1px solid rgba(247, 227, 174, 0.8);
   box-sizing: border-box;
   backdrop-filter: saturate(150%) blur(6rpx);
 }
@@ -41,25 +41,25 @@ button::after {
 }
 
 .hero {
-  background: #ffffff;
+  background: #FFFDF6;
   border-radius: 28rpx;
   padding: 30rpx;
   margin-bottom: 24rpx;
-  border: 1px solid #ebebeb;
-  box-shadow: 0 10rpx 24rpx rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(250, 218, 122, 0.4);
+  box-shadow: 0 10rpx 24rpx rgba(91, 74, 58, 0.08);
 }
 
 .hero-title {
   font-size: 40rpx;
   font-weight: 800;
-  color: #151515;
+  color: #5B4A3A;
 }
 
 .hero-sub {
   display: block;
   margin-top: 10rpx;
   font-size: 24rpx;
-  color: #6b6b6b;
+  color: #9A8B7A;
   line-height: 1.6;
 }
 
@@ -70,32 +70,32 @@ button::after {
 }
 
 .card {
-  background: #ffffff;
+  background: #FFFDF6;
   border-radius: 24rpx;
   padding: 24rpx;
   margin-bottom: 18rpx;
-  border: 1px solid #ececec;
-  box-shadow: 0 8rpx 22rpx rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(250, 218, 122, 0.35);
+  box-shadow: 0 8rpx 22rpx rgba(91, 74, 58, 0.06);
 }
 
 .section-title {
   display: block;
   font-size: 32rpx;
   font-weight: 800;
-  color: #151515;
+  color: #5B4A3A;
   margin: 16rpx 0;
 }
 
 .section-sub {
   display: block;
   font-size: 23rpx;
-  color: #7a7a7a;
+  color: #9A8B7A;
   margin-top: 8rpx;
 }
 
 .primary-btn {
-  background: #e60023;
-  color: #ffffff;
+  background: #9CAF88;
+  color: #FFFDF6;
   border-radius: 999rpx;
   font-size: 28rpx;
   line-height: 1.2;
@@ -104,37 +104,37 @@ button::after {
 }
 
 .primary-btn[disabled] {
-  background: #f3b3bf;
-  color: #fff;
+  background: #EEF5EA;
+  color: #9A8B7A;
 }
 
 .secondary-btn {
-  background: #ffffff;
-  color: #242424;
+  background: #FFFDF6;
+  color: #5B4A3A;
   border-radius: 999rpx;
   font-size: 26rpx;
   line-height: 1.2;
   padding: 18rpx 24rpx;
-  border: 1px solid #d8d8d8;
+  border: 1px solid rgba(250, 218, 122, 0.55);
 }
 
 .small-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #f4f4f4;
-  color: #3d3d3d;
+  background: #EEF5EA;
+  color: #7F956D;
   border-radius: 16rpx;
   font-size: 24rpx;
   padding: 12rpx 20rpx;
   margin-left: 12rpx;
-  border: 1px solid #e3e3e3;
+  border: 1px solid rgba(156, 175, 136, 0.24);
 }
 
 .danger-btn {
-  background: #ffe8ee;
-  color: #b00020;
-  border-color: #ffd0db;
+  background: #FFF4EA;
+  color: #9A8B7A;
+  border-color: #FADA7A;
 }
 
 .input,
@@ -142,12 +142,12 @@ button::after {
 .picker-box {
   width: 100%;
   box-sizing: border-box;
-  background: #ffffff;
-  border: 1px solid #e4e4e4;
+  background: #FFFDF6;
+  border: 1px solid rgba(250, 218, 122, 0.45);
   border-radius: 18rpx;
   padding: 20rpx;
   margin-top: 12rpx;
-  color: #1e1e1e;
+  color: #5B4A3A;
 }
 
 .textarea {
@@ -157,7 +157,7 @@ button::after {
 .field-label {
   display: block;
   font-size: 25rpx;
-  color: #5a5a5a;
+  color: #9A8B7A;
   margin-top: 16rpx;
 }
 
@@ -166,23 +166,23 @@ button::after {
   padding: 8rpx 18rpx;
   border-radius: 999rpx;
   font-size: 22rpx;
-  background: #f4f4f4;
-  color: #555;
+  background: #EEF5EA;
+  color: #7F956D;
   margin-right: 12rpx;
   margin-top: 8rpx;
-  border: 1px solid #ececec;
+  border: 1px solid rgba(156, 175, 136, 0.24);
 }
 
 .empty {
   text-align: center;
-  color: #8a8a8a;
+  color: #9A8B7A;
   padding: 60rpx 0;
 }
 
 .empty-title {
   display: block;
   font-size: 30rpx;
-  color: #2b2b2b;
+  color: #5B4A3A;
   font-weight: 700;
 }
 
@@ -190,7 +190,7 @@ button::after {
   display: block;
   margin-top: 10rpx;
   font-size: 24rpx;
-  color: #8d8d8d;
+  color: #9A8B7A;
   line-height: 1.6;
 }
 
@@ -200,7 +200,7 @@ button::after {
   right: 0;
   top: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.42);
+  background: rgba(91, 74, 58, 0.34);
   display: flex;
   align-items: flex-end;
   z-index: 999;
@@ -211,16 +211,16 @@ button::after {
   max-height: 85vh;
   overflow: auto;
   box-sizing: border-box;
-  background: #ffffff;
+  background: #FFFDF6;
   border-radius: 28rpx 28rpx 0 0;
   padding: 28rpx 24rpx 36rpx;
-  border-top: 1px solid #ebebeb;
+  border-top: 1px solid rgba(250, 218, 122, 0.45);
 }
 
 .modal-title {
   font-size: 34rpx;
   font-weight: 800;
-  color: #151515;
+  color: #5B4A3A;
 }
 
 .modal-actions {
@@ -242,27 +242,27 @@ button::after {
   display: flex;
   justify-content: space-between;
   padding: 14rpx 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid rgba(250, 218, 122, 0.32);
 }
 
 .info-label {
-  color: #818181;
+  color: #9A8B7A;
 }
 
 .preview-img {
   width: 200rpx;
   height: 200rpx;
   border-radius: 18rpx;
-  background: #f6f6f6;
+  background: #FFF8E5;
   margin-right: 12rpx;
   margin-bottom: 12rpx;
 }
 
 .tip-box {
-  background: #fff1f4;
-  color: #8f2137;
+  background: #FFF4D1;
+  color: #5B4A3A;
   border-radius: 20rpx;
   padding: 22rpx;
   line-height: 1.7;
-  border: 1px solid #ffd8e1;
+  border: 1px solid #FADA7A;
 }
