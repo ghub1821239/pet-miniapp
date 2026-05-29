@@ -109,13 +109,7 @@
           <input class="calendar-title-input" placeholder="输入提醒内容" value="{{form.title}}" data-field="title" bindinput="bindInput" />
         </view>
 
-        <view class="calendar-mini-row">
-          <picker range="{{categories}}" value="{{categoryIndex}}" bindchange="changeCategory">
-            <view class="calendar-pill">{{form.category}}</view>
-          </picker>
-          <view class="calendar-pill">{{form.petName || '毛孩子'}}</view>
-          <view class="calendar-pill {{form.strong ? 'is-strong' : ''}}">{{form.strong ? '强提醒' : '普通提醒'}}</view>
-        </view>
+        
       </view>
 
       <view class="calendar-edit-card">

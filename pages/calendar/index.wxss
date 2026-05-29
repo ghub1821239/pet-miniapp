@@ -1041,3 +1041,32 @@
   color: #b4a998;
   text-decoration: line-through;
 }
+/* 日历编辑弹窗底部按钮优化 */
+.calendar-modal-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 18rpx;
+  padding: 12rpx 0 calc(12rpx + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(255, 253, 246, 0), #FFFDF6 22%, #FFFDF6 100%);
+}
+
+.calendar-action-btn {
+  flex: 1;
+  height: 72rpx;
+  min-height: 72rpx;
+  line-height: 72rpx;
+  padding: 0;
+  margin: 0;
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+.calendar-action-btn::after {
+  border: none;
+}
