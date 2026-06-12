@@ -114,6 +114,9 @@ function getHoursDiff(createdAt) {
 
 function getReason(post) {
   var detail = post.scoreDetail || {}
+  if (detail.paidBoost > 0) {
+    return '正在推流中'
+  }
   if (detail.categoryInterest >= 0.18) {
     return '因为你常看' + post.category
   }
@@ -135,6 +138,28 @@ function getReason(post) {
   return '新内容探索'
 }
 
+function getPaidBoost(post) {
+  var levelBoost = {
+    1: 0.08,
+    2: 0.14,
+    3: 0.22
+  }
+  var endTime
+  var level
+
+  if (!post || !post.promotionActive || !post.promotionEndedAt) {
+    return 0
+  }
+
+  endTime = new Date(String(post.promotionEndedAt).replace(/-/g, '/')).getTime()
+  if (!endTime || endTime <= Date.now()) {
+    return 0
+  }
+
+  level = Number(post.promotionLevel || 0)
+  return levelBoost[level] || 0
+}
+
 function recommendPosts(posts, userProfile, options) {
   var vocabulary = userProfile.vocabulary || textFeature.buildVocabulary(posts)
   var categoryKeys = Object.keys(userProfile.categoryInterest || {})
@@ -149,6 +174,8 @@ function recommendPosts(posts, userProfile, options) {
   var freshness
   var petMatch
   var explore
+  var paidBoost
+  var baseScore
   var score
   var result
 
@@ -164,14 +191,16 @@ function recommendPosts(posts, userProfile, options) {
     freshness = Math.exp(-getHoursDiff(post.createdAt) / 72)
     petMatch = (userProfile.petTypeInterest && userProfile.petTypeInterest[post.petType]) || 0
     explore = categoryKeys.indexOf(post.category) === -1 ? 1 : Math.max(0.15, 1 - categoryInterest)
+    paidBoost = getPaidBoost(post)
 
-    score =
+    baseScore =
       0.35 * similarity +
       0.20 * categoryInterest +
       0.15 * hot +
       0.15 * freshness +
       0.10 * petMatch +
       0.05 * explore
+    score = baseScore + paidBoost
 
     result = Object.assign({}, post, {
       recommendScore: Number(score.toFixed(4)),
@@ -181,7 +210,8 @@ function recommendPosts(posts, userProfile, options) {
         hot: Number(hot.toFixed(4)),
         freshness: Number(freshness.toFixed(4)),
         petMatch: Number(petMatch.toFixed(4)),
-        explore: Number(explore.toFixed(4))
+        explore: Number(explore.toFixed(4)),
+        paidBoost: Number(paidBoost.toFixed(4))
       }
     })
     result.recommendReason = getReason(result)

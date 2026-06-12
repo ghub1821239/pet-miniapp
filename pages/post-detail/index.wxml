@@ -33,15 +33,23 @@
     <text class="detail-title">{{post.title}}</text>
     <text class="detail-text">{{post.content}}</text>
 
-    <view class="detail-topic-row">
+    <view wx:if="{{post.topics.length}}" class="detail-topic-row">
       <block wx:for="{{post.topics}}" wx:key="*this">
         <text class="detail-topic">#{{item}}</text>
       </block>
     </view>
 
-    <view class="detail-post-meta">
-      <text>{{post.publishTime}}</text>
-      <text>{{post.location}}</text>
+    <view wx:if="{{post.publishTime || post.location}}" class="detail-post-meta">
+      <text wx:if="{{post.publishTime}}">{{post.publishTime}}</text>
+      <text wx:if="{{post.location}}">{{post.location}}</text>
+    </view>
+
+    <view wx:if="{{isOwnPost}}" class="detail-promotion-card" bindtap="openPromotionSheet">
+      <view class="detail-promotion-copy">
+        <text class="detail-promotion-title">{{promotionStatus.active ? '推广中' : '推广核销'}}</text>
+        <text class="detail-promotion-sub">{{promotionStatus.active ? promotionStatus.text + ' · 可继续加热' : (selectedPromotionPackageId ? '套餐已选 · ' + (promotionCode ? '密钥已填写' : '待填写密钥') : '输入优惠码/密钥后立即开启推流')}}</text>
+      </view>
+      <view class="detail-promotion-btn">{{promotionStatus.active ? '继续加热' : '去推流'}}</view>
     </view>
   </view>
 
@@ -67,6 +75,8 @@
         </view>
       </view>
     </block>
+
+    <view wx:if="{{!comments.length}}" class="detail-comment-empty">还没有评论</view>
   </view>
 
   <view class="detail-actionbar">
@@ -92,6 +102,38 @@
     <view class="action-item" bindtap="submitComment">
       <text class="action-icon">◌</text>
       <text class="action-count">{{post.commentCount}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{promotionSheetVisible}}" class="mask detail-promotion-mask" bindtap="closePromotionSheet">
+    <view class="modal detail-promotion-sheet" catchtap="noop">
+      <text class="modal-title">推广核销</text>
+      <text class="detail-promotion-sheet-sub">当前为演示模式：选择套餐并输入后端维护的优惠码/密钥，核销成功后立即开启推流。</text>
+
+      <block wx:for="{{promotionPackages}}" wx:key="id">
+        <view class="detail-package {{selectedPromotionPackageId === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectPromotionPackage">
+          <view class="detail-package-copy">
+            <text class="detail-package-title">{{item.title}}</text>
+            <text class="detail-package-desc">{{item.desc}}</text>
+          </view>
+          <text class="detail-package-price">¥{{item.price}}</text>
+        </view>
+      </block>
+
+      <view class="detail-code-panel">
+        <text class="detail-code-title">输入优惠码 / 推流密钥</text>
+        <input
+          class="input detail-code-input"
+          placeholder="例如：PROMO-7DAY-001"
+          value="{{promotionCode}}"
+          bindinput="bindPromotionCodeInput"
+        />
+      </view>
+
+      <view class="modal-actions detail-promotion-actions">
+        <button class="secondary-btn" bindtap="closePromotionSheet">取消</button>
+        <button class="primary-btn" loading="{{promotionPaying}}" disabled="{{promotionPaying}}" bindtap="submitPromotionPayment">确认核销</button>
+      </view>
     </view>
   </view>
 </view>

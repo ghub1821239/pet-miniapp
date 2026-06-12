@@ -2,6 +2,7 @@ var CALENDAR_KEY = 'calendarPlans'
 var LEGACY_CALENDAR_KEY = 'petReminders'
 var PET_LIST_KEY = 'petList'
 var LEGACY_PETS_KEY = 'pets'
+var userStorage = require('../../utils/user-storage')
 var CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
 var DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
 
@@ -167,7 +168,7 @@ function normalizePlan(item) {
 }
 
 function normalizePets(source) {
-  var list = Array.isArray(source) && source.length ? source : DEFAULT_PETS
+  var list = Array.isArray(source) ? source : []
   return list.map(function (pet, index) {
     var name = pet.name === '小布丁' ? '布丁' : (pet.name || ('萌宠' + (index + 1)))
     return {
@@ -337,9 +338,8 @@ Page({
   },
 
   loadPets: function () {
-    var petList = wx.getStorageSync(PET_LIST_KEY)
-    var legacyPets = wx.getStorageSync(LEGACY_PETS_KEY)
-    var source = Array.isArray(petList) && petList.length ? petList : legacyPets
+    var petList = userStorage.getValue(PET_LIST_KEY)
+    var source = Array.isArray(petList) && petList.length ? petList : []
 
     this.setData({
       petOptions: normalizePets(source)
@@ -347,25 +347,17 @@ Page({
   },
 
   ensureMockPlans: function () {
-    var plans = wx.getStorageSync(CALENDAR_KEY)
-    var legacyPlans = wx.getStorageSync(LEGACY_CALENDAR_KEY)
-
-    if ((!Array.isArray(plans) || !plans.length) && (!Array.isArray(legacyPlans) || !legacyPlans.length)) {
-      wx.setStorageSync(CALENDAR_KEY, DEFAULT_CALENDAR_PLANS)
-      wx.setStorageSync(LEGACY_CALENDAR_KEY, DEFAULT_CALENDAR_PLANS)
+    var plans = userStorage.getValue(CALENDAR_KEY)
+    if (!Array.isArray(plans)) {
+      userStorage.setValue(CALENDAR_KEY, [])
     }
   },
 
   loadPlans: function () {
-    var plans = wx.getStorageSync(CALENDAR_KEY)
-    var legacyPlans = wx.getStorageSync(LEGACY_CALENDAR_KEY)
-    var sourceList = Array.isArray(plans) && plans.length ? plans : legacyPlans
+    var plans = userStorage.getValue(CALENDAR_KEY)
+    var sourceList = Array.isArray(plans) ? plans : []
     var normalized = []
     var i
-
-    if (!Array.isArray(sourceList) || !sourceList.length) {
-      sourceList = DEFAULT_CALENDAR_PLANS
-    }
 
     for (i = 0; i < sourceList.length; i++) {
       normalized.push(normalizePlan(sourceList[i]))
@@ -408,8 +400,12 @@ Page({
   },
 
   handleAddPlan: function () {
-    var petOptions = this.data.petOptions.length ? this.data.petOptions : DEFAULT_PETS
-    var defaultPet = petOptions[0]
+    var petOptions = this.data.petOptions || []
+    var defaultPet = petOptions[0] || {
+      id: '',
+      name: '暂不关联',
+      avatar: CAT_IMAGE
+    }
     var initialForm = {
       id: '',
       petId: defaultPet.id,
@@ -736,8 +732,7 @@ Page({
   
     reminders = sortPlans(reminders)
   
-    wx.setStorageSync(CALENDAR_KEY, reminders)
-    wx.setStorageSync(LEGACY_CALENDAR_KEY, reminders)
+    userStorage.setValue(CALENDAR_KEY, reminders)
   
     this.setData({
       showForm: false,
@@ -767,8 +762,7 @@ Page({
       }
     }
 
-    wx.setStorageSync(CALENDAR_KEY, reminders)
-    wx.setStorageSync(LEGACY_CALENDAR_KEY, reminders)
+    userStorage.setValue(CALENDAR_KEY, reminders)
 
     this.setData({
       reminders: reminders
@@ -795,8 +789,7 @@ Page({
       }
     }
   
-    wx.setStorageSync(CALENDAR_KEY, reminders)
-    wx.setStorageSync(LEGACY_CALENDAR_KEY, reminders)
+    userStorage.setValue(CALENDAR_KEY, reminders)
   
     this.setData({
       reminders: reminders

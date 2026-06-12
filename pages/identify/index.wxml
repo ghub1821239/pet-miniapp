@@ -87,16 +87,19 @@
           <view class="identify-record-side">
             <text class="identify-record-date">{{item.date}}</text>
             <text wx:if="{{item.updatedTimeText}}" class="identify-record-updated">更新 {{item.updatedTimeText}}</text>
-            <view
-              class="identify-record-action {{item.action === '待确认' ? 'is-pending' : ''}}"
-              data-id="{{item.id}}"
-              data-action="{{item.action}}"
-              data-name="{{item.petName}}"
-              data-breed="{{item.result}}"
-              data-image="{{item.image}}"
-              bindtap="handleRecordActionTap"
-            >
-              {{item.action}}
+            <view class="identify-record-actions">
+              <view
+                class="identify-record-action {{item.action === '待确认' ? 'is-pending' : ''}}"
+                data-id="{{item.id}}"
+                data-action="{{item.action}}"
+                data-name="{{item.petName}}"
+                data-breed="{{item.result}}"
+                data-image="{{item.image}}"
+                bindtap="handleRecordActionTap"
+              >
+                {{item.action}}
+              </view>
+              <button class="identify-record-delete" data-id="{{item.id}}" catchtap="handleDeleteRecord">删除</button>
             </view>
           </view>
         </view>

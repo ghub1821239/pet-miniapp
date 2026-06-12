@@ -1,40 +1,10 @@
-var POSTS_KEY = 'postList'
-var LEGACY_POSTS_KEY = 'forumPosts'
-var DETAIL_CACHE_KEY = 'currentPostDetail'
 var cloudPosts = require('../../utils/cloudPosts')
+var postStorage = require('../../utils/post-storage')
+var promotion = require('../../utils/promotion')
+var userPostState = require('../../utils/user-post-state')
 var CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
 var DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
 var FALLBACK_POST_IMAGE = DOG_IMAGE
-
-var COMMENT_LIST = [
-  {
-    id: 'comment_1',
-    userName: '糯米观察员',
-    avatarText: '糯',
-    content: '这张真的太有生活感了，毛孩子的表情很像在认真营业。',
-    time: '刚刚',
-    likes: 18,
-    liked: false
-  },
-  {
-    id: 'comment_2',
-    userName: '布丁铲屎官',
-    avatarText: '布',
-    content: '同款角度学到了，回头我也试试这样拍。',
-    time: '12分钟前',
-    likes: 9,
-    liked: true
-  },
-  {
-    id: 'comment_3',
-    userName: '春日猫猫册',
-    avatarText: '春',
-    content: '好温柔的一条动态，配图和文字都很治愈。',
-    time: '1小时前',
-    likes: 6,
-    liked: false
-  }
-]
 
 var FALLBACK_POST = {
   id: 'fallback',
@@ -119,8 +89,6 @@ function buildGallery(post) {
 function buildTopicTags(post) {
   var tags = []
   var sourceTags = post.tags || []
-  var channel = post.channel || post.tag || post.category || '推荐'
-  var petName = post.petName || '萌宠'
   var i
 
   if (Array.isArray(sourceTags)) {
@@ -131,14 +99,42 @@ function buildTopicTags(post) {
     }
   }
 
-  if (channel && tags.indexOf(channel) === -1) {
-    tags.unshift(channel)
-  }
-  if (petName && tags.indexOf(petName) === -1) {
-    tags.push(petName)
+  return tags.slice(0, 5)
+}
+
+function formatPublishTime(post) {
+  var value = post.publishTime || post.createdAt || ''
+  var safe = String(value || '').trim()
+
+  if (!safe) {
+    return ''
   }
 
-  return tags.slice(0, 5)
+  if (safe.length >= 16) {
+    return safe.slice(0, 16)
+  }
+
+  return safe
+}
+
+function normalizeComments(post) {
+  var source = Array.isArray(post.comments) ? post.comments : []
+
+  return source.map(function (item, index) {
+    var userName = item.userName || item.nickname || (item.author && item.author.name) || '用户'
+
+    return {
+      id: item.id || 'comment_' + index,
+      userName: userName,
+      avatarText: (item.avatarText || userName.slice(0, 1) || '评').slice(0, 1),
+      content: item.content || '',
+      time: String(item.time || item.createdAt || '').trim(),
+      likes: Number(item.likes || item.likeCount || 0),
+      liked: !!(item.liked || item.isLiked)
+    }
+  }).filter(function (item) {
+    return !!item.content
+  })
 }
 
 function normalizePost(post) {
@@ -150,6 +146,7 @@ function normalizePost(post) {
   return {
     id: post.id || 'post_detail',
     _cloudId: post._cloudId || '',
+    userId: post.userId || (post.author && post.author.userId) || '',
     title: post.title || '萌宠日常分享',
     content: post.content || '',
     userName: userName,
@@ -160,15 +157,25 @@ function normalizePost(post) {
     channel: post.channel || post.tag || post.category || '推荐',
     gallery: buildGallery(post),
     likeCount: Number(post.likeCount || post.likes || 0),
-    favoriteCount: Number(post.favoriteCount || post.favorites || Math.max(8, Math.round(Number(post.likes || post.likeCount || 0) * 0.62))),
-    commentCount: Number(post.commentCount || 3),
+    favoriteCount: Number(post.favoriteCount || post.favorites || post.collectCount || 0),
+    commentCount: Number(post.commentCount || (Array.isArray(post.comments) ? post.comments.length : 0)),
     liked: !!(post.liked || post.isLiked),
     favorited: !!(post.favorited || post.isFavorited),
     isFollowing: !!post.isFollowing,
-    publishTime: post.publishTime || '今天 15:31',
-    location: post.location || '萌宠广场',
+    promotionActive: !!post.promotionActive,
+    promotionLevel: Number(post.promotionLevel || 0),
+    promotionAmount: Number(post.promotionAmount || 0),
+    promotionStartedAt: post.promotionStartedAt || '',
+    promotionEndedAt: post.promotionEndedAt || '',
+    promotionOrderId: post.promotionOrderId || '',
+    author: post.author || {
+      name: userName,
+      userId: post.userId || ''
+    },
+    publishTime: formatPublishTime(post),
+    location: post.location || '',
     topics: buildTopicTags(post),
-    comments: Array.isArray(post.comments) ? clone(post.comments) : []
+    comments: normalizeComments(post)
   }
 }
 
@@ -176,9 +183,20 @@ Page({
   data: {
     postId: '',
     post: normalizePost(FALLBACK_POST),
-    comments: clone(COMMENT_LIST),
+    comments: [],
     currentImage: 0,
-    commentText: ''
+    commentText: '',
+    isOwnPost: false,
+    promotionStatus: {
+      active: false,
+      remainHours: 0,
+      text: '未开启'
+    },
+    promotionPackages: promotion.PROMOTION_PACKAGES,
+    selectedPromotionPackageId: '',
+    promotionSheetVisible: false,
+    promotionPaying: false,
+    promotionCode: ''
   },
 
   onLoad: function (options) {
@@ -194,11 +212,11 @@ Page({
     }
   },
 
+  noop: function () {},
+
   loadPost: function (id) {
-    var cached = wx.getStorageSync(DETAIL_CACHE_KEY)
-    var posts = wx.getStorageSync(POSTS_KEY)
-    var legacyPosts = wx.getStorageSync(LEGACY_POSTS_KEY)
-    var sourceList = Array.isArray(posts) && posts.length ? posts : legacyPosts
+    var cached = postStorage.getDetailCache()
+    var sourceList = postStorage.getPostList()
     var target = null
     var i
 
@@ -215,15 +233,15 @@ Page({
       }
     }
 
-    var normalizedPost = normalizePost(target || FALLBACK_POST)
-    var nextComments = Array.isArray(normalizedPost.comments) && normalizedPost.comments.length
-      ? clone(normalizedPost.comments)
-      : clone(COMMENT_LIST)
+    var normalizedPost = userPostState.applyStateToPost(normalizePost(target || FALLBACK_POST))
+    var nextComments = Array.isArray(normalizedPost.comments) ? clone(normalizedPost.comments) : []
 
     this.setData({
       post: normalizedPost,
       comments: nextComments,
-      currentImage: 0
+      currentImage: 0,
+      isOwnPost: promotion.isPostOwner(normalizedPost),
+      promotionStatus: promotion.getPromotionStatus(normalizedPost)
     })
   },
 
@@ -267,6 +285,7 @@ Page({
       'post.liked': liked,
       'post.likeCount': nextCount
     })
+    userPostState.setLiked(post.id, liked)
     this.persistPostAction({
       isLiked: liked,
       liked: liked,
@@ -288,6 +307,7 @@ Page({
       'post.favorited': favorited,
       'post.favoriteCount': nextCount
     })
+    userPostState.setFavorited(post.id, favorited)
     this.persistPostAction({
       isFavorited: favorited,
       favorited: favorited,
@@ -377,15 +397,97 @@ Page({
     })
   },
 
+  openPromotionSheet: function () {
+    if (!this.data.isOwnPost) {
+      wx.showToast({
+        title: '只能给自己的帖子推流',
+        icon: 'none'
+      })
+      return
+    }
+    this.setData({
+      promotionSheetVisible: true
+    })
+  },
+
+  closePromotionSheet: function () {
+    this.setData({
+      promotionSheetVisible: false
+    })
+  },
+
+  selectPromotionPackage: function (e) {
+    this.setData({
+      selectedPromotionPackageId: e.currentTarget.dataset.id
+    })
+  },
+
+  bindPromotionCodeInput: function (e) {
+    this.setData({
+      promotionCode: e.detail.value
+    })
+  },
+
+  submitPromotionPayment: function () {
+    var packageId = this.data.selectedPromotionPackageId
+    var post = this.data.post
+    var promotionCode = String(this.data.promotionCode || '').trim()
+
+    if (!packageId) {
+      wx.showToast({
+        title: '请选择推流套餐',
+        icon: 'none'
+      })
+      return
+    }
+    if (!promotionCode) {
+      wx.showToast({
+        title: '请输入优惠码或密钥',
+        icon: 'none'
+      })
+      return
+    }
+
+    this.setData({
+      promotionPaying: true
+    })
+    wx.showLoading({
+      title: '核销中...'
+    })
+
+    promotion.purchasePromotion(post, packageId, promotionCode).then(function (patch) {
+      var nextPost = Object.assign({}, this.data.post, patch)
+      wx.hideLoading()
+      this.setData({
+        post: nextPost,
+        promotionSheetVisible: false,
+        promotionStatus: promotion.getPromotionStatus(nextPost),
+        promotionCode: ''
+      })
+      wx.showToast({
+        title: '推流已开启',
+        icon: 'success'
+      })
+    }.bind(this)).catch(function (err) {
+      wx.hideLoading()
+      wx.showToast({
+        title: err && err.message ? err.message : '支付未完成，未开启推流',
+        icon: 'none'
+      })
+    }).then(function () {
+      this.setData({
+        promotionPaying: false
+      })
+    }.bind(this))
+  },
+
   persistPostAction: function (patch) {
-    var posts = wx.getStorageSync(POSTS_KEY)
-    var legacyPosts = wx.getStorageSync(LEGACY_POSTS_KEY)
-    var sourceList = Array.isArray(posts) && posts.length ? posts : legacyPosts
+    var sourceList = postStorage.getPostList()
     var nextList
     var i
     var cloudTarget = null
 
-    wx.setStorageSync(DETAIL_CACHE_KEY, Object.assign({}, this.data.post, patch))
+    postStorage.setDetailCache(Object.assign({}, this.data.post, patch))
 
     if (!Array.isArray(sourceList)) {
       cloudPosts.syncPostPatch(this.data.post, patch).catch(function (err) {
@@ -403,8 +505,7 @@ Page({
       }
     }
 
-    wx.setStorageSync(POSTS_KEY, nextList)
-    wx.setStorageSync(LEGACY_POSTS_KEY, nextList)
+    postStorage.setPostList(nextList)
 
     cloudPosts.syncPostPatch(cloudTarget || this.data.post, patch).then(function (syncRes) {
       if (!syncRes || !syncRes.synced) {

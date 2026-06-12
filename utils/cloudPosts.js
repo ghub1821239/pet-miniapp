@@ -61,6 +61,13 @@ function normalizeCloudPost(record, index) {
     viewCount: Number(record.viewCount || 0),
     isSolved: record.isSolved === undefined ? true : !!record.isSolved,
     urgency: record.urgency || '普通',
+    userId: record.userId || author.userId || '',
+    promotionActive: !!record.promotionActive,
+    promotionLevel: Number(record.promotionLevel || 0),
+    promotionAmount: Number(record.promotionAmount || 0),
+    promotionStartedAt: record.promotionStartedAt || '',
+    promotionEndedAt: record.promotionEndedAt || '',
+    promotionOrderId: record.promotionOrderId || '',
     liked: !!(record.liked || record.isLiked),
     favorited: !!(record.favorited || record.isFavorited),
     isFollowing: !!record.isFollowing,
@@ -68,6 +75,7 @@ function normalizeCloudPost(record, index) {
     comments: Array.isArray(record.comments) ? record.comments : [],
     author: {
       name: author.name || record.userName || '萌宠用户',
+      userId: author.userId || record.userId || '',
       avatar: record._tempAvatarUrl || author.avatar || coverImage,
       avatarFileId: author.avatarFileId || ''
     }
@@ -270,6 +278,7 @@ function createPost(post) {
       id: post.id || ('community_' + Date.now()),
       title: post.title || '',
       content: post.content || '',
+      userId: post.userId || (post.author && post.author.userId) || '',
       petName: post.petName || '',
       petType: post.petType || '',
       breed: post.breed || '',
@@ -294,12 +303,19 @@ function createPost(post) {
       viewCount: Number(post.viewCount || 0),
       isSolved: post.isSolved === undefined ? true : !!post.isSolved,
       urgency: post.urgency || '普通',
+      promotionActive: !!post.promotionActive,
+      promotionLevel: Number(post.promotionLevel || 0),
+      promotionAmount: Number(post.promotionAmount || 0),
+      promotionStartedAt: post.promotionStartedAt || '',
+      promotionEndedAt: post.promotionEndedAt || '',
+      promotionOrderId: post.promotionOrderId || '',
       isFollowing: !!post.isFollowing,
       liked: !!(post.liked || post.isLiked),
       favorited: !!(post.favorited || post.isFavorited),
       comments: Array.isArray(post.comments) ? post.comments.slice() : [],
       author: {
         name: authorName,
+        userId: post.userId || (author && author.userId) || '',
         avatar: '',
         avatarFileId: ''
       }

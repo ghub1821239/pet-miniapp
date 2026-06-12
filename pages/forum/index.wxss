@@ -231,12 +231,30 @@
 }
 
 .feed-card {
+  position: relative;
   background: var(--pin-surface);
   border-radius: 24rpx;
   overflow: hidden;
   margin-bottom: 14rpx;
   border: 1px solid rgba(250, 218, 122, 0.35);
   box-shadow: 0 6rpx 14rpx rgba(91, 74, 58, 0.06);
+}
+
+.feed-promotion-badge {
+  position: absolute;
+  left: 12rpx;
+  top: 12rpx;
+  z-index: 3;
+  height: 36rpx;
+  padding: 0 12rpx;
+  border-radius: 999rpx;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(156, 175, 136, 0.92);
+  color: #FFFDF6;
+  font-size: 20rpx;
+  font-weight: 800;
+  box-shadow: 0 6rpx 12rpx rgba(91, 74, 58, 0.10);
 }
 
 .feed-card-share {

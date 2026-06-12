@@ -1,0 +1,9 @@
+{
+  "name": "promotion",
+  "version": "1.0.0",
+  "description": "Paid promotion cloud function for pet mini program",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

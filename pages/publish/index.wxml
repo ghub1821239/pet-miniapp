@@ -56,6 +56,46 @@
       <button class="secondary-btn publish-location-btn" bindtap="chooseLocation">选择位置</button>
     </view>
 
-    <button class="primary-btn publish-submit" bindtap="submitPost">{{submitButtonText}}</button>
+    <view wx:if="{{entryMode === 'community' || visibility === 'public'}}" class="publish-promotion-card" bindtap="openPromotionSheet">
+      <view class="publish-promotion-main">
+        <text class="publish-promotion-title">推广核销</text>
+        <text class="publish-promotion-sub">{{selectedPromotionPackage ? selectedPromotionPackage.title + ' · ' + (promotionCode ? '密钥已填写' : '待填写密钥') : '可选，选择套餐并输入优惠码/密钥'}}</text>
+      </view>
+      <view class="publish-promotion-action">{{selectedPromotionPackage ? '更换' : '选择套餐'}}</view>
+    </view>
+
+    <button class="primary-btn publish-submit" loading="{{promotionPaying}}" disabled="{{promotionPaying}}" bindtap="submitPost">{{submitButtonText}}</button>
+  </view>
+
+  <view wx:if="{{promotionSheetVisible}}" class="mask publish-promotion-mask" bindtap="closePromotionSheet">
+    <view class="modal publish-promotion-sheet" catchtap="noop">
+      <text class="modal-title">选择推流套餐</text>
+      <text class="publish-promotion-sheet-sub">当前为演示模式：输入后端维护的优惠码或密钥，核销成功后立即开启推流。</text>
+
+      <block wx:for="{{promotionPackages}}" wx:key="id">
+        <view class="promotion-package {{selectedPromotionPackageId === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectPromotionPackage">
+          <view class="promotion-package-copy">
+            <text class="promotion-package-title">{{item.title}}</text>
+            <text class="promotion-package-desc">{{item.desc}}</text>
+          </view>
+          <view class="promotion-package-price">¥{{item.price}}</view>
+        </view>
+      </block>
+
+      <view class="promotion-code-panel">
+        <text class="promotion-code-title">输入优惠码 / 推流密钥</text>
+        <input
+          class="input publish-input promotion-code-input"
+          placeholder="例如：PROMO-7DAY-001"
+          value="{{promotionCode}}"
+          bindinput="bindPromotionCodeInput"
+        />
+      </view>
+
+      <view class="modal-actions publish-promotion-actions">
+        <button class="secondary-btn" bindtap="clearPromotionPackage">暂不推流</button>
+        <button class="primary-btn" bindtap="confirmPromotionPackage">确认核销信息</button>
+      </view>
+    </view>
   </view>
 </view>

@@ -5,6 +5,8 @@
 
     <view class="profile-top-actions">
       <button class="profile-edit-btn" bindtap="handleEditProfile">编辑账号资料</button>
+      <button class="profile-edit-btn" bindtap="handleOpenPasswordForm">修改密码</button>
+      <button class="profile-logout-btn" bindtap="handleLogout">退出登录</button>
     </view>
 
     <view class="profile-main-info">
@@ -88,7 +90,10 @@
 
             <view class="profile-pet-bottom-row">
               <text class="profile-pet-reminder">下次提醒：{{item.nextReminder}}</text>
-              <button class="profile-pet-edit-btn" data-id="{{item.id}}" catchtap="handleEditPet">编辑</button>
+              <view class="profile-pet-card-actions">
+                <button class="profile-pet-delete-btn" data-id="{{item.id}}" catchtap="deletePet">删除</button>
+                <button class="profile-pet-edit-btn" data-id="{{item.id}}" catchtap="handleEditPet">编辑</button>
+              </view>
             </view>
           </view>
         </block>
@@ -149,7 +154,7 @@
       <input class="input" placeholder="请输入昵称" value="{{profileForm.nickname}}" data-field="nickname" bindinput="bindProfileInput" />
 
       <text class="field-label">账号 ID</text>
-      <input class="input" placeholder="例如：petid 1147739177" value="{{profileForm.profileId}}" data-field="profileId" bindinput="bindProfileInput" />
+      <view class="picker-box pet-readonly-box">{{profileForm.profileId}}</view>
 
       <text class="field-label">地区</text>
       <input class="input" placeholder="例如：天津" value="{{profileForm.location}}" data-field="location" bindinput="bindProfileInput" />
@@ -177,6 +182,26 @@
       <view class="modal-actions profile-form-actions">
         <button class="secondary-btn" catchtap="closeProfileForm">取消</button>
         <button class="primary-btn" catchtap="saveProfile">保存账号资料</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showPasswordForm}}" class="mask" bindtap="closePasswordForm">
+    <view class="modal profile-account-modal" catchtap="noop">
+      <text class="modal-title">修改密码</text>
+
+      <text class="field-label">当前密码</text>
+      <input class="input" password placeholder="请输入当前密码" value="{{passwordForm.currentPassword}}" data-field="currentPassword" bindinput="bindPasswordInput" />
+
+      <text class="field-label">新密码</text>
+      <input class="input" password placeholder="至少 6 位" value="{{passwordForm.nextPassword}}" data-field="nextPassword" bindinput="bindPasswordInput" />
+
+      <text class="field-label">确认新密码</text>
+      <input class="input" password placeholder="再次输入新密码" value="{{passwordForm.confirmPassword}}" data-field="confirmPassword" bindinput="bindPasswordInput" />
+
+      <view class="modal-actions profile-form-actions">
+        <button class="secondary-btn" catchtap="closePasswordForm">取消</button>
+        <button class="primary-btn" catchtap="submitPasswordChange">确认修改</button>
       </view>
     </view>
   </view>
@@ -231,6 +256,7 @@
       <button class="secondary-btn mt12" bindtap="uploadAvatar">上传头像</button>
 
       <view class="modal-actions pet-form-actions">
+        <button wx:if="{{formMode === 'edit' && form.id}}" class="danger-btn" data-id="{{form.id}}" catchtap="deletePet">删除宠物</button>
         <button class="secondary-btn" catchtap="closeForm">取消</button>
         <button class="primary-btn" catchtap="savePet">保存宠物资料</button>
       </view>

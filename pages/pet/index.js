@@ -1,4 +1,8 @@
+var auth = require('../../utils/auth')
 var mockData = require('../../data/mockPosts.js')
+var postStorage = require('../../utils/post-storage')
+var userStorage = require('../../utils/user-storage')
+var userPostState = require('../../utils/user-post-state')
 
 var PROFILE_KEY = 'userProfile'
 var PETS_KEY = 'petList'
@@ -7,9 +11,6 @@ var REMINDER_KEY = 'calendarPlans'
 var LEGACY_REMINDER_KEY = 'petReminders'
 var IDENTIFY_KEY = 'identifyRecords'
 var LEGACY_IDENTIFY_KEY = 'identifyHistory'
-var POSTS_KEY = 'postList'
-var LEGACY_POSTS_KEY = 'forumPosts'
-var DETAIL_CACHE_KEY = 'currentPostDetail'
 var CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
 var DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
 
@@ -20,10 +21,10 @@ var MOCK_PROFILE = {
   bio: '愿每个毛孩子都被认真记录 ✨',
   avatar: CAT_IMAGE,
   cover: DOG_IMAGE,
-  following: 24,
-  followers: 128,
-  likesAndSaves: 386,
-  tags: ['南开大学', '猫狗双全', '养宠记录']
+  following: 0,
+  followers: 0,
+  likesAndSaves: 0,
+  tags: ['养宠记录']
 }
 
 var MOCK_PETS = [
@@ -68,8 +69,6 @@ var MOCK_PETS = [
     identifyCount: 1
   }
 ]
-
-var OWN_AUTHOR_NAMES = ['布丁和毛孩子', '毛孩子家长', '布丁铲屎官']
 
 function getToday() {
   var d = new Date()
@@ -116,6 +115,7 @@ function clone(data) {
 function normalizeProfile(profile) {
   var source = profile || {}
   var base = clone(MOCK_PROFILE)
+  var currentUser = auth.getCurrentUser() || {}
   var tags = source.tags
 
   if (typeof tags === 'string') {
@@ -127,8 +127,8 @@ function normalizeProfile(profile) {
   }
 
   return {
-    nickname: source.nickname || base.nickname,
-    profileId: source.profileId || base.profileId,
+    nickname: currentUser.nickname || source.nickname || base.nickname,
+    profileId: currentUser.account || source.profileId || base.profileId,
     location: source.location || base.location,
     bio: source.bio || base.bio,
     avatar: source.avatar || base.avatar,
@@ -245,6 +245,8 @@ function normalizePost(post) {
 
   return {
     id: post.id || 'post_' + Date.now(),
+    _cloudId: post._cloudId || post._id || '',
+    userId: post.userId || (post.author && post.author.userId) || '',
     title: post.title || '萌宠日常分享',
     content: post.content || '',
     coverImage: coverImage,
@@ -267,6 +269,12 @@ function normalizePost(post) {
     userName: authorName,
     author: post.author || { name: authorName, avatar: getAuthorAvatar(post) },
     avatarImage: getAuthorAvatar(post),
+    promotionActive: !!post.promotionActive,
+    promotionLevel: Number(post.promotionLevel || 0),
+    promotionAmount: Number(post.promotionAmount || 0),
+    promotionStartedAt: post.promotionStartedAt || '',
+    promotionEndedAt: post.promotionEndedAt || '',
+    promotionOrderId: post.promotionOrderId || '',
     tags: Array.isArray(post.tags) ? post.tags.slice(0, 4) : [],
     comments: Array.isArray(post.comments) ? post.comments : [],
     summary: post.content || '记录和毛孩子有关的日常瞬间。'
@@ -274,6 +282,9 @@ function normalizePost(post) {
 }
 
 function readStorageList(key) {
+  if (key === 'postList') {
+    return postStorage.getPostList()
+  }
   var list = wx.getStorageSync(key)
   return Array.isArray(list) ? list : []
 }
@@ -293,8 +304,22 @@ function uniquePosts(list) {
 }
 
 function isOwnPost(post) {
-  var name = getAuthorName(post)
-  return OWN_AUTHOR_NAMES.indexOf(name) > -1
+  var currentUser = auth.getCurrentUser() || {}
+  var author = post && post.author ? post.author : {}
+  var postUserId = post.userId || author.userId || ''
+  var currentNickname = normalizeName(currentUser.nickname)
+  var currentAccount = normalizeName(currentUser.account)
+  var postAuthorName = normalizeName(getAuthorName(post))
+  if (currentUser.id && postUserId && String(currentUser.id) === String(postUserId)) {
+    return true
+  }
+  if (currentNickname && postAuthorName && currentNickname === postAuthorName) {
+    return true
+  }
+  if (currentAccount && postAuthorName && currentAccount === postAuthorName) {
+    return true
+  }
+  return post.author === '我' || post.userName === '我'
 }
 
 Page({
@@ -310,6 +335,12 @@ Page({
       cover: ''
     },
     showProfileForm: false,
+    showPasswordForm: false,
+    passwordForm: {
+      currentPassword: '',
+      nextPassword: '',
+      confirmPassword: ''
+    },
     petList: [],
     currentPetId: '',
     currentPet: null,
@@ -353,10 +384,18 @@ Page({
   },
 
   loadProfile: function () {
-    var storedProfile = wx.getStorageSync(PROFILE_KEY)
+    var currentUser = auth.getCurrentUser() || {}
+    var storedProfile = userStorage.getValue(PROFILE_KEY)
     var profile = normalizeProfile(storedProfile)
+
+    if (currentUser.nickname && currentUser.nickname !== profile.nickname) {
+      profile.nickname = currentUser.nickname
+    }
+    if (currentUser.account) {
+      profile.profileId = currentUser.account
+    }
   
-    wx.setStorageSync(PROFILE_KEY, profile)
+    userStorage.setValue(PROFILE_KEY, profile)
   
     this.setData({
       profile: profile
@@ -379,10 +418,44 @@ Page({
       }
     })
   },
+
+  handleOpenPasswordForm: function () {
+    this.setData({
+      showPasswordForm: true,
+      passwordForm: {
+        currentPassword: '',
+        nextPassword: '',
+        confirmPassword: ''
+      }
+    })
+  },
+
+  handleLogout: function () {
+    wx.showModal({
+      title: '退出当前账号',
+      content: '退出后可以重新登录或切换到其他账号。',
+      success: function (res) {
+        if (!res.confirm) {
+          return
+        }
+
+        auth.logout()
+        wx.reLaunch({
+          url: '/pages/login/index'
+        })
+      }
+    })
+  },
   
   closeProfileForm: function () {
     this.setData({
       showProfileForm: false
+    })
+  },
+
+  closePasswordForm: function () {
+    this.setData({
+      showPasswordForm: false
     })
   },
   
@@ -394,6 +467,13 @@ Page({
   
     this.setData({
       profileForm: form
+    })
+  },
+
+  bindPasswordInput: function (e) {
+    var field = e.currentTarget.dataset.field
+    this.setData({
+      ['passwordForm.' + field]: e.detail.value
     })
   },
   
@@ -417,6 +497,7 @@ Page({
   },
   
   saveProfile: function () {
+    var that = this
     var form = clone(this.data.profileForm)
     var tags = String(form.tagsText || '').split(/[,，、\s]+/).filter(Boolean)
   
@@ -434,49 +515,108 @@ Page({
   
     var oldProfile = normalizeProfile(this.data.profile)
 
-var profile = normalizeProfile({
-    nickname: String(form.nickname || '').trim(),
-    profileId: String(form.profileId || '').trim() || MOCK_PROFILE.profileId,
-    location: String(form.location || '').trim() || MOCK_PROFILE.location,
-    bio: String(form.bio || '').trim() || MOCK_PROFILE.bio,
-    tags: tags,
-    avatar: form.avatar || MOCK_PROFILE.avatar,
-    cover: form.cover || MOCK_PROFILE.cover,
+    auth.updateProfile({
+      nickname: String(form.nickname || '').trim()
+    }).then(function (res) {
+      var cloudUser = res && res.user ? res.user : (auth.getCurrentUser() || {})
+      var profile = normalizeProfile({
+        nickname: cloudUser.nickname || String(form.nickname || '').trim(),
+        profileId: cloudUser.account || oldProfile.profileId,
+        location: String(form.location || '').trim() || MOCK_PROFILE.location,
+        bio: String(form.bio || '').trim() || MOCK_PROFILE.bio,
+        tags: tags,
+        avatar: form.avatar || MOCK_PROFILE.avatar,
+        cover: form.cover || MOCK_PROFILE.cover,
 
-    // 统计数据不允许在账号资料表单里手动修改。
-    // 当前先保留已有展示值；后续接入真实关注、收藏、点赞数据后，再统一由数据源自动计算。
-    following: oldProfile.following,
-    followers: oldProfile.followers,
-    likesAndSaves: oldProfile.likesAndSaves
-  })
-  
-    wx.setStorageSync(PROFILE_KEY, profile)
-  
-    this.setData({
-      profile: profile,
-      showProfileForm: false
+        // 统计数据不允许在账号资料表单里手动修改。
+        // 当前先保留已有展示值；后续接入真实关注、收藏、点赞数据后，再统一由数据源自动计算。
+        following: oldProfile.following,
+        followers: oldProfile.followers,
+        likesAndSaves: oldProfile.likesAndSaves
+      })
+
+      userStorage.setValue(PROFILE_KEY, profile)
+
+      that.setData({
+        profile: profile,
+        showProfileForm: false
+      })
+
+      wx.showToast({
+        title: '保存成功',
+        icon: 'success'
+      })
+    }).catch(function (err) {
+      wx.showToast({
+        title: err && err.message ? err.message : '保存失败',
+        icon: 'none'
+      })
     })
-  
-    wx.showToast({
-      title: '保存成功',
-      icon: 'success'
+  },
+
+  submitPasswordChange: function () {
+    var form = this.data.passwordForm || {}
+
+    if (!String(form.currentPassword || '')) {
+      wx.showToast({
+        title: '请输入当前密码',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (String(form.nextPassword || '').length < 6) {
+      wx.showToast({
+        title: '新密码至少 6 位',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (String(form.nextPassword) !== String(form.confirmPassword)) {
+      wx.showToast({
+        title: '两次新密码不一致',
+        icon: 'none'
+      })
+      return
+    }
+
+    auth.changePassword({
+      currentPassword: form.currentPassword,
+      nextPassword: form.nextPassword
+    }).then(function () {
+      this.setData({
+        showPasswordForm: false,
+        passwordForm: {
+          currentPassword: '',
+          nextPassword: '',
+          confirmPassword: ''
+        }
+      })
+      wx.showToast({
+        title: '密码已更新',
+        icon: 'success'
+      })
+    }.bind(this)).catch(function (err) {
+      wx.showToast({
+        title: err && err.message ? err.message : '修改失败',
+        icon: 'none'
+      })
     })
   },
 
   loadPets: function () {
-    var storedPets = wx.getStorageSync(PETS_KEY)
-    var legacyPets = wx.getStorageSync(LEGACY_PETS_KEY)
+    var storedPets = userStorage.getValue(PETS_KEY)
     var hasStoredPets = Array.isArray(storedPets) && storedPets.length > 0
-    var sourceList = hasStoredPets ? storedPets : legacyPets
+    var sourceList = hasStoredPets ? storedPets : []
     var currentPetId = this.data.currentPetId
     var petList = []
     var found = false
     var i
 
     if (!Array.isArray(sourceList) || !sourceList.length) {
-      sourceList = clone(MOCK_PETS)
-      wx.setStorageSync(PETS_KEY, sourceList)
-      wx.setStorageSync(LEGACY_PETS_KEY, sourceList)
+      sourceList = []
+      userStorage.setValue(PETS_KEY, sourceList)
     } else {
       sourceList = sourceList.map(function (item) {
         var normalized = normalizePet(item)
@@ -501,8 +641,7 @@ var profile = normalizeProfile({
           identifyCount: normalized.identifyCount
         }
       })
-      wx.setStorageSync(PETS_KEY, sourceList)
-      wx.setStorageSync(LEGACY_PETS_KEY, sourceList)
+      userStorage.setValue(PETS_KEY, sourceList)
     }
 
     petList = sourceList.map(normalizePet)
@@ -527,37 +666,35 @@ var profile = normalizeProfile({
   },
 
   loadProfilePosts: function () {
-    var stored = readStorageList(POSTS_KEY)
-    var legacy = readStorageList(LEGACY_POSTS_KEY)
-    var mockPosts = Array.isArray(mockData.mockPosts) ? mockData.mockPosts : []
-    var combined = uniquePosts(stored.concat(legacy).concat(mockPosts)).map(normalizePost)
+    var combined = uniquePosts(postStorage.getPostList()).map(normalizePost)
+    var likedIds = userPostState.getLikedPostIds()
+    var favoritedIds = userPostState.getFavoritedPostIds()
+    var likedMap = {}
+    var favoritedMap = {}
     var ownPosts = []
     var favoritePosts = []
     var likedPosts = []
     var i
     var post
 
+    for (i = 0; i < likedIds.length; i++) {
+      likedMap[String(likedIds[i])] = true
+    }
+    for (i = 0; i < favoritedIds.length; i++) {
+      favoritedMap[String(favoritedIds[i])] = true
+    }
+
     for (i = 0; i < combined.length; i++) {
       post = combined[i]
       if (isOwnPost(post)) {
         ownPosts.push(post)
       }
-      if (post.favorited || post.isFavorited || post.favoriteCount >= 25 || post.collectCount >= 25) {
+      if (favoritedMap[String(post.id)]) {
         favoritePosts.push(post)
       }
-      if (post.liked || post.isLiked || post.likeCount >= 50) {
+      if (likedMap[String(post.id)]) {
         likedPosts.push(post)
       }
-    }
-
-    if (!ownPosts.length) {
-      ownPosts = combined.slice(0, 5)
-    }
-    if (!favoritePosts.length) {
-      favoritePosts = combined.slice(5, 10)
-    }
-    if (!likedPosts.length) {
-      likedPosts = combined.slice(10, 15)
     }
 
     var tabs = [
@@ -588,22 +725,13 @@ var profile = normalizeProfile({
   },
 
   buildOverviewList: function (petList) {
-    var reminders = wx.getStorageSync(REMINDER_KEY)
-    var legacyReminders = wx.getStorageSync(LEGACY_REMINDER_KEY)
-    var identifyHistory = wx.getStorageSync(IDENTIFY_KEY)
-    var legacyIdentify = wx.getStorageSync(LEGACY_IDENTIFY_KEY)
+    var reminders = userStorage.getValue(REMINDER_KEY)
+    var identifyHistory = userStorage.getValue(IDENTIFY_KEY)
     var today = getToday()
-    var reminderCount = 1
+    var reminderCount = 0
     var identifyCount = 0
     var diaryCount = 0
     var i
-
-    if (!Array.isArray(reminders) || !reminders.length) {
-      reminders = legacyReminders
-    }
-    if (!Array.isArray(identifyHistory) || !identifyHistory.length) {
-      identifyHistory = legacyIdentify
-    }
 
     if (Array.isArray(reminders) && reminders.length) {
       reminderCount = 0
@@ -663,7 +791,7 @@ var profile = normalizeProfile({
     }
 
     if (target) {
-      wx.setStorageSync(DETAIL_CACHE_KEY, target)
+      postStorage.setDetailCache(target)
     }
 
     wx.navigateTo({
@@ -821,9 +949,8 @@ var profile = normalizeProfile({
   },
 
   syncIdentifyRecordsByPet: function (pet, previousPet) {
-    var records = wx.getStorageSync(IDENTIFY_KEY)
-    var legacyRecords = wx.getStorageSync(LEGACY_IDENTIFY_KEY)
-    var source = Array.isArray(records) && records.length ? records : legacyRecords
+    var records = userStorage.getValue(IDENTIFY_KEY)
+    var source = Array.isArray(records) && records.length ? records : []
     var list = Array.isArray(source) ? clone(source) : []
     var changed = false
     var i
@@ -854,20 +981,18 @@ var profile = normalizeProfile({
     }
 
     if (changed) {
-      wx.setStorageSync(IDENTIFY_KEY, list)
-      wx.setStorageSync(LEGACY_IDENTIFY_KEY, list)
+      userStorage.setValue(IDENTIFY_KEY, list)
     }
   },
 
   savePet: function () {
     var form = clone(this.data.form)
-    var storedPets = wx.getStorageSync(PETS_KEY)
-    var legacyPets = wx.getStorageSync(LEGACY_PETS_KEY)
-    var pets = Array.isArray(storedPets) && storedPets.length ? clone(storedPets) : legacyPets
+    var storedPets = userStorage.getValue(PETS_KEY)
+    var pets = Array.isArray(storedPets) && storedPets.length ? clone(storedPets) : []
     var previousPet = null
     var i
 
-    pets = Array.isArray(pets) && pets.length ? clone(pets) : clone(MOCK_PETS)
+    pets = Array.isArray(pets) && pets.length ? clone(pets) : []
 
     if (!form.name) {
       wx.showToast({
@@ -900,8 +1025,7 @@ var profile = normalizeProfile({
       }
     }
 
-    wx.setStorageSync(PETS_KEY, pets)
-    wx.setStorageSync(LEGACY_PETS_KEY, pets)
+    userStorage.setValue(PETS_KEY, pets)
     this.syncIdentifyRecordsByPet(form, previousPet)
 
     this.setData({
@@ -920,33 +1044,63 @@ var profile = normalizeProfile({
   deletePet: function (e) {
     var that = this
     var id = e.currentTarget.dataset.id
-    var storedPets = wx.getStorageSync(PETS_KEY)
-    var legacyPets = wx.getStorageSync(LEGACY_PETS_KEY)
-    var pets = Array.isArray(storedPets) && storedPets.length ? storedPets : legacyPets
+    var storedPets = userStorage.getValue(PETS_KEY)
+    var storedRecords = userStorage.getValue(IDENTIFY_KEY)
+    var pets = Array.isArray(storedPets) && storedPets.length ? storedPets : []
+    var records = Array.isArray(storedRecords) && storedRecords.length ? clone(storedRecords) : []
     var newPets = []
+    var newRecords = []
+    var removedPet = null
     var i
 
-    pets = Array.isArray(pets) && pets.length ? pets : clone(MOCK_PETS)
+    pets = Array.isArray(pets) && pets.length ? pets : []
+
+    for (i = 0; i < pets.length; i++) {
+      if (String(pets[i].id) === String(id)) {
+        removedPet = pets[i]
+        break
+      }
+    }
+
+    if (!removedPet) {
+      wx.showToast({
+        title: '未找到该宠物',
+        icon: 'none'
+      })
+      return
+    }
 
     wx.showModal({
       title: '提示',
-      content: '确定删除这只宠物吗？',
+      content: '确定删除“' + removedPet.name + '”的档案吗？',
       success: function (res) {
         if (!res.confirm) return
 
         for (i = 0; i < pets.length; i++) {
-          if (pets[i].id !== id) {
+          if (String(pets[i].id) !== String(id)) {
             newPets.push(pets[i])
           }
         }
 
-        wx.setStorageSync(PETS_KEY, newPets)
-        wx.setStorageSync(LEGACY_PETS_KEY, newPets)
+        for (i = 0; i < records.length; i++) {
+          var record = records[i] || {}
+          if (String(record.petId || '') === String(id)) {
+            record.petId = ''
+          }
+          newRecords.push(record)
+        }
+
+        userStorage.setValue(PETS_KEY, newPets)
+        userStorage.setValue(IDENTIFY_KEY, newRecords)
         that.setData({
           currentPetId: '',
           showForm: false
         })
         that.loadPets()
+        wx.showToast({
+          title: '已删除宠物档案',
+          icon: 'success'
+        })
       }
     })
   }

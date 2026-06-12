@@ -219,6 +219,14 @@
   color: #a0a0a0;
 }
 
+.identify-record-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10rpx;
+  margin-top: 8rpx;
+}
+
 .identify-record-action {
   display: inline-flex;
   align-items: center;
@@ -228,10 +236,26 @@
   border-radius: 999rpx;
   border: 1px solid #ffd8e2;
   background: #FFF4D1;
-  margin-top: 8rpx;
   font-size: 22rpx;
   color: #b21c3c;
   line-height: 1.2;
+}
+
+.identify-record-delete {
+  margin: 0;
+  min-width: 88rpx;
+  height: 52rpx;
+  line-height: 52rpx;
+  padding: 0 18rpx;
+  border-radius: 999rpx;
+  background: #FFF4EA;
+  color: #B56A53;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.identify-record-delete::after {
+  border: none;
 }
 
 .identify-record-action.is-pending {

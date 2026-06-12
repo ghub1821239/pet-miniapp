@@ -1,6 +1,9 @@
 var POSTS_KEY = 'postList'
+var auth = require('../../utils/auth')
 var cloudPosts = require('../../utils/cloudPosts')
-var LEGACY_POSTS_KEY = 'forumPosts'
+var promotion = require('../../utils/promotion')
+var postStorage = require('../../utils/post-storage')
+var userStorage = require('../../utils/user-storage')
 var DIARY_KEY = 'diaryList'
 var PETS_KEY = 'petList'
 var LEGACY_PETS_KEY = 'pets'
@@ -29,6 +32,12 @@ Page({
     categoryIndex: 0,
     selectedTags: [],
     tagOptions: ['日常分享', '找玩伴', '求助', '周边', '晒宠', '猫猫', '狗狗', '拍照打卡'],
+    promotionPackages: promotion.PROMOTION_PACKAGES,
+    selectedPromotionPackageId: '',
+    selectedPromotionPackage: null,
+    promotionSheetVisible: false,
+    promotionPaying: false,
+    promotionCode: '',
     form: {
       title: '',
       content: '',
@@ -66,10 +75,11 @@ Page({
     this.loadPets()
   },
 
+  noop: function () {},
+
   loadPets: function () {
-    var storedPets = wx.getStorageSync(PETS_KEY)
-    var legacyPets = wx.getStorageSync(LEGACY_PETS_KEY)
-    var pets = Array.isArray(storedPets) && storedPets.length ? storedPets : legacyPets
+    var storedPets = userStorage.getValue(PETS_KEY)
+    var pets = Array.isArray(storedPets) && storedPets.length ? storedPets : []
     var petNames = ['暂不关联']
     var i
 
@@ -206,6 +216,62 @@ Page({
     })
   },
 
+  openPromotionSheet: function () {
+    this.setData({
+      promotionSheetVisible: true
+    })
+  },
+
+  closePromotionSheet: function () {
+    this.setData({
+      promotionSheetVisible: false
+    })
+  },
+
+  selectPromotionPackage: function (e) {
+    var packageId = e.currentTarget.dataset.id
+    var selectedPackage = promotion.findPackage(packageId)
+
+    this.setData({
+      selectedPromotionPackageId: packageId,
+      selectedPromotionPackage: selectedPackage
+    })
+  },
+
+  clearPromotionPackage: function () {
+    this.setData({
+      selectedPromotionPackageId: '',
+      selectedPromotionPackage: null,
+      promotionCode: '',
+      promotionSheetVisible: false
+    })
+  },
+
+  bindPromotionCodeInput: function (e) {
+    this.setData({
+      promotionCode: e.detail.value
+    })
+  },
+
+  confirmPromotionPackage: function () {
+    if (!this.data.selectedPromotionPackageId) {
+      wx.showToast({
+        title: '请选择推流套餐',
+        icon: 'none'
+      })
+      return
+    }
+    if (!String(this.data.promotionCode || '').trim()) {
+      wx.showToast({
+        title: '请输入优惠码或密钥',
+        icon: 'none'
+      })
+      return
+    }
+
+    this.closePromotionSheet()
+  },
+
   submitPost: function () {
     var form = this.data.form
     var entryMode = this.data.entryMode
@@ -272,18 +338,17 @@ Page({
         cloudResult = result
 
         if (shouldSyncCommunity) {
-          postList = this.readStorageList(POSTS_KEY)
+          postList = postStorage.getPostList()
           communityPost = cloudResult.post || communityPost
           postList.unshift(communityPost)
-          wx.setStorageSync(POSTS_KEY, postList)
-          wx.setStorageSync(LEGACY_POSTS_KEY, postList)
+          postStorage.setPostList(postList)
         }
 
       if (shouldSaveDiary) {
-        diaryList = this.readStorageList(DIARY_KEY)
+        diaryList = this.readStorageList(DIARY_KEY, true)
         diaryEntry = this.buildDiaryEntry(form, tags, selectedPet, shouldSyncCommunity, locationPayload)
         diaryList.unshift(diaryEntry)
-        wx.setStorageSync(DIARY_KEY, diaryList)
+        userStorage.setValue(DIARY_KEY, diaryList)
       }
         wx.hideLoading()
         if (shouldSyncCommunity && !cloudResult.success) {
@@ -294,16 +359,7 @@ Page({
           return
         }
 
-        wx.showToast({
-          title: entryMode === 'community'
-            ? '已发布并存入日记'
-            : (visibility === 'public' ? '已同步社区' : '日记已保存'),
-          icon: 'success'
-        })
-
-        setTimeout(function () {
-          wx.navigateBack()
-        }, 500)
+        this.afterPostSaved(communityPost, shouldSyncCommunity)
       }.bind(this))
     }.bind(this)).catch(function (err) {
       wx.hideLoading()
@@ -315,8 +371,60 @@ Page({
     }.bind(this))
   },
 
-  readStorageList: function (key) {
-    var list = wx.getStorageSync(key)
+  afterPostSaved: function (communityPost, shouldSyncCommunity) {
+    var selectedPackageId = this.data.selectedPromotionPackageId
+    var promotionCode = String(this.data.promotionCode || '').trim()
+    var toastTitle = this.data.entryMode === 'community'
+      ? '已发布并存入日记'
+      : (this.data.visibility === 'public' ? '已同步社区' : '日记已保存')
+
+    if (!selectedPackageId || !shouldSyncCommunity || !communityPost) {
+      wx.showToast({
+        title: toastTitle,
+        icon: 'success'
+      })
+      setTimeout(function () {
+        wx.navigateBack()
+      }, 500)
+      return
+    }
+
+    this.setData({
+      promotionPaying: true
+    })
+
+    wx.showLoading({
+      title: '核销中...'
+    })
+
+    promotion.purchasePromotion(communityPost, selectedPackageId, promotionCode).then(function () {
+      wx.hideLoading()
+      wx.showToast({
+        title: '推流已开启',
+        icon: 'success'
+      })
+      setTimeout(function () {
+        wx.navigateBack()
+      }, 650)
+    }).catch(function (err) {
+      wx.hideLoading()
+      wx.showToast({
+        title: err && err.message ? err.message : '动态已发布，推流未开启',
+        icon: 'none'
+      })
+      setTimeout(function () {
+        wx.navigateBack()
+      }, 900)
+    }).then(function () {
+      this.setData({
+        promotionPaying: false,
+        promotionCode: ''
+      })
+    }.bind(this))
+  },
+
+  readStorageList: function (key, scoped) {
+    var list = scoped ? userStorage.getValue(key) : wx.getStorageSync(key)
     return Array.isArray(list) ? list.slice() : []
   },
 
@@ -373,11 +481,19 @@ Page({
     var createdAt = formatDateTime(new Date(now))
     var cover = this.getPrimaryMedia(form, pet)
     var coverHeight = this.estimateCoverHeight(form, pet, tags)
+    var currentUser = auth.getCurrentUser() || {}
+    var authorName = currentUser.nickname || '我'
     return {
       id: 'community_' + now,
       title: form.title,
       content: form.content,
-      author: '我',
+      userId: currentUser.id || '',
+      author: {
+        name: authorName,
+        userId: currentUser.id || '',
+        avatar: ''
+      },
+      userName: authorName,
       petName: pet ? pet.name : (form.petName || '我家宝贝'),
       breed: pet ? pet.breed : (form.breed || inferBreedByPetName(form.petName)),
       category: form.category || CATEGORY_OPTIONS[0],
@@ -400,7 +516,13 @@ Page({
       coverHeight: coverHeight,
       coverType: inferCoverType(pet, form),
       isLiked: false,
-      isFollowing: false
+      isFollowing: false,
+      promotionActive: false,
+      promotionLevel: 0,
+      promotionAmount: 0,
+      promotionStartedAt: '',
+      promotionEndedAt: '',
+      promotionOrderId: ''
     }
   },
 

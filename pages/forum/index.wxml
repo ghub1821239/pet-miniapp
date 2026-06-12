@@ -54,6 +54,7 @@
 
   <template name="communityFeedCard">
     <view class="feed-card feed-card-{{item.postDisplayType}}" bindtap="handlePostTap" data-id="{{item.id}}">
+      <view wx:if="{{item.promotionBadgeVisible}}" class="feed-promotion-badge">推广</view>
       <block wx:if="{{item.postDisplayType === 'share'}}">
         <view class="feed-cover-wrap">
           <image class="feed-cover" src="{{item.coverImage}}" mode="widthFix"></image>

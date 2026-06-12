@@ -1,4 +1,5 @@
 var identifyApi = require('../../utils/identify-api')
+var userStorage = require('../../utils/user-storage')
 var IDENTIFY_KEY = 'identifyRecords'
 var LEGACY_IDENTIFY_KEY = 'identifyHistory'
 var PETS_KEY = 'petList'
@@ -251,34 +252,27 @@ Page({
   },
 
   ensureMockRecords: function () {
-    var records = wx.getStorageSync(IDENTIFY_KEY)
-    var legacyRecords = wx.getStorageSync(LEGACY_IDENTIFY_KEY)
+    var records = userStorage.getValue(IDENTIFY_KEY)
 
-    if ((!Array.isArray(records) || !records.length) && (!Array.isArray(legacyRecords) || !legacyRecords.length)) {
-      wx.setStorageSync(IDENTIFY_KEY, clone(DEFAULT_IDENTIFY_RECORDS))
-      wx.setStorageSync(LEGACY_IDENTIFY_KEY, clone(DEFAULT_IDENTIFY_RECORDS))
+    if (!Array.isArray(records)) {
+      userStorage.setValue(IDENTIFY_KEY, [])
       return
     }
 
-    if (Array.isArray(records) && records.length) {
-      wx.setStorageSync(IDENTIFY_KEY, records.map(normalizeRecord))
+    if (records.length) {
+      userStorage.setValue(IDENTIFY_KEY, records.map(normalizeRecord))
     }
   },
 
   loadIdentifyRecords: function () {
-    var records = wx.getStorageSync(IDENTIFY_KEY)
-    var legacyRecords = wx.getStorageSync(LEGACY_IDENTIFY_KEY)
-    var sourceList = Array.isArray(records) && records.length ? records : legacyRecords
+    var records = userStorage.getValue(IDENTIFY_KEY)
+    var sourceList = Array.isArray(records) ? records : []
     var pets = this.getStoredPets()
     var petsById = {}
     var normalized = []
     var changed = false
     var i
     var j
-
-    if (!Array.isArray(sourceList) || !sourceList.length) {
-      sourceList = clone(DEFAULT_IDENTIFY_RECORDS)
-    }
 
     for (i = 0; i < pets.length; i++) {
       if (pets[i] && pets[i].id) {
@@ -310,8 +304,7 @@ Page({
     }
 
     if (changed) {
-      wx.setStorageSync(IDENTIFY_KEY, normalized)
-      wx.setStorageSync(LEGACY_IDENTIFY_KEY, normalized)
+      userStorage.setValue(IDENTIFY_KEY, normalized)
     }
 
     this.setData({
@@ -320,9 +313,8 @@ Page({
   },
 
   appendIdentifyRecord: function (result) {
-    var records = wx.getStorageSync(IDENTIFY_KEY)
-    var legacyRecords = wx.getStorageSync(LEGACY_IDENTIFY_KEY)
-    var sourceList = Array.isArray(records) && records.length ? records : legacyRecords
+    var records = userStorage.getValue(IDENTIFY_KEY)
+    var sourceList = Array.isArray(records) ? records : []
     var list = Array.isArray(sourceList) ? sourceList.slice() : []
     var createdAt = result.createdAt || formatNow()
     var nextRecord = normalizeRecord({
@@ -338,16 +330,14 @@ Page({
     })
 
     list.unshift(nextRecord)
-    wx.setStorageSync(IDENTIFY_KEY, list)
-    wx.setStorageSync(LEGACY_IDENTIFY_KEY, list)
+    userStorage.setValue(IDENTIFY_KEY, list)
     this.loadIdentifyRecords()
     return nextRecord.id
   },
 
   updateIdentifyRecord: function (recordId, patch, moveToTop) {
-    var records = wx.getStorageSync(IDENTIFY_KEY)
-    var legacyRecords = wx.getStorageSync(LEGACY_IDENTIFY_KEY)
-    var sourceList = Array.isArray(records) && records.length ? records : legacyRecords
+    var records = userStorage.getValue(IDENTIFY_KEY)
+    var sourceList = Array.isArray(records) ? records : []
     var list = Array.isArray(sourceList) ? sourceList.slice() : []
     var target = null
     var nextList = []
@@ -381,9 +371,42 @@ Page({
       nextList.push(target)
     }
 
-    wx.setStorageSync(IDENTIFY_KEY, nextList)
-    wx.setStorageSync(LEGACY_IDENTIFY_KEY, nextList)
+    userStorage.setValue(IDENTIFY_KEY, nextList)
     this.loadIdentifyRecords()
+  },
+
+  deleteIdentifyRecord: function (recordId) {
+    var records = userStorage.getValue(IDENTIFY_KEY)
+    var sourceList = Array.isArray(records) ? records : []
+    var list = Array.isArray(sourceList) ? sourceList.slice() : []
+    var nextList = []
+    var removed = false
+    var i
+
+    if (!recordId || !list.length) {
+      return false
+    }
+
+    for (i = 0; i < list.length; i++) {
+      if (String(list[i].id) === String(recordId)) {
+        removed = true
+      } else {
+        nextList.push(list[i])
+      }
+    }
+
+    if (!removed) {
+      return false
+    }
+
+    userStorage.setValue(IDENTIFY_KEY, nextList)
+    if (String(this.data.pendingIdentifyResultId || '') === String(recordId)) {
+      this.setData({
+        pendingIdentifyResultId: ''
+      })
+    }
+    this.loadIdentifyRecords()
+    return true
   },
 
   findRecordById: function (recordId) {
@@ -398,9 +421,8 @@ Page({
   },
 
   getStoredPets: function () {
-    var storedPets = wx.getStorageSync(PETS_KEY)
-    var legacyPets = wx.getStorageSync(LEGACY_PETS_KEY)
-    var source = Array.isArray(storedPets) && storedPets.length ? storedPets : legacyPets
+    var storedPets = userStorage.getValue(PETS_KEY)
+    var source = Array.isArray(storedPets) && storedPets.length ? storedPets : []
 
     if (!Array.isArray(source)) {
       return []
@@ -410,8 +432,7 @@ Page({
   },
 
   savePets: function (pets) {
-    wx.setStorageSync(PETS_KEY, pets)
-    wx.setStorageSync(LEGACY_PETS_KEY, pets)
+    userStorage.setValue(PETS_KEY, pets)
   },
 
   findMergeTargetIndex: function (pets, name, breed) {
@@ -680,6 +701,38 @@ Page({
         icon: 'none'
       })
     }
+  },
+
+  handleDeleteRecord: function (e) {
+    var that = this
+    var recordId = e && e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset.id : ''
+    var record = this.findRecordById(recordId)
+    var recordName = record && record.petName ? record.petName : '这条记录'
+
+    if (!recordId || !record) {
+      wx.showToast({
+        title: '未找到该记录',
+        icon: 'none'
+      })
+      return
+    }
+
+    wx.showModal({
+      title: '提示',
+      content: '确定删除“' + recordName + '”的识别记录吗？',
+      success: function (res) {
+        if (!res.confirm) {
+          return
+        }
+
+        if (that.deleteIdentifyRecord(recordId)) {
+          wx.showToast({
+            title: '已删除识别记录',
+            icon: 'success'
+          })
+        }
+      }
+    })
   },
 
   handleTakePhoto: function () {

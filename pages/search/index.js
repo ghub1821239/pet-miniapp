@@ -1,12 +1,13 @@
 var POSTS_KEY = 'postList'
-var LEGACY_POSTS_KEY = 'forumPosts'
 var mockData = require('../../data/mockPosts')
 var cloudPosts = require('../../utils/cloudPosts')
+var postStorage = require('../../utils/post-storage')
+var userStorage = require('../../utils/user-storage')
+var userPostState = require('../../utils/user-post-state')
 var PETS_KEY = 'petList'
 var LEGACY_PETS_KEY = 'pets'
 var SEARCH_HISTORY_KEY = 'communitySearchHistory'
 var VIEWED_POSTS_KEY = 'communityViewedPosts'
-var DETAIL_CACHE_KEY = 'currentPostDetail'
 var CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
 var DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
 var POST_BUDING_MEADOW = DOG_IMAGE
@@ -240,9 +241,7 @@ function buildColumns(list) {
 }
 
 function readLocalPostList() {
-  var posts = wx.getStorageSync(POSTS_KEY)
-  var legacyPosts = wx.getStorageSync(LEGACY_POSTS_KEY)
-  return Array.isArray(posts) && posts.length ? posts : legacyPosts
+  return postStorage.getPostList()
 }
 
 function mergeInteractionFromLocal(incomingPosts, localPosts) {
@@ -330,8 +329,7 @@ Page({
         if (cloudList.length) {
           console.log('搜索页云数据库 posts 读取成功:', cloudList.length)
           mergedCloudList = mergeInteractionFromLocal(cloudList, localSource)
-          wx.setStorageSync(POSTS_KEY, clone(mergedCloudList))
-          wx.setStorageSync(LEGACY_POSTS_KEY, clone(mergedCloudList))
+          postStorage.setPostList(clone(mergedCloudList))
           self.applyLoadedPosts(mergedCloudList)
           return
         }
@@ -345,14 +343,11 @@ Page({
   },
 
   loadLocalPosts: function () {
-    var posts = wx.getStorageSync(POSTS_KEY)
-    var legacyPosts = wx.getStorageSync(LEGACY_POSTS_KEY)
-    var sourceList = Array.isArray(posts) && posts.length ? posts : legacyPosts
+    var sourceList = postStorage.getPostList()
 
     if (!Array.isArray(sourceList) || !sourceList.length) {
       sourceList = clone(mockData.mockPosts || DEFAULT_POSTS)
-      wx.setStorageSync(POSTS_KEY, clone(sourceList))
-      wx.setStorageSync(LEGACY_POSTS_KEY, clone(sourceList))
+      postStorage.setPostList(clone(sourceList))
     }
 
     this.applyLoadedPosts(sourceList)
@@ -367,12 +362,12 @@ Page({
     }
 
     this.setData({
-      posts: normalized
+      posts: userPostState.applyStateToPosts(normalized)
     })
   },
 
   loadSearchMeta: function () {
-    var history = wx.getStorageSync(SEARCH_HISTORY_KEY)
+    var history = userStorage.getValue(SEARCH_HISTORY_KEY)
 
     this.setData({
       searchHistory: Array.isArray(history) ? history.slice(0, 8) : [],
@@ -382,10 +377,9 @@ Page({
 
   buildGuessSearchList: function () {
     var suggestions = []
-    var viewedPosts = wx.getStorageSync(VIEWED_POSTS_KEY)
-    var storedPets = wx.getStorageSync(PETS_KEY)
-    var legacyPets = wx.getStorageSync(LEGACY_PETS_KEY)
-    var pets = Array.isArray(storedPets) && storedPets.length ? storedPets : legacyPets
+    var viewedPosts = userStorage.getValue(VIEWED_POSTS_KEY)
+    var storedPets = userStorage.getValue(PETS_KEY)
+    var pets = Array.isArray(storedPets) && storedPets.length ? storedPets : []
     var i
 
     if (Array.isArray(viewedPosts)) {
@@ -497,7 +491,7 @@ Page({
   },
 
   clearSearchHistory: function () {
-    wx.removeStorageSync(SEARCH_HISTORY_KEY)
+    userStorage.removeValue(SEARCH_HISTORY_KEY)
     this.setData({
       searchHistory: []
     })
@@ -505,7 +499,7 @@ Page({
 
   saveSearchHistory: function (keyword) {
     var text = String(keyword || '').trim()
-    var history = wx.getStorageSync(SEARCH_HISTORY_KEY)
+    var history = userStorage.getValue(SEARCH_HISTORY_KEY)
     var nextHistory = []
     var i
 
@@ -522,7 +516,7 @@ Page({
       }
     }
 
-    wx.setStorageSync(SEARCH_HISTORY_KEY, nextHistory)
+    userStorage.setValue(SEARCH_HISTORY_KEY, nextHistory)
     this.setData({
       searchHistory: nextHistory
     })
@@ -544,7 +538,7 @@ Page({
 
     if (target) {
       latestTarget = findPostFromLocalById(id) || target
-      wx.setStorageSync(DETAIL_CACHE_KEY, latestTarget)
+      postStorage.setDetailCache(latestTarget)
       this.saveViewedPost(latestTarget)
     }
 
@@ -554,7 +548,7 @@ Page({
   },
 
   saveViewedPost: function (post) {
-    var viewedPosts = wx.getStorageSync(VIEWED_POSTS_KEY)
+    var viewedPosts = userStorage.getValue(VIEWED_POSTS_KEY)
     var nextList = []
     var item
     var i
@@ -575,7 +569,7 @@ Page({
       }
     }
 
-    wx.setStorageSync(VIEWED_POSTS_KEY, nextList)
+    userStorage.setValue(VIEWED_POSTS_KEY, nextList)
   },
 
   handleLike: function (e) {
@@ -607,11 +601,11 @@ Page({
       })
     })
 
-    wx.setStorageSync(POSTS_KEY, rawPosts)
-    wx.setStorageSync(LEGACY_POSTS_KEY, rawPosts)
+    postStorage.setPostList(rawPosts)
+    userPostState.setLiked(id, !!cloudTarget && !!cloudTarget.liked)
 
     this.setData({
-      posts: posts
+      posts: userPostState.applyStateToPosts(posts)
     })
 
     if (cloudTarget) {

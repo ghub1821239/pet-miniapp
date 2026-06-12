@@ -3,10 +3,10 @@ var topicCluster = require('../../utils/topicCluster')
 var recommend = require('../../utils/recommend')
 var filterIndex = require('../../utils/filterIndex')
 var cloudPosts = require('../../utils/cloudPosts')
+var postStorage = require('../../utils/post-storage')
+var userStorage = require('../../utils/user-storage')
+var userPostState = require('../../utils/user-post-state')
 
-var POSTS_KEY = 'postList'
-var LEGACY_POSTS_KEY = 'forumPosts'
-var DETAIL_CACHE_KEY = 'currentPostDetail'
 var VIEWED_POSTS_KEY = 'communityViewedPosts'
 var CURRENT_CITY = '天津'
 
@@ -123,9 +123,17 @@ function normalizeLegacyPost(post, index) {
     viewCount: Number(post.viewCount || 100),
     isSolved: post.isSolved === undefined ? true : !!post.isSolved,
     urgency: post.urgency || '普通',
+    userId: post.userId || (post.author && post.author.userId) || '',
+    promotionActive: !!post.promotionActive,
+    promotionLevel: Number(post.promotionLevel || 0),
+    promotionAmount: Number(post.promotionAmount || 0),
+    promotionStartedAt: post.promotionStartedAt || '',
+    promotionEndedAt: post.promotionEndedAt || '',
+    promotionOrderId: post.promotionOrderId || '',
     isFollowing: !!post.isFollowing,
     author: {
       name: authorName,
+      userId: post.userId || (post.author && post.author.userId) || '',
       avatar: post.avatarImage || (post.author && (post.author.avatar || post.author.avatarFileId)) || cover
     }
   })
@@ -160,9 +168,7 @@ function inferCategory(post) {
 }
 
 function mergeStoragePosts() {
-  var stored = wx.getStorageSync(POSTS_KEY)
-  var legacy = wx.getStorageSync(LEGACY_POSTS_KEY)
-  var source = Array.isArray(stored) && stored.length ? stored : legacy
+  var source = postStorage.getPostList()
   var mockPosts = clone(mockData.mockPosts)
   var ids = {}
   var result = mockPosts.slice()
@@ -182,8 +188,7 @@ function mergeStoragePosts() {
     }
   }
 
-  wx.setStorageSync(POSTS_KEY, result)
-  wx.setStorageSync(LEGACY_POSTS_KEY, result)
+  postStorage.setPostList(result)
   return result
 }
 
@@ -231,9 +236,7 @@ function mergeInteractionFromLocal(incomingPosts, localPosts) {
 }
 
 function readLocalPostList() {
-  var posts = wx.getStorageSync(POSTS_KEY)
-  var legacyPosts = wx.getStorageSync(LEGACY_POSTS_KEY)
-  return Array.isArray(posts) && posts.length ? posts : legacyPosts
+  return postStorage.getPostList()
 }
 
 function findPostFromLocalById(id) {
@@ -437,6 +440,8 @@ function getDisplayPost(post) {
     userName: post.author && post.author.name ? post.author.name : '萌宠用户',
     avatarImage: post.author && post.author.avatar ? post.author.avatar : post.coverImage,
     coverHeight: post.coverHeight || 320,
+    promotionActive: !!post.promotionActive,
+    promotionBadgeVisible: !!(post.promotionActive && post.scoreDetail && post.scoreDetail.paidBoost > 0),
     postDisplayType: postDisplayType,
     statusBadge: statusMeta.statusBadge,
     statusTone: statusMeta.statusTone,
@@ -504,7 +509,7 @@ Page({
   runAlgorithmData: function (rawPosts, sourceName) {
     var sourcePosts = rawPosts.map(normalizeLegacyPost)
     var localPosts = readLocalPostList()
-    var mergedPosts = mergeInteractionFromLocal(sourcePosts, localPosts)
+    var mergedPosts = userPostState.applyStateToPosts(mergeInteractionFromLocal(sourcePosts, localPosts))
     var clusterResult = topicCluster.clusterPosts(mergedPosts, { k: 7, iterations: 10 })
     var topics = clusterResult.topics.map(function (topic) {
       return Object.assign({}, topic, {
@@ -514,8 +519,7 @@ Page({
     var userProfile = recommend.buildUserProfile(clusterResult.posts, recommend.mockUserBehavior)
     var recommendedPosts = recommend.recommendPosts(clusterResult.posts, userProfile)
 
-    wx.setStorageSync(POSTS_KEY, mergedPosts)
-    wx.setStorageSync(LEGACY_POSTS_KEY, mergedPosts)
+    postStorage.setPostList(mergedPosts)
 
     console.log('社区帖子数据来源:', sourceName)
     console.log('聚类主题结果 topics:', clusterResult.topics)
@@ -653,7 +657,7 @@ Page({
 
     if (target) {
       latestTarget = findPostFromLocalById(id) || target
-      wx.setStorageSync(DETAIL_CACHE_KEY, latestTarget)
+      postStorage.setDetailCache(latestTarget)
       this.saveViewedPost(latestTarget)
     }
 
@@ -663,7 +667,7 @@ Page({
   },
 
   saveViewedPost: function (post) {
-    var viewedPosts = wx.getStorageSync(VIEWED_POSTS_KEY)
+    var viewedPosts = userStorage.getValue(VIEWED_POSTS_KEY)
     var nextList = []
     var item
     var i
@@ -684,7 +688,7 @@ Page({
       }
     }
 
-    wx.setStorageSync(VIEWED_POSTS_KEY, nextList)
+    userStorage.setValue(VIEWED_POSTS_KEY, nextList)
   },
 
   handleLike: function (e) {
@@ -714,10 +718,10 @@ Page({
       })
     })
 
-    wx.setStorageSync(POSTS_KEY, rawPosts)
-    wx.setStorageSync(LEGACY_POSTS_KEY, rawPosts)
+    postStorage.setPostList(rawPosts)
 
     if (cloudTarget) {
+      userPostState.setLiked(id, !!cloudTarget.liked)
       cloudPosts.syncPostPatch(cloudTarget, {
         likeCount: cloudTarget.likeCount,
         likes: cloudTarget.likeCount,
@@ -733,7 +737,7 @@ Page({
     }
 
     this.setData({
-      recommendedPosts: posts
+      recommendedPosts: userPostState.applyStateToPosts(posts)
     })
     this.applyFeed()
   }

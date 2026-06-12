@@ -72,6 +72,23 @@
   border: none;
 }
 
+.profile-logout-btn {
+  margin: 0 0 0 16rpx;
+  padding: 0 28rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  border-radius: 999rpx;
+  background: rgba(91, 74, 58, 0.26);
+  color: #FFFDF6;
+  font-size: 26rpx;
+  font-weight: 700;
+  backdrop-filter: blur(8rpx);
+}
+
+.profile-logout-btn::after {
+  border: none;
+}
+
 .profile-main-info {
   display: flex;
   align-items: center;
@@ -341,6 +358,21 @@
   color: #7F956D;
 }
 
+.profile-pet-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-top: 12rpx;
+}
+
+.profile-pet-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+
 .profile-empty-pets {
   margin: 24rpx;
   padding: 58rpx 28rpx;
@@ -576,6 +608,11 @@
   text-align: center;
 }
 
+.profile-logout-btn {
+  min-width: 168rpx;
+  text-align: center;
+}
+
 /* 宠物卡片内部编辑按钮 */
 .profile-pet-title-area {
   display: flex;
@@ -601,6 +638,24 @@
   color: #7F956D;
   font-size: 22rpx;
   font-weight: 700;
+}
+
+.profile-pet-delete-btn {
+  flex-shrink: 0;
+  min-width: 88rpx;
+  height: 48rpx;
+  line-height: 48rpx;
+  margin: 0;
+  padding: 0 18rpx;
+  border-radius: 999rpx;
+  background: #FFF4EA;
+  color: #B56A53;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.profile-pet-delete-btn::after {
+  border: none;
 }
 
 .profile-pet-edit-btn::after {

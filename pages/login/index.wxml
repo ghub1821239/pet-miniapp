@@ -1,0 +1,75 @@
+<view class="login-page">
+  <view class="login-bg-bubble login-bg-bubble-a"></view>
+  <view class="login-bg-bubble login-bg-bubble-b"></view>
+
+  <view class="login-shell">
+    <view class="login-hero">
+      <text class="login-kicker">萌宠日记</text>
+      <text class="login-title">{{modeMeta.title}}</text>
+      <text class="login-subtitle">{{modeMeta.subtitle}}</text>
+    </view>
+
+    <view class="login-icon-slot">
+      <view class="login-icon-inner">
+        <text class="login-icon-placeholder">图标位</text>
+      </view>
+    </view>
+
+    <view class="login-card">
+      <view class="login-tabs">
+        <view class="login-tab {{mode === 'login' ? 'active' : ''}}" data-mode="login" bindtap="handleModeTap">登录</view>
+        <view class="login-tab {{mode === 'register' ? 'active' : ''}}" data-mode="register" bindtap="handleModeTap">注册</view>
+        <view class="login-tab {{mode === 'recover' ? 'active' : ''}}" data-mode="recover" bindtap="handleModeTap">找回</view>
+      </view>
+
+      <view wx:if="{{mode === 'login'}}" class="login-form">
+        <text class="field-label">账号</text>
+        <input class="input login-input" placeholder="请输入账号" value="{{loginForm.account}}" data-field="account" bindinput="bindLoginInput" />
+
+        <text class="field-label">密码</text>
+        <input class="input login-input" password placeholder="请输入密码" value="{{loginForm.password}}" data-field="password" bindinput="bindLoginInput" />
+
+        <view class="login-row-action">
+          <text bindtap="openRecover">忘记密码？</text>
+        </view>
+      </view>
+
+      <view wx:if="{{mode === 'register'}}" class="login-form">
+        <text class="field-label">昵称</text>
+        <input class="input login-input" placeholder="例如：布丁和毛孩子" value="{{registerForm.nickname}}" data-field="nickname" bindinput="bindRegisterInput" />
+
+        <view class="login-recover-hint">
+          <text>账号将由系统自动分配，注册完成后会展示给你。</text>
+        </view>
+
+        <text class="field-label">密码</text>
+        <input class="input login-input" password placeholder="至少 6 位" value="{{registerForm.password}}" data-field="password" bindinput="bindRegisterInput" />
+
+        <text class="field-label">确认密码</text>
+        <input class="input login-input" password placeholder="再次输入密码" value="{{registerForm.confirmPassword}}" data-field="confirmPassword" bindinput="bindRegisterInput" />
+      </view>
+
+      <view wx:if="{{mode === 'recover'}}" class="login-form">
+        <text class="field-label">账号</text>
+        <input class="input login-input" placeholder="请输入要找回的账号" value="{{recoverForm.account}}" data-field="account" bindinput="bindRecoverInput" />
+
+        <view class="login-recover-hint">
+          <text>将使用当前微信身份校验该账号是否已绑定。</text>
+        </view>
+
+        <text class="field-label">新密码</text>
+        <input class="input login-input" password placeholder="至少 6 位" value="{{recoverForm.password}}" data-field="password" bindinput="bindRecoverInput" />
+
+        <text class="field-label">确认新密码</text>
+        <input class="input login-input" password placeholder="再次输入新密码" value="{{recoverForm.confirmPassword}}" data-field="confirmPassword" bindinput="bindRecoverInput" />
+      </view>
+
+      <button class="primary-btn login-submit" loading="{{loading}}" disabled="{{loading}}" bindtap="submitCurrentForm">{{modeMeta.buttonText}}</button>
+
+      <view class="login-helper">
+        <text>{{modeMeta.helperText}}</text>
+        <text wx:if="{{modeMeta.helperAction}}" class="login-helper-link" bindtap="toggleHelperMode">{{modeMeta.helperAction}}</text>
+      </view>
+    </view>
+  </view>
+</view>
