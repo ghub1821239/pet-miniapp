@@ -1,0 +1,8 @@
+<view class="simple-page">
+  <view class="logout-panel">
+    <text class="page-title">退出当前账号？</text>
+    <text class="page-sub">退出后需要重新登录才能继续使用个人档案、宠物档案和识别记录。</text>
+    <button class="secondary-action" bindtap="cancel">取消</button>
+    <button class="danger-action" bindtap="confirmLogout">确认退出</button>
+  </view>
+</view>

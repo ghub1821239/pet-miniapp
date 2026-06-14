@@ -16,7 +16,7 @@
 
 .page-topbar {
   margin: -24rpx -24rpx 0;
-  padding: calc(env(safe-area-inset-top) + 16rpx) 28rpx 12rpx;
+  padding: calc(env(safe-area-inset-top) + 16rpx) 150rpx 12rpx 20rpx;
   background: #F7E3AE;
   border-bottom: 1px solid rgba(247, 227, 174, 0.8);
 }
@@ -25,13 +25,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 58rpx;
+  gap: 18rpx;
+  padding-top: 66rpx;
   box-sizing: border-box;
 }
 
 .brand-lockup {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 .brand-dot {
@@ -43,17 +46,21 @@
 }
 
 .brand-text {
+  display: block;
   font-size: 36rpx;
   color: var(--pin-text);
   font-weight: 800;
   letter-spacing: 0.4rpx;
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 .brand-cta {
-  min-width: 112rpx;
-  height: 64rpx;
-  line-height: 64rpx;
-  padding: 0 24rpx;
+  flex-shrink: 0;
+  min-width: 104rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  padding: 0 20rpx;
   border-radius: 999rpx;
   text-align: center;
   font-size: 24rpx;

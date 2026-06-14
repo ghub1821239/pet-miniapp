@@ -5,7 +5,7 @@
         <view class="brand-dot"></view>
         <text class="brand-text">Pet Pins</text>
       </view>
-      <view class="brand-cta">发布</view>
+      <view class="brand-cta" bindtap="handlePublish">发布</view>
     </view>
   </view>
 

@@ -3,6 +3,8 @@ var LEGACY_CALENDAR_KEY = 'petReminders'
 var PET_LIST_KEY = 'petList'
 var LEGACY_PETS_KEY = 'pets'
 var userStorage = require('../../utils/user-storage')
+var profileData = require('../../utils/profile-data')
+var subscribeConfig = require('../../utils/subscribeConfig')
 var CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
 var DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
 
@@ -56,6 +58,17 @@ var DEFAULT_CALENDAR_PLANS = [
 
 var WEEK_LABELS = ['日', '一', '二', '三', '四', '五', '六']
 var REMINDER_OPTIONS = ['不提醒', '准时提醒', '提前5分钟', '提前30分钟', '提前1小时', '提前1天', '提前2天']
+var CHANNEL_OPTIONS = ['不提醒', '站内提醒', '微信服务通知']
+var ADVANCE_OPTIONS = ['准时提醒', '提前5分钟', '提前30分钟', '提前1小时', '提前1天', '提前2天']
+var TYPE_RULE_MAP = {
+  '喂食': 'feeding',
+  '洗澡': 'grooming',
+  '驱虫': 'deworm',
+  '疫苗': 'vaccine',
+  '吃药': 'medicine',
+  '遛狗': 'walk',
+  '体重记录': 'weight'
+}
 var DEFAULT_PETS = [
   {
     id: 1,
@@ -134,6 +147,7 @@ function getMonthDays(year, month) {
 
 function normalizePlan(item) {
   var petName = item.petName === '小布丁' ? '布丁' : (item.petName || '毛孩子')
+  var normalizedReminder = profileData.normalizeReminder(item)
   var subtasks = Array.isArray(item.subtasks) ? item.subtasks.map(function (subtask) {
     if (typeof subtask === 'string') {
       return {
@@ -161,10 +175,45 @@ function normalizePlan(item) {
     note: item.note || '',
     subtasks: subtasks,
     reminderText: item.reminderText || '准时提醒',
+    reminderDate: item.reminderDate || item.date,
+    reminderTime: item.reminderTime || item.time || '08:00',
+    channel: normalizedReminder.channel,
+    channelText: normalizedReminder.channelText,
+    advanceType: normalizedReminder.advanceType,
+    advanceText: normalizedReminder.advanceText,
+    remindAt: normalizedReminder.remindAt,
+    subscribeStatus: normalizedReminder.subscribeStatus,
+    status: normalizedReminder.status,
+    statusText: normalizedReminder.statusText,
+    templateId: normalizedReminder.templateId,
+    failReason: normalizedReminder.failReason,
+    cloudId: item.cloudId || item._id || '',
+    _id: item._id || item.cloudId || '',
     repeatText: item.repeatText || '不重复',
+    repeatRule: item.repeatRule || getRepeatRule(item.repeatText),
+    createdAt: item.createdAt || 0,
+    updatedAt: item.updatedAt || 0,
     strong: !!item.strong,
     done: !!item.done
   }
+}
+
+function findOptionKey(options, text, fallbackKey) {
+  var i
+  for (i = 0; i < options.length; i++) {
+    if (options[i].text === text || options[i].key === text) return options[i].key
+  }
+  return fallbackKey
+}
+
+function getRepeatRule(text) {
+  var raw = String(text || '')
+  if (raw === '每天') return 'daily'
+  if (raw.indexOf('工作日') > -1) return 'workday'
+  if (raw.indexOf('每周') === 0) return 'weekly'
+  if (raw.indexOf('每月') === 0) return 'monthly'
+  if (raw.indexOf('每年') === 0) return 'yearly'
+  return 'none'
 }
 
 function normalizePets(source) {
@@ -204,6 +253,15 @@ function getSuggestedSubtasks(form) {
   }
 
   return ['准备外出用品', '完成后打卡']
+}
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value || {}))
+}
+
+function getCategoryIndex(categories, value) {
+  var index = categories.indexOf(value)
+  return index > -1 ? index : 0
 }
 
 function sortPlans(list) {
@@ -310,8 +368,17 @@ Page({
       date: '',
       time: '08:00',
       category: '喂食',
+      channel: 'station',
+      channelText: '站内提醒',
+      advanceType: 'onTime',
+      advanceText: '准时提醒',
       reminderText: '准时提醒',
       repeatText: '不重复',
+      subscribeStatus: 'none',
+      status: 'pending',
+      statusText: '待发送',
+      templateId: '',
+      remindAt: 0,
       strong: false,
       done: false
     }
@@ -418,8 +485,17 @@ Page({
       date: this.data.selectedDate || this.data.today,
       time: '08:00',
       category: this.data.categories[0],
+      channel: 'station',
+      channelText: '站内提醒',
+      advanceType: 'onTime',
+      advanceText: '准时提醒',
       reminderText: '准时提醒',
       repeatText: '不重复',
+      subscribeStatus: 'none',
+      status: 'pending',
+      statusText: '待发送',
+      templateId: '',
+      remindAt: 0,
       strong: false,
       done: false
     }
@@ -431,6 +507,52 @@ Page({
       form: initialForm,
       formSubtaskDoneCount: 0
     })
+  },
+
+  openPlanForm: function (plan) {
+    var source = clone(plan)
+    var category = source.type || source.category || '喂食'
+    var subtasks = Array.isArray(source.subtasks) ? source.subtasks : []
+    var form = {
+      id: source.id || '',
+      cloudId: source.cloudId || source._id || '',
+      _id: source._id || source.cloudId || '',
+      petId: source.petId || '',
+      title: source.title || source.content || '',
+      petName: source.petName || '毛孩子',
+      petAvatar: source.petAvatar || (source.petName === '布丁' ? DOG_IMAGE : CAT_IMAGE),
+      note: source.note || '',
+      subtaskInput: '',
+      subtasks: subtasks,
+      date: source.date || source.reminderDate || this.data.selectedDate || this.data.today,
+      time: source.time || source.reminderTime || '08:00',
+      category: category,
+      channel: source.channel || 'station',
+      channelText: source.channelText || profileData.getChannelText(source.channel || 'station'),
+      advanceType: source.advanceType || 'onTime',
+      advanceText: source.advanceText || source.reminderText || '准时提醒',
+      reminderText: source.reminderText || source.advanceText || '准时提醒',
+      repeatText: source.repeatText || '不重复',
+      repeatRule: source.repeatRule || getRepeatRule(source.repeatText),
+      subscribeStatus: source.subscribeStatus || 'none',
+      status: source.status || 'pending',
+      statusText: source.statusText || profileData.getStatusText(source.status || 'pending'),
+      templateId: source.templateId || '',
+      remindAt: source.remindAt || 0,
+      failReason: source.failReason || '',
+      strong: source.channel === 'wechat' || !!source.strong,
+      done: !!source.done,
+      createdAt: source.createdAt || 0,
+      updatedAt: source.updatedAt || 0
+    }
+
+    this.setData({
+      showForm: true,
+      categoryIndex: getCategoryIndex(this.data.categories, category),
+      suggestedSubtasks: getSuggestedSubtasks(form),
+      form: form
+    })
+    this.updateFormSubtasks(subtasks)
   },
 
   closeForm: function () {
@@ -629,18 +751,31 @@ Page({
   },
 
   switchStrong: function (e) {
+    var checked = e.detail.value
     this.setData({
-      'form.strong': e.detail.value
+      'form.strong': checked,
+      'form.channel': checked ? 'wechat' : 'station',
+      'form.channelText': checked ? '微信服务通知' : '站内提醒'
+    })
+  },
+
+  chooseChannelOption: function () {
+    this.setData({
+      'optionSheet.visible': true,
+      'optionSheet.title': '提醒渠道',
+      'optionSheet.type': 'channel',
+      'optionSheet.options': CHANNEL_OPTIONS,
+      'optionSheet.selected': this.data.form.channelText || '站内提醒'
     })
   },
 
   chooseReminderOption: function () {
     this.setData({
       'optionSheet.visible': true,
-      'optionSheet.title': '提醒方式',
+      'optionSheet.title': '提前时间',
       'optionSheet.type': 'reminder',
-      'optionSheet.options': REMINDER_OPTIONS,
-      'optionSheet.selected': this.data.form.reminderText
+      'optionSheet.options': ADVANCE_OPTIONS,
+      'optionSheet.selected': this.data.form.advanceText || this.data.form.reminderText || '准时提醒'
     })
   },
 
@@ -671,8 +806,21 @@ Page({
     var type = this.data.optionSheet.type
     var selected = this.data.optionSheet.selected
 
+    if (type === 'channel') {
+      var channel = selected === '微信服务通知' ? 'wechat' : selected === '不提醒' ? 'none' : 'station'
+      this.setData({
+        'form.channel': channel,
+        'form.channelText': selected,
+        'form.strong': channel === 'wechat',
+        'optionSheet.visible': false
+      })
+      return
+    }
+
     if (type === 'reminder') {
       this.setData({
+        'form.advanceType': findOptionKey(profileData.ADVANCE_OPTIONS, selected, 'onTime'),
+        'form.advanceText': selected,
         'form.reminderText': selected,
         'optionSheet.visible': false
       })
@@ -694,13 +842,20 @@ Page({
 
   saveReminder: function () {
     var form = this.data.form
-    var reminders = this.data.reminders.slice()
     var pendingSubtask = (form.subtaskInput || '').trim()
     var subtasks = Array.isArray(form.subtasks) ? form.subtasks.slice() : []
   
     if (!form.title || !form.title.trim()) {
       wx.showToast({
         title: '请填写提醒内容',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (!form.date || !form.time) {
+      wx.showToast({
+        title: '请选择提醒日期和时间',
         icon: 'none'
       })
       return
@@ -713,27 +868,141 @@ Page({
       })
     }
   
-    reminders.unshift({
-      id: 'plan_' + Date.now(),
+    var isEdit = !!form.id
+    var reminder = {
+      id: form.id || 'plan_' + Date.now(),
+      cloudId: form.cloudId || form._id || '',
+      _id: form._id || form.cloudId || '',
       date: form.date,
+      reminderDate: form.date,
       petName: form.petName || '毛孩子',
+      petId: form.petId || '',
       petAvatar: form.petAvatar || (form.petName === '布丁' ? DOG_IMAGE : CAT_IMAGE),
       type: form.category,
+      reminderType: TYPE_RULE_MAP[form.category] || 'other',
+      reminderTypeText: form.category,
       title: form.title.trim(),
+      content: form.title.trim(),
       time: form.time,
+      reminderTime: form.time,
       color: form.category === '驱虫' ? '#F0A04B' : form.category === '体重记录' ? '#9CAF88' : '#FADA7A',
       note: form.note || '记得按时完成这条提醒',
       subtasks: subtasks,
-      reminderText: form.reminderText || '准时提醒',
+      channel: form.channel || 'station',
+      channelText: form.channelText || '站内提醒',
+      advanceType: form.advanceType || findOptionKey(profileData.ADVANCE_OPTIONS, form.reminderText, 'onTime'),
+      advanceText: form.advanceText || form.reminderText || '准时提醒',
+      reminderText: form.advanceText || form.reminderText || '准时提醒',
+      repeatRule: getRepeatRule(form.repeatText),
       repeatText: form.repeatText || '不重复',
+      subscribeStatus: form.channel === 'wechat' ? (form.subscribeStatus || 'none') : 'none',
+      status: isEdit ? (form.status || 'pending') : 'pending',
+      statusText: isEdit ? (form.statusText || '待发送') : '待发送',
+      templateId: form.templateId || '',
+      remindAt: profileData.calculateRemindAt(form.date, form.time, form.advanceType || form.reminderText),
       strong: form.strong,
-      done: false
+      done: !!form.done,
+      failReason: form.failReason || '',
+      createdAt: form.createdAt || Date.now(),
+      updatedAt: Date.now()
+    }
+
+    if (reminder.status === 'sent' || reminder.status === 'send_failed' || reminder.status === 'need_resubscribe') {
+      reminder.status = 'pending'
+      reminder.statusText = '待发送'
+      reminder.done = false
+      reminder.failReason = ''
+    }
+
+    if (reminder.channel === 'wechat' && reminder.subscribeStatus !== 'accepted') {
+      this.requestWechatSubscription(reminder)
+      return
+    }
+
+    this.persistReminder(reminder, '提醒已保存')
+  },
+
+  requestWechatSubscription: function (reminder) {
+    var that = this
+    var templateId = subscribeConfig.SUBSCRIBE_TEMPLATE_IDS.PET_REMINDER
+
+    wx.requestSubscribeMessage({
+      tmplIds: [templateId],
+      success: function (res) {
+        var accepted = res[templateId] === 'accept'
+        if (accepted) {
+          that.persistReminder(Object.assign({}, reminder, {
+            templateId: templateId,
+            channel: 'wechat',
+            channelText: '微信服务通知',
+            subscribeStatus: 'accepted',
+            status: 'pending',
+            statusText: '待发送',
+            failReason: ''
+          }), '已开启微信提醒')
+        } else {
+          that.persistReminder(Object.assign({}, reminder, {
+            templateId: templateId,
+            channel: 'station',
+            channelText: '站内提醒',
+            subscribeStatus: 'rejected',
+            failReason: '用户拒绝订阅授权'
+          }), '未授权微信通知，已保存为站内提醒')
+        }
+      },
+      fail: function (err) {
+        that.persistReminder(Object.assign({}, reminder, {
+          templateId: templateId,
+          channel: 'station',
+          channelText: '站内提醒',
+          subscribeStatus: 'failed',
+          failReason: err && err.errMsg ? err.errMsg : '订阅授权失败'
+        }), '订阅失败，已保存为站内提醒')
+      }
     })
-  
+  },
+
+  persistReminder: function (reminder, toastTitle) {
+    var that = this
+    var reminders = this.data.reminders.slice()
+    var updated = false
+    var i
+
+    for (i = 0; i < reminders.length; i++) {
+      if (String(reminders[i].id) === String(reminder.id)) {
+        reminders[i] = reminder
+        updated = true
+        break
+      }
+    }
+
+    if (!updated) {
+      reminders.unshift(reminder)
+    }
+
     reminders = sortPlans(reminders)
-  
     userStorage.setValue(CALENDAR_KEY, reminders)
-  
+    this.saveReminderToCloud(reminder).then(function (cloudId) {
+      if (cloudId) {
+        reminder.cloudId = cloudId
+        reminder._id = cloudId
+        reminders = reminders.map(function (item) {
+          return String(item.id) === String(reminder.id) ? reminder : item
+        })
+        userStorage.setValue(CALENDAR_KEY, reminders)
+        that.setData({
+          reminders: reminders
+        })
+        that.refreshList()
+      }
+    }).catch(function () {
+      console.error('saveReminder cloud sync failed:', arguments[0])
+      wx.showToast({
+        title: '已本地保存，云端同步失败',
+        icon: 'none'
+      })
+    })
+
     this.setData({
       showForm: false,
       reminders: reminders,
@@ -741,12 +1010,27 @@ Page({
       'form.subtasks': [],
       formSubtaskDoneCount: 0
     })
-  
+
     this.refreshList()
-  
     wx.showToast({
-      title: '新增成功',
-      icon: 'success'
+      title: toastTitle || (updated ? '修改成功' : '新增成功'),
+      icon: reminder.channel === 'wechat' ? 'success' : 'none'
+    })
+  },
+
+  saveReminderToCloud: function (reminder) {
+    if (!wx.cloud || !wx.cloud.callFunction) {
+      return Promise.resolve('')
+    }
+    return wx.cloud.callFunction({
+      name: 'saveReminder',
+      data: { reminder: reminder }
+    }).then(function (res) {
+      var result = res && res.result ? res.result : {}
+      if (!result.success) {
+        throw new Error(result.message || '云端保存失败')
+      }
+      return result.id || ''
     })
   },
 
@@ -797,9 +1081,20 @@ Page({
   
     this.refreshList()
   },
-  handlePlanTap: function () {
+  handlePlanTap: function (e) {
+    var id = e.currentTarget.dataset.id
+    var reminders = this.data.reminders || []
+    var i
+
+    for (i = 0; i < reminders.length; i++) {
+      if (String(reminders[i].id) === String(id)) {
+        this.openPlanForm(reminders[i])
+        return
+      }
+    }
+
     wx.showToast({
-      title: '计划详情开发中',
+      title: '没有找到这条提醒',
       icon: 'none'
     })
   }

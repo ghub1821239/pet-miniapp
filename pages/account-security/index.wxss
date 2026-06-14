@@ -1,0 +1,78 @@
+.simple-page {
+  min-height: 100vh;
+  padding: 34rpx 28rpx;
+  box-sizing: border-box;
+  background: #FFFDF6;
+  color: #5B4A3A;
+}
+
+.page-title {
+  display: block;
+  font-size: 42rpx;
+  font-weight: 800;
+}
+
+.page-sub,
+.hint-row {
+  display: block;
+  margin-top: 10rpx;
+  color: #9A8B7A;
+  font-size: 25rpx;
+  line-height: 1.6;
+}
+
+.section-title {
+  margin-top: 40rpx;
+  font-size: 31rpx;
+  font-weight: 800;
+}
+
+.form-list {
+  margin-top: 16rpx;
+  background: rgba(238, 245, 234, 0.34);
+  border-radius: 28rpx;
+  padding: 0 22rpx;
+}
+
+.form-row {
+  min-height: 104rpx;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(156, 175, 136, 0.18);
+}
+
+.form-row:last-child {
+  border-bottom: none;
+}
+
+.form-label {
+  width: 180rpx;
+  color: #7F6F5E;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.form-input {
+  flex: 1;
+  text-align: right;
+  color: #5B4A3A;
+}
+
+.toggle-text {
+  display: block;
+  margin-top: 8rpx;
+  color: #7F956D;
+  font-weight: 700;
+}
+
+.primary-action {
+  margin-top: 42rpx;
+  background: #9CAF88;
+  color: #FFFDF6;
+  border-radius: 999rpx;
+  font-weight: 800;
+}
+
+.primary-action::after {
+  border: none;
+}

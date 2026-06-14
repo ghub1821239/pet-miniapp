@@ -4,6 +4,7 @@ var cloudPosts = require('../../utils/cloudPosts')
 var postStorage = require('../../utils/post-storage')
 var userStorage = require('../../utils/user-storage')
 var userPostState = require('../../utils/user-post-state')
+var mockComments = require('../../utils/mock-comments')
 var PETS_KEY = 'petList'
 var LEGACY_PETS_KEY = 'pets'
 var SEARCH_HISTORY_KEY = 'communitySearchHistory'
@@ -89,7 +90,8 @@ function isCloudFileId(value) {
 }
 
 function getRenderableImages(post) {
-  var source = Array.isArray(post.images) ? post.images : []
+  var tempImages = Array.isArray(post._tempImageUrls) ? post._tempImageUrls.filter(Boolean) : []
+  var source = tempImages.length ? tempImages : (Array.isArray(post.images) ? post.images : [])
   var result = []
   var i
 
@@ -134,6 +136,7 @@ function normalizePost(post, index) {
   var images = getRenderableImages(post)
   var authorName = post.userName || (post.author && post.author.name) || post.author || '萌宠用户'
   var coverImage = post.cover || post.coverImage || images[0] || fallbackPostImage
+  var comments = mockComments.ensurePostComments(post, 10)
 
   if (isCloudFileId(coverImage)) {
     coverImage = images[0] || fallbackPostImage
@@ -161,7 +164,13 @@ function normalizePost(post, index) {
     imageFileIds: imageFileIds,
     coverHeight: Number(post.coverHeight || 320),
     likeCount: Number(post.likes || post.likeCount || 0),
+    favoriteCount: Number(post.favoriteCount || post.favorites || post.collectCount || 0),
+    collectCount: Number(post.collectCount || post.favoriteCount || post.favorites || 0),
+    favorites: Number(post.favorites || post.favoriteCount || post.collectCount || 0),
+    commentCount: comments.length,
+    comments: comments,
     liked: !!(post.isLiked || post.liked),
+    favorited: !!(post.isFavorited || post.favorited),
     isFollowing: !!post.isFollowing
   }
 }
@@ -268,7 +277,7 @@ function mergeInteractionFromLocal(incomingPosts, localPosts) {
       result.push(incoming)
       continue
     }
-    result.push(Object.assign({}, incoming, {
+    var merged = Object.assign({}, incoming, {
       liked: local.liked !== undefined ? !!local.liked : !!incoming.liked,
       isLiked: local.isLiked !== undefined ? !!local.isLiked : !!incoming.isLiked,
       likeCount: Number(local.likeCount !== undefined ? local.likeCount : incoming.likeCount || incoming.likes || 0),
@@ -281,7 +290,8 @@ function mergeInteractionFromLocal(incomingPosts, localPosts) {
       commentCount: Number(local.commentCount !== undefined ? local.commentCount : incoming.commentCount || 0),
       isFollowing: local.isFollowing !== undefined ? !!local.isFollowing : !!incoming.isFollowing,
       comments: Array.isArray(local.comments) && local.comments.length ? local.comments.slice() : (Array.isArray(incoming.comments) ? incoming.comments.slice() : [])
-    }))
+    })
+    result.push(mockComments.applyCommentsToPost(merged, 10))
   }
 
   return result
@@ -343,6 +353,7 @@ Page({
   },
 
   loadLocalPosts: function () {
+    var self = this
     var sourceList = postStorage.getPostList()
 
     if (!Array.isArray(sourceList) || !sourceList.length) {
@@ -350,7 +361,13 @@ Page({
       postStorage.setPostList(clone(sourceList))
     }
 
-    this.applyLoadedPosts(sourceList)
+    cloudPosts.attachTempFileUrls(sourceList)
+      .then(function (posts) {
+        self.applyLoadedPosts(posts)
+      })
+      .catch(function () {
+        self.applyLoadedPosts(sourceList)
+      })
   },
 
   applyLoadedPosts: function (sourceList) {

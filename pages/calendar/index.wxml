@@ -109,7 +109,15 @@
           <input class="calendar-title-input" placeholder="输入提醒内容" value="{{form.title}}" data-field="title" bindinput="bindInput" />
         </view>
 
-        
+        <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="changeCategory">
+          <view class="calendar-type-row">
+            <text class="calendar-type-label">提醒类型</text>
+            <view class="calendar-type-value">
+              <text>{{form.category}}</text>
+              <text class="calendar-setting-arrow">›</text>
+            </view>
+          </view>
+        </picker>
       </view>
 
       <view class="calendar-edit-card">
@@ -129,13 +137,24 @@
           </view>
         </view>
 
-        <view class="calendar-setting-row" bindtap="chooseReminderOption">
+        <view class="calendar-setting-row" bindtap="chooseChannelOption">
           <view class="calendar-setting-copy">
-            <text class="calendar-setting-title">提醒方式</text>
-            <text class="calendar-setting-desc">按设定时间提醒你完成安排</text>
+            <text class="calendar-setting-title">提醒渠道</text>
+            <text class="calendar-setting-desc">选择站内提醒或微信服务通知</text>
           </view>
           <view class="calendar-setting-right">
-            <text class="calendar-setting-value">{{form.reminderText}}</text>
+            <text class="calendar-setting-value">{{form.channelText}}</text>
+            <text class="calendar-setting-arrow">›</text>
+          </view>
+        </view>
+
+        <view class="calendar-setting-row" bindtap="chooseReminderOption">
+          <view class="calendar-setting-copy">
+            <text class="calendar-setting-title">提前时间</text>
+            <text class="calendar-setting-desc">根据日期时间计算实际提醒时间</text>
+          </view>
+          <view class="calendar-setting-right">
+            <text class="calendar-setting-value">{{form.advanceText || form.reminderText}}</text>
             <text class="calendar-setting-arrow">›</text>
           </view>
         </view>
@@ -153,8 +172,8 @@
 
         <view class="calendar-setting-row no-border">
           <view class="calendar-setting-copy">
-            <text class="calendar-setting-title">强提醒</text>
-            <text class="calendar-setting-desc">开启后会用更醒目的方式标记提醒</text>
+            <text class="calendar-setting-title">微信服务通知</text>
+            <text class="calendar-setting-desc">开启后保存时请求授权，到点通过微信通知提醒</text>
           </view>
           <switch checked="{{form.strong}}" color="#9CAF88" bindchange="switchStrong" />
         </view>
@@ -222,6 +241,14 @@
       <view class="calendar-edit-card">
         <text class="field-label calendar-field-label">备注说明</text>
         <input class="input calendar-form-input" placeholder="补充说明，例如：检查前空腹8小时" value="{{form.note}}" data-field="note" bindinput="bindInput" />
+      </view>
+
+      <view wx:if="{{form.id}}" class="calendar-edit-card calendar-status-card">
+        <view class="calendar-status-row">
+          <text class="calendar-status-label">当前状态</text>
+          <text class="calendar-status-value">{{form.statusText || '待发送'}}</text>
+        </view>
+        <view wx:if="{{form.failReason}}" class="calendar-status-reason">{{form.failReason}}</view>
       </view>
 
       <view class="calendar-modal-actions">

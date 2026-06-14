@@ -8,6 +8,16 @@
     "pages/identify/index",
     "pages/calendar/index",
     "pages/pet/index",
+    "pages/profile-edit/index",
+    "pages/account-security/index",
+    "pages/pet-manage/index",
+    "pages/pet-edit/index",
+    "pages/pet-detail/index",
+    "pages/reminder-manage/index",
+    "pages/reminder-edit/index",
+    "pages/identify-history/index",
+    "pages/identify-detail/index",
+    "pages/logout-confirm/index",
     "pages/publish/index"
   ],
   "window": {

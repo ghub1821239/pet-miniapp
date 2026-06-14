@@ -281,6 +281,46 @@ function normalizePost(post) {
   }
 }
 
+function normalizeReminder(item) {
+  return {
+    id: item.id || 'reminder_' + Date.now(),
+    date: item.date || getToday(),
+    petName: item.petName || '毛孩子',
+    type: item.type || item.category || '日常提醒',
+    title: item.title || '宠物提醒',
+    time: item.time || '08:00',
+    note: item.note || '',
+    done: !!item.done,
+    closed: !!item.closed,
+    statusText: item.closed ? '已关闭' : item.done ? '已完成' : '未完成'
+  }
+}
+
+function normalizeIdentifyRecord(item) {
+  var petName = item.petName === '小布丁' ? '布丁' : (item.petName || '')
+  return {
+    id: item.id || 'record_' + Date.now(),
+    petId: item.petId || '',
+    petName: petName,
+    result: item.result || item.breed || '待识别',
+    image: item.image || (petName === '布丁' ? DOG_IMAGE : CAT_IMAGE),
+    date: item.date || (item.createdAt || item.updatedAt || '').split(' ')[0] || '未记录时间',
+    action: item.action || item.note || '待确认',
+    confidence: Number(item.confidence || 0)
+  }
+}
+
+function inferSpeciesByBreed(breed) {
+  var text = String(breed || '')
+  if (text.indexOf('猫') > -1 || text.indexOf('渐层') > -1 || text.indexOf('布偶') > -1) {
+    return '猫咪'
+  }
+  if (text.indexOf('狗') > -1 || text.indexOf('犬') > -1 || text.indexOf('萨摩耶') > -1) {
+    return '狗狗'
+  }
+  return '宠物'
+}
+
 function readStorageList(key) {
   if (key === 'postList') {
     return postStorage.getPostList()
@@ -325,29 +365,10 @@ function isOwnPost(post) {
 Page({
   data: {
     profile: MOCK_PROFILE,
-    profileForm: {
-      nickname: '',
-      profileId: '',
-      location: '',
-      bio: '',
-      tagsText: '',
-      avatar: '',
-      cover: ''
-    },
-    showProfileForm: false,
-    showPasswordForm: false,
-    passwordForm: {
-      currentPassword: '',
-      nextPassword: '',
-      confirmPassword: ''
-    },
+    showProfileMenu: false,
     petList: [],
     currentPetId: '',
     currentPet: null,
-    showForm: false,
-    formMode: 'add',
-    defaultAvatars: ['😺', '🐶', '🐰', '🦊', '🐻', '🐼'],
-    overviewList: [],
     allPostList: [],
     activeTab: 'posts',
     tabs: [
@@ -355,32 +376,46 @@ Page({
       { key: 'favorites', label: '收藏', count: 0 },
       { key: 'likes', label: '点赞', count: 0 }
     ],
-    currentTabPosts: [],
-    form: {
-      id: '',
-      name: '',
-      type: '',
-      species: '',
-      breed: '',
-      gender: '',
-      birthday: '',
-      age: '',
-      weight: '',
-      likes: '',
-      personality: '',
-      avatarType: 'image',
-      avatarValue: CAT_IMAGE,
-      color: '#9CAF88',
-      nextReminder: '',
-      diaryCount: 0,
-      identifyCount: 0
-    }
+    currentTabPosts: []
   },
 
   onShow: function () {
     this.loadProfile()
     this.loadPets()
     this.loadProfilePosts()
+  },
+
+  toggleProfileMenu: function () {
+    this.setData({
+      showProfileMenu: !this.data.showProfileMenu
+    })
+  },
+
+  closeProfileMenu: function () {
+    this.setData({
+      showProfileMenu: false
+    })
+  },
+
+  handleMenuAction: function (e) {
+    var type = e.currentTarget.dataset.type
+    var routeMap = {
+      editProfile: '/pages/profile-edit/index',
+      accountSecurity: '/pages/account-security/index',
+      petManage: '/pages/pet-manage/index',
+      reminderManage: '/pages/reminder-manage/index',
+      identifyHistory: '/pages/identify-history/index',
+      logout: '/pages/logout-confirm/index'
+    }
+    var url = routeMap[type]
+
+    this.closeProfileMenu()
+
+    if (url) {
+      wx.navigateTo({
+        url: url
+      })
+    }
   },
 
   loadProfile: function () {
@@ -394,217 +429,13 @@ Page({
     if (currentUser.account) {
       profile.profileId = currentUser.account
     }
-  
+
     userStorage.setValue(PROFILE_KEY, profile)
-  
+
     this.setData({
       profile: profile
     })
   },
-  
-  handleEditProfile: function () {
-    var profile = normalizeProfile(this.data.profile)
-  
-    this.setData({
-      showProfileForm: true,
-      profileForm: {
-        nickname: profile.nickname,
-        profileId: profile.profileId,
-        location: profile.location,
-        bio: profile.bio,
-        tagsText: profile.tags.join('、'),
-        avatar: profile.avatar,
-        cover: profile.cover
-      }
-    })
-  },
-
-  handleOpenPasswordForm: function () {
-    this.setData({
-      showPasswordForm: true,
-      passwordForm: {
-        currentPassword: '',
-        nextPassword: '',
-        confirmPassword: ''
-      }
-    })
-  },
-
-  handleLogout: function () {
-    wx.showModal({
-      title: '退出当前账号',
-      content: '退出后可以重新登录或切换到其他账号。',
-      success: function (res) {
-        if (!res.confirm) {
-          return
-        }
-
-        auth.logout()
-        wx.reLaunch({
-          url: '/pages/login/index'
-        })
-      }
-    })
-  },
-  
-  closeProfileForm: function () {
-    this.setData({
-      showProfileForm: false
-    })
-  },
-
-  closePasswordForm: function () {
-    this.setData({
-      showPasswordForm: false
-    })
-  },
-  
-  bindProfileInput: function (e) {
-    var field = e.currentTarget.dataset.field
-    var form = clone(this.data.profileForm)
-  
-    form[field] = e.detail.value
-  
-    this.setData({
-      profileForm: form
-    })
-  },
-
-  bindPasswordInput: function (e) {
-    var field = e.currentTarget.dataset.field
-    this.setData({
-      ['passwordForm.' + field]: e.detail.value
-    })
-  },
-  
-  uploadProfileImage: function (e) {
-    var that = this
-    var field = e.currentTarget.dataset.field
-  
-    wx.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: function (res) {
-        var form = clone(that.data.profileForm)
-        form[field] = res.tempFilePaths[0]
-  
-        that.setData({
-          profileForm: form
-        })
-      }
-    })
-  },
-  
-  saveProfile: function () {
-    var that = this
-    var form = clone(this.data.profileForm)
-    var tags = String(form.tagsText || '').split(/[,，、\s]+/).filter(Boolean)
-  
-    if (!form.nickname || !String(form.nickname).trim()) {
-      wx.showToast({
-        title: '请填写昵称',
-        icon: 'none'
-      })
-      return
-    }
-  
-    if (!tags.length) {
-      tags = ['养宠记录']
-    }
-  
-    var oldProfile = normalizeProfile(this.data.profile)
-
-    auth.updateProfile({
-      nickname: String(form.nickname || '').trim()
-    }).then(function (res) {
-      var cloudUser = res && res.user ? res.user : (auth.getCurrentUser() || {})
-      var profile = normalizeProfile({
-        nickname: cloudUser.nickname || String(form.nickname || '').trim(),
-        profileId: cloudUser.account || oldProfile.profileId,
-        location: String(form.location || '').trim() || MOCK_PROFILE.location,
-        bio: String(form.bio || '').trim() || MOCK_PROFILE.bio,
-        tags: tags,
-        avatar: form.avatar || MOCK_PROFILE.avatar,
-        cover: form.cover || MOCK_PROFILE.cover,
-
-        // 统计数据不允许在账号资料表单里手动修改。
-        // 当前先保留已有展示值；后续接入真实关注、收藏、点赞数据后，再统一由数据源自动计算。
-        following: oldProfile.following,
-        followers: oldProfile.followers,
-        likesAndSaves: oldProfile.likesAndSaves
-      })
-
-      userStorage.setValue(PROFILE_KEY, profile)
-
-      that.setData({
-        profile: profile,
-        showProfileForm: false
-      })
-
-      wx.showToast({
-        title: '保存成功',
-        icon: 'success'
-      })
-    }).catch(function (err) {
-      wx.showToast({
-        title: err && err.message ? err.message : '保存失败',
-        icon: 'none'
-      })
-    })
-  },
-
-  submitPasswordChange: function () {
-    var form = this.data.passwordForm || {}
-
-    if (!String(form.currentPassword || '')) {
-      wx.showToast({
-        title: '请输入当前密码',
-        icon: 'none'
-      })
-      return
-    }
-
-    if (String(form.nextPassword || '').length < 6) {
-      wx.showToast({
-        title: '新密码至少 6 位',
-        icon: 'none'
-      })
-      return
-    }
-
-    if (String(form.nextPassword) !== String(form.confirmPassword)) {
-      wx.showToast({
-        title: '两次新密码不一致',
-        icon: 'none'
-      })
-      return
-    }
-
-    auth.changePassword({
-      currentPassword: form.currentPassword,
-      nextPassword: form.nextPassword
-    }).then(function () {
-      this.setData({
-        showPasswordForm: false,
-        passwordForm: {
-          currentPassword: '',
-          nextPassword: '',
-          confirmPassword: ''
-        }
-      })
-      wx.showToast({
-        title: '密码已更新',
-        icon: 'success'
-      })
-    }.bind(this)).catch(function (err) {
-      wx.showToast({
-        title: err && err.message ? err.message : '修改失败',
-        icon: 'none'
-      })
-    })
-  },
-
   loadPets: function () {
     var storedPets = userStorage.getValue(PETS_KEY)
     var hasStoredPets = Array.isArray(storedPets) && storedPets.length > 0
@@ -660,8 +491,7 @@ Page({
     this.setData({
       petList: petList,
       currentPetId: currentPetId,
-      currentPet: this.findPetById(petList, currentPetId),
-      overviewList: this.buildOverviewList(petList)
+      currentPet: this.findPetById(petList, currentPetId)
     })
   },
 
@@ -719,44 +549,58 @@ Page({
     })
   },
 
-  getPostsByTab: function (tab, groups) {
-    var source = groups || this.data.profilePostGroups || {}
-    return source[tab] || []
-  },
-
-  buildOverviewList: function (petList) {
+  loadReminderPreview: function () {
     var reminders = userStorage.getValue(REMINDER_KEY)
-    var identifyHistory = userStorage.getValue(IDENTIFY_KEY)
-    var today = getToday()
-    var reminderCount = 0
-    var identifyCount = 0
-    var diaryCount = 0
+    var sourceList = Array.isArray(reminders) ? reminders : []
+    var normalized = []
+    var stats = {
+      pending: 0,
+      done: 0,
+      closed: 0
+    }
     var i
 
-    if (Array.isArray(reminders) && reminders.length) {
-      reminderCount = 0
-      for (i = 0; i < reminders.length; i++) {
-        if (reminders[i].date === today) {
-          reminderCount++
-        }
+    for (i = 0; i < sourceList.length; i++) {
+      var item = normalizeReminder(sourceList[i])
+      normalized.push(item)
+
+      if (item.closed) {
+        stats.closed++
+      } else if (item.done) {
+        stats.done++
+      } else {
+        stats.pending++
       }
     }
 
-    for (i = 0; i < petList.length; i++) {
-      diaryCount += Number(petList[i].diaryCount || 0)
-      identifyCount += Number(petList[i].identifyCount || 0)
+    normalized.sort(function (a, b) {
+      return (a.date + ' ' + a.time).localeCompare(b.date + ' ' + b.time)
+    })
+
+    this.setData({
+      recentReminders: normalized.slice(0, 6),
+      reminderStats: stats
+    })
+  },
+
+  loadIdentifyHistory: function () {
+    var records = userStorage.getValue(IDENTIFY_KEY)
+    var sourceList = Array.isArray(records) ? records : []
+    var normalized = []
+    var i
+
+    for (i = 0; i < sourceList.length; i++) {
+      normalized.push(normalizeIdentifyRecord(sourceList[i]))
     }
 
-    if (Array.isArray(identifyHistory) && identifyHistory.length > identifyCount) {
-      identifyCount = identifyHistory.length
-    }
+    this.setData({
+      identifyHistory: normalized
+    })
+  },
 
-    return [
-      { key: 'pets', label: '宠物', value: petList.length },
-      { key: 'reminders', label: '今日提醒', value: reminderCount },
-      { key: 'diary', label: '成长日记', value: diaryCount },
-      { key: 'identify', label: '识别记录', value: identifyCount }
-    ]
+  getPostsByTab: function (tab, groups) {
+    var source = groups || this.data.profilePostGroups || {}
+    return source[tab] || []
   },
 
   findPetById: function (petList, id) {
@@ -799,309 +643,5 @@ Page({
     })
   },
 
-  resetForm: function () {
-    this.setData({
-      form: {
-        id: '',
-        name: '',
-        type: '',
-        species: '',
-        breed: '',
-        gender: '',
-        birthday: getToday(),
-        age: '',
-        weight: '',
-        likes: '',
-        personality: '',
-        avatarType: 'image',
-        avatarValue: CAT_IMAGE,
-        color: '#9CAF88',
-        nextReminder: '',
-        diaryCount: 0,
-        identifyCount: 0
-      }
-    })
-  },
-
-  handleAddPet: function () {
-    this.resetForm()
-    this.setData({
-      showForm: true,
-      formMode: 'add'
-    })
-  },
-
-  handleImportFromIdentify: function () {
-    wx.navigateTo({
-      url: '/pages/identify/index'
-    })
-  },
-
-  handleBirthdayReminder: function () {
-    wx.navigateTo({
-      url: '/pages/calendar/index'
-    })
-  },
-
-  handleEditPet: function (e) {
-    var id = e && e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset.id : ''
-    var targetId = id || this.data.currentPetId
-    var target = this.findPetById(this.data.petList, targetId)
-
-    if (!target) {
-      wx.showToast({
-        title: '请先新增宠物',
-        icon: 'none'
-      })
-      return
-    }
-
-    this.setData({
-      showForm: true,
-      formMode: 'edit',
-      form: {
-        id: target.id,
-        name: target.name,
-        type: target.type,
-        species: target.species,
-        breed: target.breed === '未填品种' ? '' : target.breed,
-        gender: target.gender === '未填写' ? '' : target.gender,
-        birthday: target.birthday,
-        age: target.age || target.ageText,
-        weight: target.weight === '未填写' ? '' : target.weight,
-        likes: target.likes,
-        personality: target.personality,
-        avatarType: target.avatarType,
-        avatarValue: target.avatarValue,
-        color: target.color,
-        nextReminder: target.nextReminder === '暂时没有提醒' ? '' : target.nextReminder,
-        diaryCount: target.diaryCount,
-        identifyCount: target.identifyCount
-      }
-    })
-  },
-
-  handlePetTap: function (e) {
-    var id = e.currentTarget.dataset.id
-    var pet = this.findPetById(this.data.petList, id)
-    if (!pet) return
-
-    this.setData({
-      currentPetId: id,
-      currentPet: pet
-    })
-  },
-
-  handleCreateFirstPet: function () {
-    this.handleAddPet()
-  },
-
-  closeForm: function () {
-    this.setData({
-      showForm: false
-    })
-  },
-
-  noop: function () {},
-
-  bindInput: function (e) {
-    var field = e.currentTarget.dataset.field
-    var form = clone(this.data.form)
-    form[field] = e.detail.value
-    this.setData({
-      form: form
-    })
-  },
-
-  changeBirthday: function (e) {
-    var form = clone(this.data.form)
-    form.birthday = e.detail.value
-    form.age = calcAgeText(form.birthday)
-    this.setData({
-      form: form
-    })
-  },
-
-  chooseDefaultAvatar: function (e) {
-    var form = clone(this.data.form)
-    form.avatarType = 'emoji'
-    form.avatarValue = e.currentTarget.dataset.value
-    this.setData({
-      form: form
-    })
-  },
-
-  uploadAvatar: function () {
-    var that = this
-    wx.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: function (res) {
-        var form = clone(that.data.form)
-        form.avatarType = 'image'
-        form.avatarValue = res.tempFilePaths[0]
-        that.setData({
-          form: form
-        })
-      }
-    })
-  },
-
-  syncIdentifyRecordsByPet: function (pet, previousPet) {
-    var records = userStorage.getValue(IDENTIFY_KEY)
-    var source = Array.isArray(records) && records.length ? records : []
-    var list = Array.isArray(source) ? clone(source) : []
-    var changed = false
-    var i
-
-    if (!pet || !pet.id || !list.length) {
-      return
-    }
-
-    for (i = 0; i < list.length; i++) {
-      var record = list[i] || {}
-      var boundById = record.petId && String(record.petId) === String(pet.id)
-      var canBindByLegacyName = !record.petId && previousPet && (nameEquals(record.petName, previousPet.name) || nameEquals(record.result, previousPet.breed))
-
-      if (boundById || canBindByLegacyName) {
-        if (String(record.petId || '') !== String(pet.id)) {
-          record.petId = pet.id
-          changed = true
-        }
-        if (record.petName !== pet.name) {
-          record.petName = pet.name
-          changed = true
-        }
-        if (pet.breed && record.result !== pet.breed) {
-          record.result = pet.breed
-          changed = true
-        }
-      }
-    }
-
-    if (changed) {
-      userStorage.setValue(IDENTIFY_KEY, list)
-    }
-  },
-
-  savePet: function () {
-    var form = clone(this.data.form)
-    var storedPets = userStorage.getValue(PETS_KEY)
-    var pets = Array.isArray(storedPets) && storedPets.length ? clone(storedPets) : []
-    var previousPet = null
-    var i
-
-    pets = Array.isArray(pets) && pets.length ? clone(pets) : []
-
-    if (!form.name) {
-      wx.showToast({
-        title: '请先填写宠物名称',
-        icon: 'none'
-      })
-      return
-    }
-
-    if (!form.age && form.birthday) {
-      form.age = calcAgeText(form.birthday)
-    }
-
-    form.species = form.species || form.type
-    form.type = form.type || form.species
-    form.breed = normalizeBreedByName(form.name, form.breed)
-
-    if (this.data.formMode === 'add') {
-      form.id = 'pet_' + Date.now()
-      form.diaryCount = Number(form.diaryCount || 0)
-      form.identifyCount = Number(form.identifyCount || 0)
-      pets.unshift(form)
-    } else {
-      for (i = 0; i < pets.length; i++) {
-        if (pets[i].id === form.id) {
-          previousPet = clone(pets[i])
-          pets[i] = form
-          break
-        }
-      }
-    }
-
-    userStorage.setValue(PETS_KEY, pets)
-    this.syncIdentifyRecordsByPet(form, previousPet)
-
-    this.setData({
-      showForm: false,
-      currentPetId: form.id
-    })
-
-    this.loadPets()
-
-    wx.showToast({
-      title: '保存成功',
-      icon: 'success'
-    })
-  },
-
-  deletePet: function (e) {
-    var that = this
-    var id = e.currentTarget.dataset.id
-    var storedPets = userStorage.getValue(PETS_KEY)
-    var storedRecords = userStorage.getValue(IDENTIFY_KEY)
-    var pets = Array.isArray(storedPets) && storedPets.length ? storedPets : []
-    var records = Array.isArray(storedRecords) && storedRecords.length ? clone(storedRecords) : []
-    var newPets = []
-    var newRecords = []
-    var removedPet = null
-    var i
-
-    pets = Array.isArray(pets) && pets.length ? pets : []
-
-    for (i = 0; i < pets.length; i++) {
-      if (String(pets[i].id) === String(id)) {
-        removedPet = pets[i]
-        break
-      }
-    }
-
-    if (!removedPet) {
-      wx.showToast({
-        title: '未找到该宠物',
-        icon: 'none'
-      })
-      return
-    }
-
-    wx.showModal({
-      title: '提示',
-      content: '确定删除“' + removedPet.name + '”的档案吗？',
-      success: function (res) {
-        if (!res.confirm) return
-
-        for (i = 0; i < pets.length; i++) {
-          if (String(pets[i].id) !== String(id)) {
-            newPets.push(pets[i])
-          }
-        }
-
-        for (i = 0; i < records.length; i++) {
-          var record = records[i] || {}
-          if (String(record.petId || '') === String(id)) {
-            record.petId = ''
-          }
-          newRecords.push(record)
-        }
-
-        userStorage.setValue(PETS_KEY, newPets)
-        userStorage.setValue(IDENTIFY_KEY, newRecords)
-        that.setData({
-          currentPetId: '',
-          showForm: false
-        })
-        that.loadPets()
-        wx.showToast({
-          title: '已删除宠物档案',
-          icon: 'success'
-        })
-      }
-    })
-  }
+  noop: function () {}
 })

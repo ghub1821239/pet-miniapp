@@ -1,0 +1,163 @@
+.simple-page {
+  min-height: 100vh;
+  padding: 34rpx 28rpx 150rpx;
+  box-sizing: border-box;
+  background: #FFFDF6;
+  color: #5B4A3A;
+}
+
+.page-title {
+  display: block;
+  font-size: 42rpx;
+  font-weight: 800;
+}
+
+.page-sub {
+  display: block;
+  margin-top: 10rpx;
+  color: #9A8B7A;
+  font-size: 25rpx;
+}
+
+.form-list {
+  margin-top: 30rpx;
+  background: rgba(238, 245, 234, 0.34);
+  border-radius: 28rpx;
+  padding: 0 22rpx;
+}
+
+.form-row {
+  min-height: 104rpx;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(156, 175, 136, 0.18);
+}
+
+.form-row:last-child {
+  border-bottom: none;
+}
+
+.form-label {
+  width: 178rpx;
+  flex-shrink: 0;
+  color: #7F6F5E;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.form-label.block {
+  width: auto;
+  display: block;
+  margin-bottom: 14rpx;
+}
+
+.form-input,
+.form-value {
+  flex: 1;
+  min-width: 0;
+  color: #5B4A3A;
+  font-size: 28rpx;
+  text-align: right;
+}
+
+.readonly {
+  color: #9A8B7A;
+}
+
+.avatar-preview {
+  width: 76rpx;
+  height: 76rpx;
+  margin-left: auto;
+  border-radius: 50%;
+}
+
+.cover-preview {
+  width: 180rpx;
+  height: 78rpx;
+  margin-left: auto;
+  border-radius: 16rpx;
+}
+
+.form-block {
+  padding: 24rpx 0;
+  border-bottom: 1px solid rgba(156, 175, 136, 0.18);
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 150rpx;
+  padding: 18rpx;
+  box-sizing: border-box;
+  border-radius: 18rpx;
+  background: #FFFDF6;
+  color: #5B4A3A;
+}
+
+.count-text {
+  display: block;
+  margin-top: 8rpx;
+  text-align: right;
+  color: #B2A696;
+  font-size: 22rpx;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.tag-chip {
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: #EEF5EA;
+  color: #7F956D;
+  font-size: 24rpx;
+}
+
+.tag-input-row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  margin-top: 18rpx;
+}
+
+.tag-input {
+  flex: 1;
+  height: 76rpx;
+  padding: 0 18rpx;
+  border-radius: 18rpx;
+  background: #FFFDF6;
+}
+
+.mini-btn {
+  margin: 0;
+  padding: 0 24rpx;
+  height: 76rpx;
+  line-height: 76rpx;
+  border-radius: 999rpx;
+  background: #EEF5EA;
+  color: #7F956D;
+  font-size: 25rpx;
+}
+
+.mini-btn::after,
+.primary-action::after {
+  border: none;
+}
+
+.bottom-actions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 18rpx 28rpx calc(22rpx + env(safe-area-inset-bottom));
+  background: rgba(255, 253, 246, 0.96);
+}
+
+.primary-action {
+  background: #9CAF88;
+  color: #FFFDF6;
+  border-radius: 999rpx;
+  font-weight: 800;
+}

@@ -1,0 +1,47 @@
+.simple-page {
+  min-height: 100vh;
+  padding: 44rpx 34rpx;
+  box-sizing: border-box;
+  background: #FFFDF6;
+  color: #5B4A3A;
+}
+
+.logout-panel {
+  padding-top: 120rpx;
+}
+
+.page-title {
+  display: block;
+  font-size: 44rpx;
+  font-weight: 800;
+}
+
+.page-sub {
+  display: block;
+  margin-top: 18rpx;
+  color: #9A8B7A;
+  font-size: 27rpx;
+  line-height: 1.7;
+}
+
+.secondary-action,
+.danger-action {
+  margin-top: 28rpx;
+  border-radius: 999rpx;
+  font-weight: 800;
+}
+
+.secondary-action {
+  background: #EEF5EA;
+  color: #7F956D;
+}
+
+.danger-action {
+  background: #FFF4EA;
+  color: #B56A53;
+}
+
+.secondary-action::after,
+.danger-action::after {
+  border: none;
+}

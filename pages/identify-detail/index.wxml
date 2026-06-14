@@ -1,0 +1,20 @@
+<view class="simple-page">
+  <image class="hero-image" src="{{record.image}}" mode="aspectFill"></image>
+  <view class="page-head">
+    <text class="page-title">{{record.result}}</text>
+    <text class="page-sub">识别时间：{{record.date}} {{record.time}}</text>
+  </view>
+
+  <view class="info-list">
+    <view><text>关联宠物</text><text>{{record.petName || '未关联'}}</text></view>
+    <view><text>可信度</text><text>{{record.confidence || 0}}%</text></view>
+    <view><text>备注</text><text>{{record.note}}</text></view>
+    <view><text>原始状态</text><text>{{record.action}}</text></view>
+  </view>
+
+  <view class="action-list">
+    <button class="primary-action" bindtap="associatePet">关联宠物</button>
+    <button class="secondary-action" bindtap="unbindPet">解除关联</button>
+    <button class="secondary-action" bindtap="createPet">从识别记录创建宠物档案</button>
+  </view>
+</view>

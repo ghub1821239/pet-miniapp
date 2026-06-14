@@ -22,11 +22,11 @@ var upload = multer({
 })
 
 var port = getRuntimePort()
-var provider = process.env.MODEL_PROVIDER || 'qwen'
-var model = process.env.QWEN_MODEL || 'qwen-vl-max-latest'
-var baseURL = process.env.QWEN_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1'
-var apiKey = process.env.QWEN_API_KEY || ''
-var client = apiKey ? new OpenAI({
+var provider = String(process.env.MODEL_PROVIDER || 'qwen').toLowerCase()
+var model = provider === 'ark' ? (process.env.ARK_MODEL || 'doubao-seed-2-0-pro-260215') : (process.env.QWEN_MODEL || 'qwen-vl-max-latest')
+var baseURL = provider === 'ark' ? (process.env.ARK_BASE_URL || 'https://ark.cn-beijing.volces.com/api/v3') : (process.env.QWEN_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1')
+var apiKey = provider === 'ark' ? (process.env.ARK_API_KEY || '') : (process.env.QWEN_API_KEY || '')
+var client = provider === 'qwen' && apiKey ? new OpenAI({
   apiKey: apiKey,
   baseURL: baseURL
 }) : null
@@ -35,7 +35,9 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || '*'
 }))
 
-app.use(express.json())
+app.use(express.json({
+  limit: '15mb'
+}))
 
 app.get('/health', function (req, res) {
   res.json({
@@ -48,15 +50,17 @@ app.get('/health', function (req, res) {
 
 app.post('/pet-recognize', upload.single('file'), async function (req, res) {
   try {
-    if (!apiKey || !client) {
+    if (!apiKey) {
       res.status(500).json({
         code: 500,
-        message: '服务端未配置 QWEN_API_KEY'
+        message: provider === 'ark' ? '服务端未配置 ARK_API_KEY' : '服务端未配置 QWEN_API_KEY'
       })
       return
     }
 
-    if (!req.file) {
+    var imagePayload = getImagePayload(req)
+
+    if (!imagePayload) {
       res.status(400).json({
         code: 400,
         message: '请上传宠物图片'
@@ -64,9 +68,69 @@ app.post('/pet-recognize', upload.single('file'), async function (req, res) {
       return
     }
 
-    var mimeType = req.file.mimetype || 'image/jpeg'
-    var base64Image = req.file.buffer.toString('base64')
-    var dataUrl = 'data:' + mimeType + ';base64,' + base64Image
+    var result = provider === 'ark' ? await recognizeWithArk(imagePayload.dataUrl) : await recognizeWithQwen(imagePayload.dataUrl)
+    var createdAt = formatNow()
+
+    res.json({
+      code: 0,
+      data: {
+        petName: result.petName || '未知宠物',
+        species: result.species || '其他',
+        breed: result.breed || '待确认品种',
+        confidence: normalizeConfidence(result.confidence),
+        features: normalizeFeatures(result.features),
+        advice: result.advice || '建议结合日常表现继续观察。',
+        createdAt: createdAt,
+        source: 'api',
+        provider: provider,
+        model: model
+      }
+    })
+  } catch (error) {
+    console.error('pet-recognize error:', error)
+    res.status(500).json({
+      code: 500,
+      message: '识别失败，请稍后重试',
+      detail: error.message
+    })
+  }
+})
+
+function getImagePayload(req) {
+  if (req.file && req.file.buffer) {
+    var uploadMimeType = req.file.mimetype || 'image/jpeg'
+    return {
+      dataUrl: 'data:' + uploadMimeType + ';base64,' + req.file.buffer.toString('base64')
+    }
+  }
+
+  var body = req.body || {}
+  var rawBase64 = String(body.imageBase64 || body.base64 || '').trim()
+  var mimeType = String(body.mimeType || 'image/jpeg').trim() || 'image/jpeg'
+
+  if (!rawBase64) {
+    return null
+  }
+
+  if (/^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(rawBase64)) {
+    return {
+      dataUrl: rawBase64
+    }
+  }
+
+  return {
+    dataUrl: 'data:' + mimeType + ';base64,' + rawBase64
+  }
+}
+
+app.listen(port, '0.0.0.0', function () {
+  console.log('pet identify server running at http://0.0.0.0:' + port)
+})
+
+async function recognizeWithQwen(dataUrl) {
+  if (!client) {
+    throw new Error('Qwen client is not initialized')
+  }
 
     var completion = await client.chat.completions.create({
       model: model,
@@ -125,34 +189,100 @@ app.post('/pet-recognize', upload.single('file'), async function (req, res) {
     var rawText = (((completion || {}).choices || [])[0] || {}).message
     rawText = rawText && rawText.content ? rawText.content : '{}'
 
-    var result = safeParseRecognitionResult(rawText)
-    var createdAt = formatNow()
+  return safeParseRecognitionResult(rawText)
+}
 
-    res.json({
-      code: 0,
-      data: {
-        petName: result.petName || '未知宠物',
-        species: result.species || '其他',
-        breed: result.breed || '待确认品种',
-        confidence: normalizeConfidence(result.confidence),
-        features: normalizeFeatures(result.features),
-        advice: result.advice || '建议结合日常表现继续观察。',
-        createdAt: createdAt
-      }
+async function recognizeWithArk(dataUrl) {
+  var endpoint = baseURL.replace(/\/+$/, '') + '/responses'
+  var response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer ' + apiKey,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: model,
+      input: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'input_image',
+              image_url: dataUrl
+            },
+            {
+              type: 'input_text',
+              text: buildRecognitionPrompt()
+            }
+          ]
+        }
+      ]
     })
-  } catch (error) {
-    console.error('pet-recognize error:', error)
-    res.status(500).json({
-      code: 500,
-      message: '识别失败，请稍后重试',
-      detail: error.message
-    })
+  })
+
+  var responseText = await response.text()
+
+  if (!response.ok) {
+    throw new Error('Ark API 请求失败：' + response.status + ' ' + responseText.slice(0, 500))
   }
-})
 
-app.listen(port, '0.0.0.0', function () {
-  console.log('pet identify server running at http://0.0.0.0:' + port)
-})
+  var payload = safeParseJson(responseText)
+  var rawText = extractArkOutputText(payload)
+
+  if (!rawText) {
+    throw new Error('Ark API 未返回可解析的识别文本')
+  }
+
+  return safeParseRecognitionResult(rawText)
+}
+
+function buildRecognitionPrompt() {
+  return [
+    '你是一个宠物识别助手。请根据图片判断宠物种类与可能品种。',
+    '识别范围包括：狗狗、猫咪、异宠、鸟类、爬宠、啮齿类以及其他常见家庭宠物。',
+    '只能依据图片里真实可见的外观特征判断，不要臆测血统、年龄、性格或名字。',
+    '如果图片只能判断到大类，不能强行编造具体品种。',
+    '如果无法高把握确认品种，breed 请输出“疑似xxx”或“长毛家猫/短毛家猫/混血犬/待确认品种”。',
+    'confidence 必须与把握程度匹配：大类明显但品种不确定时，不要给过高分。',
+    'features 输出 3 到 5 个真正能从图里看到的外观特征，使用字符串数组。',
+    'advice 输出 1 段简短、实用、通俗的饲养建议。',
+    '所有输出必须是简体中文。',
+    '只返回 JSON，不要返回 Markdown，不要返回任何额外解释。',
+    'JSON 字段固定为：petName、species、breed、confidence、features、advice。',
+    'petName 如果无法判断名字，请输出“未知宠物”。',
+    'species 请输出：猫咪、狗狗、异宠、鸟类、爬宠、啮齿类、其他 中最合适的一项。'
+  ].join('')
+}
+
+function extractArkOutputText(payload) {
+  if (payload && typeof payload.output_text === 'string') {
+    return payload.output_text
+  }
+
+  var output = payload && Array.isArray(payload.output) ? payload.output : []
+  var texts = []
+
+  for (var i = 0; i < output.length; i += 1) {
+    var content = Array.isArray(output[i].content) ? output[i].content : []
+    for (var j = 0; j < content.length; j += 1) {
+      if (typeof content[j].text === 'string') {
+        texts.push(content[j].text)
+      } else if (typeof content[j].content === 'string') {
+        texts.push(content[j].content)
+      }
+    }
+  }
+
+  return texts.join('\n').trim()
+}
+
+function safeParseJson(rawText) {
+  try {
+    return JSON.parse(rawText)
+  } catch (error) {
+    throw new Error('接口返回不是合法 JSON：' + String(rawText || '').slice(0, 300))
+  }
+}
 
 function safeParseRecognitionResult(rawText) {
   try {

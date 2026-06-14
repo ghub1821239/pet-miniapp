@@ -1,0 +1,9 @@
+{
+  "name": "recognizePet",
+  "version": "1.0.0",
+  "description": "Recognize pet species and breed with Ark vision model",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

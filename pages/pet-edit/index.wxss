@@ -1,0 +1,131 @@
+.simple-page {
+  min-height: 100vh;
+  padding: 34rpx 28rpx 150rpx;
+  box-sizing: border-box;
+  background: #FFFDF6;
+  color: #5B4A3A;
+}
+
+.page-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 800;
+}
+
+.page-sub {
+  display: block;
+  margin-top: 10rpx;
+  color: #9A8B7A;
+  font-size: 24rpx;
+}
+
+.form-list {
+  margin-top: 28rpx;
+  background: rgba(238, 245, 234, 0.34);
+  border-radius: 28rpx;
+  padding: 0 22rpx;
+}
+
+.form-row {
+  min-height: 104rpx;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(156, 175, 136, 0.18);
+}
+
+.form-label {
+  width: 180rpx;
+  flex-shrink: 0;
+  color: #7F6F5E;
+  font-weight: 800;
+}
+
+.form-label.block {
+  width: auto;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.form-input,
+.form-value,
+.picker-value {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  color: #5B4A3A;
+}
+
+.readonly {
+  color: #9A8B7A;
+}
+
+.avatar-preview,
+.avatar-emoji {
+  width: 78rpx;
+  height: 78rpx;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #EEF5EA;
+}
+
+.avatar-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38rpx;
+}
+
+.form-block {
+  padding: 24rpx 0;
+  border-bottom: 1px solid rgba(156, 175, 136, 0.18);
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 130rpx;
+  padding: 16rpx;
+  border-radius: 18rpx;
+  box-sizing: border-box;
+  background: #FFFDF6;
+}
+
+.emoji-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.emoji-choice {
+  width: 68rpx;
+  height: 68rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #EEF5EA;
+  font-size: 34rpx;
+}
+
+.emoji-choice.active {
+  background: #9CAF88;
+}
+
+.bottom-actions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 18rpx 28rpx calc(22rpx + env(safe-area-inset-bottom));
+  background: rgba(255, 253, 246, 0.96);
+}
+
+.primary-action {
+  background: #9CAF88;
+  color: #FFFDF6;
+  border-radius: 999rpx;
+  font-weight: 800;
+}
+
+.primary-action::after {
+  border: none;
+}

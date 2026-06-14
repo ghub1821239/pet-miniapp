@@ -1,0 +1,87 @@
+<view class="simple-page">
+  <view class="page-head">
+    <text class="page-title">{{mode === 'edit' ? '编辑提醒' : '新建提醒'}}</text>
+    <text class="page-sub">设置宠物、类型、时间和提醒状态</text>
+  </view>
+
+  <view class="form-list">
+    <view class="form-row">
+      <text class="form-label">宠物</text>
+      <picker range="{{petOptions}}" range-key="name" value="{{petIndex}}" bindchange="changePet">
+        <view class="picker-value">{{form.petName}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text class="form-label">提醒类型</text>
+      <picker range="{{typeOptions}}" value="{{typeIndex}}" bindchange="changeType">
+        <view class="picker-value">{{form.type}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text class="form-label">提醒日期</text>
+      <picker mode="date" value="{{form.date}}" bindchange="changeDate">
+        <view class="picker-value">{{form.date}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text class="form-label">提醒时间</text>
+      <picker mode="time" value="{{form.time}}" bindchange="changeTime">
+        <view class="picker-value">{{form.time}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text class="form-label">提醒渠道</text>
+      <picker range="{{channelOptions}}" range-key="text" value="{{channelIndex}}" bindchange="changeChannel">
+        <view class="picker-value">{{form.channelText}}</view>
+      </picker>
+    </view>
+    <view wx:if="{{form.channel === 'wechat'}}" class="notice-row">
+      <text>开启后需要授权，系统会在提醒时间通过微信服务通知提醒你。重复提醒可能需要后续再次授权。</text>
+    </view>
+    <view class="form-row">
+      <text class="form-label">提前时间</text>
+      <picker range="{{advanceOptions}}" range-key="text" value="{{advanceIndex}}" bindchange="changeAdvance">
+        <view class="picker-value">{{form.advanceText}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text class="form-label">重复周期</text>
+      <picker range="{{repeatOptions}}" range-key="text" value="{{repeatIndex}}" bindchange="changeRepeat">
+        <view class="picker-value">{{form.repeatText}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text class="form-label">状态</text>
+      <picker range="{{statusOptions}}" range-key="label" value="{{statusIndex}}" bindchange="changeStatus">
+        <view class="picker-value">{{form.statusText}}</view>
+      </picker>
+    </view>
+    <view class="form-block">
+      <text class="form-label block">提醒内容</text>
+      <input class="title-input" value="{{form.title}}" data-field="title" placeholder="例如：体内外驱虫" bindinput="bindInput" />
+    </view>
+    <view class="form-block">
+      <text class="form-label block">备注</text>
+      <textarea class="form-textarea" value="{{form.note}}" data-field="note" placeholder="可填写准备事项或注意事项" bindinput="bindInput"></textarea>
+    </view>
+    <view class="form-block">
+      <text class="form-label block">子任务</text>
+      <view class="subtask-input-row">
+        <input class="title-input" value="{{subtaskInput}}" placeholder="例如：准备驱虫药" bindinput="bindSubtaskInput" bindconfirm="addSubtask" />
+        <button class="mini-btn" bindtap="addSubtask">添加</button>
+      </view>
+      <view wx:if="{{form.subtasks.length}}" class="subtask-list">
+        <block wx:for="{{form.subtasks}}" wx:key="text">
+          <view class="subtask-row">
+            <text>{{item.text}}</text>
+            <text class="remove-subtask" data-index="{{index}}" bindtap="removeSubtask">删除</text>
+          </view>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom-actions">
+    <button class="primary-action" loading="{{saving}}" disabled="{{saving}}" bindtap="saveReminder">保存提醒</button>
+  </view>
+</view>

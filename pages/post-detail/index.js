@@ -2,6 +2,7 @@ var cloudPosts = require('../../utils/cloudPosts')
 var postStorage = require('../../utils/post-storage')
 var promotion = require('../../utils/promotion')
 var userPostState = require('../../utils/user-post-state')
+var mockComments = require('../../utils/mock-comments')
 var CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
 var DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
 var FALLBACK_POST_IMAGE = DOG_IMAGE
@@ -44,6 +45,9 @@ function isCloudFileId(value) {
 }
 
 function getPostCover(post) {
+  if (post._tempImageUrls && post._tempImageUrls.length) {
+    return post._tempImageUrls[0]
+  }
   if (post.coverImage && !isCloudFileId(post.coverImage)) {
     return post.coverImage
   }
@@ -62,6 +66,14 @@ function getPostCover(post) {
 function buildGallery(post) {
   var gallery = []
   var i
+
+  if (Array.isArray(post._tempImageUrls) && post._tempImageUrls.length) {
+    for (i = 0; i < post._tempImageUrls.length; i++) {
+      if (post._tempImageUrls[i]) {
+        gallery.push(post._tempImageUrls[i])
+      }
+    }
+  }
 
   if (Array.isArray(post.gallery) && post.gallery.length) {
     for (i = 0; i < post.gallery.length; i++) {
@@ -118,23 +130,7 @@ function formatPublishTime(post) {
 }
 
 function normalizeComments(post) {
-  var source = Array.isArray(post.comments) ? post.comments : []
-
-  return source.map(function (item, index) {
-    var userName = item.userName || item.nickname || (item.author && item.author.name) || '用户'
-
-    return {
-      id: item.id || 'comment_' + index,
-      userName: userName,
-      avatarText: (item.avatarText || userName.slice(0, 1) || '评').slice(0, 1),
-      content: item.content || '',
-      time: String(item.time || item.createdAt || '').trim(),
-      likes: Number(item.likes || item.likeCount || 0),
-      liked: !!(item.liked || item.isLiked)
-    }
-  }).filter(function (item) {
-    return !!item.content
-  })
+  return mockComments.ensurePostComments(post, 10)
 }
 
 function normalizePost(post) {
@@ -142,6 +138,7 @@ function normalizePost(post) {
   var userName = post.userName || (post.author && post.author.name) || post.author || '萌宠用户'
   var petName = post.petName === '小布丁' ? '布丁' : (post.petName || '毛孩子')
   var cover = getPostCover(post)
+  var comments = normalizeComments(post)
 
   return {
     id: post.id || 'post_detail',
@@ -158,7 +155,7 @@ function normalizePost(post) {
     gallery: buildGallery(post),
     likeCount: Number(post.likeCount || post.likes || 0),
     favoriteCount: Number(post.favoriteCount || post.favorites || post.collectCount || 0),
-    commentCount: Number(post.commentCount || (Array.isArray(post.comments) ? post.comments.length : 0)),
+    commentCount: comments.length,
     liked: !!(post.liked || post.isLiked),
     favorited: !!(post.favorited || post.isFavorited),
     isFollowing: !!post.isFollowing,
@@ -175,8 +172,16 @@ function normalizePost(post) {
     publishTime: formatPublishTime(post),
     location: post.location || '',
     topics: buildTopicTags(post),
-    comments: normalizeComments(post)
+    comments: comments
   }
+}
+
+function getPromotionCoinCount(post) {
+  var amount = Number(post && post.promotionAmount || 0)
+  if (amount > 0) {
+    return Math.round(amount / 100)
+  }
+  return Number(post && post.promotionLevel || 0)
 }
 
 Page({
@@ -196,7 +201,8 @@ Page({
     selectedPromotionPackageId: '',
     promotionSheetVisible: false,
     promotionPaying: false,
-    promotionCode: ''
+    promotionCode: '',
+    promotionCoinCount: 0
   },
 
   onLoad: function (options) {
@@ -241,7 +247,8 @@ Page({
       comments: nextComments,
       currentImage: 0,
       isOwnPost: promotion.isPostOwner(normalizedPost),
-      promotionStatus: promotion.getPromotionStatus(normalizedPost)
+      promotionStatus: promotion.getPromotionStatus(normalizedPost),
+      promotionCoinCount: getPromotionCoinCount(normalizedPost)
     })
   },
 
@@ -337,7 +344,6 @@ Page({
     }
 
     comments = this.data.comments.slice()
-    nextCommentCount = this.data.post.commentCount + 1
     comments.unshift({
       id: 'comment_' + Date.now(),
       userName: '我',
@@ -347,6 +353,7 @@ Page({
       likes: 0,
       liked: false
     })
+    nextCommentCount = comments.length
 
     this.setData({
       comments: comments,
@@ -398,13 +405,6 @@ Page({
   },
 
   openPromotionSheet: function () {
-    if (!this.data.isOwnPost) {
-      wx.showToast({
-        title: '只能给自己的帖子推流',
-        icon: 'none'
-      })
-      return
-    }
     this.setData({
       promotionSheetVisible: true
     })
@@ -462,6 +462,7 @@ Page({
         post: nextPost,
         promotionSheetVisible: false,
         promotionStatus: promotion.getPromotionStatus(nextPost),
+        promotionCoinCount: getPromotionCoinCount(nextPost),
         promotionCode: ''
       })
       wx.showToast({

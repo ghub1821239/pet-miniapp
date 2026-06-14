@@ -1,0 +1,9 @@
+{
+  "name": "saveReminder",
+  "version": "1.0.0",
+  "description": "Save pet reminder to cloud database",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

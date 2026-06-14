@@ -1,0 +1,83 @@
+.simple-page {
+  min-height: 100vh;
+  padding: 34rpx 28rpx;
+  box-sizing: border-box;
+  background: #FFFDF6;
+  color: #5B4A3A;
+}
+
+.pet-head {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.pet-avatar {
+  width: 132rpx;
+  height: 132rpx;
+  border-radius: 50%;
+  background: #EEF5EA;
+}
+
+.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFDF6;
+  font-size: 46rpx;
+  font-weight: 800;
+}
+
+.page-title {
+  display: block;
+  font-size: 42rpx;
+  font-weight: 800;
+}
+
+.page-sub {
+  display: block;
+  margin-top: 10rpx;
+  color: #9A8B7A;
+}
+
+.info-list {
+  margin-top: 36rpx;
+  background: rgba(238, 245, 234, 0.34);
+  border-radius: 28rpx;
+  padding: 0 22rpx;
+}
+
+.info-list view {
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding: 24rpx 0;
+  border-bottom: 1px solid rgba(156, 175, 136, 0.18);
+}
+
+.info-list view:last-child {
+  border-bottom: none;
+}
+
+.info-list text:first-child {
+  color: #7F6F5E;
+  font-weight: 800;
+}
+
+.info-list text:last-child {
+  flex: 1;
+  text-align: right;
+  color: #5B4A3A;
+}
+
+.primary-action {
+  margin-top: 38rpx;
+  background: #9CAF88;
+  color: #FFFDF6;
+  border-radius: 999rpx;
+  font-weight: 800;
+}
+
+.primary-action::after {
+  border: none;
+}

@@ -4,17 +4,15 @@
     </view>
   </view>
 
-  <view class="hero identify-hero">
-    <text class="hero-title">拍一拍，认识你的毛孩子</text>
-    <text class="hero-sub">支持宠物品种识别、外观特征分析和养护建议生成。</text>
-  </view>
-
-  <view class="card identify-status-card {{serviceReady ? 'is-ready' : 'is-fallback'}}">
-    <view class="identify-status-head">
-      <text class="identify-status-mode">{{serviceModeText}}</text>
-      <text class="identify-status-title">{{serviceReady ? '识别服务可用' : '当前使用示例模式'}}</text>
+  <view class="identify-compact-head">
+    <view class="identify-compact-title-row">
+      <text class="identify-compact-title">宠物识别</text>
+      <view class="identify-compact-status {{serviceReady ? 'is-ready' : 'is-fallback'}}">
+        <view class="identify-compact-dot"></view>
+        <text>{{serviceReady ? '服务可用' : '示例模式'}}</text>
+      </view>
     </view>
-    <text class="identify-status-copy">{{serviceStatusText}}</text>
+    <text class="identify-compact-sub">上传图片，获取品种参考、外观特征和养护建议</text>
   </view>
 
   <view class="card">
@@ -40,6 +38,9 @@
         <text class="section-title">{{hasRecognizedResult ? '识别结果' : '识别示例'}}</text>
         <text class="section-sub">{{result.createdAt}}</text>
       </view>
+      <text class="identify-source-badge {{result.source === 'api' ? 'is-api' : 'is-demo'}}">
+        {{result.source === 'api' ? 'API识别' : '示例结果'}}
+      </text>
     </view>
 
     <image class="identify-demo-image" src="{{result.image}}" mode="aspectFill"></image>
@@ -81,7 +82,7 @@
         <view class="identify-record-item">
           <image class="identify-record-image" src="{{item.image}}" mode="aspectFill"></image>
           <view class="identify-record-main">
-            <text class="identify-record-name">{{item.petName}}</text>
+            <text class="identify-record-name">{{item.displayName}}</text>
             <text class="identify-record-meta">{{item.result}}</text>
           </view>
           <view class="identify-record-side">
@@ -112,42 +113,68 @@
     </view>
   </view>
 
-  <view wx:if="{{showArchiveForm}}" class="mask" bindtap="closeArchiveForm">
+  <view wx:if="{{showArchiveForm}}" class="mask identify-result-page" bindtap="closeArchiveForm">
     <view class="modal identify-archive-modal" catchtap="noop">
-      <text class="modal-title">补充档案信息</text>
-      <text class="identify-archive-sub">识别结果：{{archiveForm.species}} · {{archiveForm.breed}}</text>
+      <text class="modal-title">识别结果</text>
+      <text class="identify-archive-sub">已识别为：{{archiveForm.species}} · {{archiveForm.breed}}</text>
 
       <image class="identify-archive-preview" src="{{archiveForm.avatar}}" mode="aspectFill"></image>
 
-      <text class="field-label">名字 *</text>
-      <input class="input" placeholder="例如：奶糖" value="{{archiveForm.name}}" data-field="name" bindinput="bindArchiveInput" />
+      <view class="identify-summary-grid">
+        <view class="identify-summary-item">
+          <text class="identify-summary-label">宠物种类</text>
+          <text class="identify-summary-value">{{archiveForm.species}}</text>
+        </view>
+        <view class="identify-summary-item">
+          <text class="identify-summary-label">识别品种</text>
+          <text class="identify-summary-value">{{archiveForm.breed}}</text>
+        </view>
+        <view class="identify-summary-item">
+          <text class="identify-summary-label">可信度</text>
+          <text class="identify-summary-value">{{archiveForm.confidence || 0}}%</text>
+        </view>
+      </view>
 
-      <text class="field-label">宠物种类</text>
-      <picker range="{{speciesOptions}}" value="{{speciesIndex}}" bindchange="changeArchiveSpecies">
-        <view class="picker-box">{{speciesOptions[speciesIndex]}}</view>
-      </picker>
+      <view class="identify-info-section">
+        <text class="identify-info-title">基础信息</text>
+        <view class="identify-info-list">
+          <block wx:for="{{archiveForm.knowledgeRows}}" wx:key="label">
+            <view class="identify-info-row">
+              <text class="identify-info-label">{{item.label}}</text>
+              <text class="identify-info-value">{{item.value}}</text>
+            </view>
+          </block>
+        </view>
+      </view>
 
-      <text class="field-label">识别品种</text>
-      <input class="input" placeholder="可手动修正识别品种" value="{{archiveForm.breed}}" data-field="breed" bindinput="bindArchiveInput" />
+      <view class="identify-info-section">
+        <text class="identify-info-title">饲养建议</text>
+        <block wx:for="{{archiveForm.careSections}}" wx:key="title">
+          <view class="identify-care-block">
+            <text class="identify-care-title">{{item.title}}</text>
+            <block wx:for="{{item.items}}" wx:key="*this" wx:for-item="tip">
+              <text class="identify-bullet">- {{tip}}</text>
+            </block>
+          </view>
+        </block>
+      </view>
 
-      <text class="field-label">性别</text>
-      <picker range="{{genderOptions}}" value="{{genderIndex}}" bindchange="changeArchiveGender">
-        <view class="picker-box">{{genderOptions[genderIndex]}}</view>
-      </picker>
+      <view class="identify-info-section">
+        <text class="identify-info-title">注意事项</text>
+        <view class="identify-note-list">
+          <block wx:for="{{archiveForm.cautions}}" wx:key="*this">
+            <text class="identify-note-item">- {{item}}</text>
+          </block>
+        </view>
+      </view>
 
-      <text class="field-label">出生日期</text>
-      <picker mode="date" value="{{archiveForm.birthday || '2026-05-24'}}" bindchange="changeArchiveBirthday">
-        <view class="picker-box">{{archiveForm.birthday || '请选择出生日期'}}</view>
-      </picker>
-
-      <text class="field-label">体重</text>
-      <input class="input" placeholder="例如：4.2kg（可选）" value="{{archiveForm.weight}}" data-field="weight" bindinput="bindArchiveInput" />
-
-      <text class="field-label">备注</text>
-      <textarea class="textarea identify-archive-notes" placeholder="可填写性格或喂养偏好（可选）" value="{{archiveForm.notes}}" data-field="notes" bindinput="bindArchiveInput"></textarea>
+      <view class="identify-save-guide">
+        <text class="identify-info-title">保存到宠物档案</text>
+        <text class="identify-guide-copy">如果你想将这次识别结果收录到宠物档案，可以继续完善名称、性别、生日、体重等个性化信息。</text>
+      </view>
 
       <view class="identify-archive-actions">
-        <button class="secondary-btn identify-archive-btn" bindtap="closeArchiveForm">取消</button>
+        <button class="secondary-btn identify-archive-btn" bindtap="closeArchiveForm">稍后再说</button>
         <button class="primary-btn identify-archive-btn" bindtap="saveToArchive">保存到档案</button>
       </view>
     </view>

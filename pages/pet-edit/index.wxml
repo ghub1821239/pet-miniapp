@@ -1,0 +1,74 @@
+<view class="simple-page">
+  <view class="page-head">
+    <text class="page-title">{{mode === 'edit' ? '编辑宠物' : '新增宠物'}}</text>
+    <text class="page-sub">{{fromIdentify ? '已带入识别图片、类别和品种，继续完善个性化信息' : '补充基础信息，生日会自动换算年龄'}}</text>
+  </view>
+
+  <view class="form-list">
+    <view class="form-row" bindtap="chooseAvatar">
+      <text class="form-label">宠物头像</text>
+      <image wx:if="{{form.avatarType === 'image'}}" class="avatar-preview" src="{{form.avatarValue}}" mode="aspectFill"></image>
+      <text wx:else class="avatar-emoji">{{form.avatarValue}}</text>
+    </view>
+    <view class="form-row">
+      <text class="form-label">名称</text>
+      <input class="form-input" value="{{form.name}}" data-field="name" placeholder="例如：奶糖" bindinput="bindInput" />
+    </view>
+    <view class="form-row">
+      <text class="form-label">类别</text>
+      <picker range="{{typeOptions}}" value="{{typeIndex}}" bindchange="changeType">
+        <view class="picker-value">{{form.type || '请选择'}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text class="form-label">品种</text>
+      <input class="form-input" value="{{form.breed}}" data-field="breed" placeholder="例如：蓝金渐层长毛猫" bindinput="bindInput" />
+    </view>
+    <view class="form-row">
+      <text class="form-label">性别</text>
+      <picker range="{{genderOptions}}" value="{{genderIndex}}" bindchange="changeGender">
+        <view class="picker-value">{{form.gender || '请选择'}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text class="form-label">生日</text>
+      <picker mode="date" value="{{form.birthday}}" bindchange="changeBirthday">
+        <view class="picker-value">{{form.birthday || '请选择'}}</view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <text class="form-label">年龄</text>
+      <text class="form-value readonly">{{form.age || '填写生日后自动计算'}}</text>
+    </view>
+    <view class="form-row">
+      <text class="form-label">体重</text>
+      <input class="form-input" value="{{form.weight}}" data-field="weight" placeholder="例如：4.2kg" bindinput="bindInput" />
+    </view>
+    <view class="form-row">
+      <text class="form-label">下一次提醒</text>
+      <input class="form-input" value="{{form.nextReminder}}" data-field="nextReminder" placeholder="例如：6月20日 驱虫" bindinput="bindInput" />
+    </view>
+    <view class="form-block">
+      <text class="form-label block">喜好</text>
+      <textarea class="form-textarea" value="{{form.likes}}" data-field="likes" placeholder="喜欢罐头、爱散步" bindinput="bindInput"></textarea>
+    </view>
+    <view class="form-block">
+      <text class="form-label block">性格</text>
+      <textarea class="form-textarea" value="{{form.personality}}" data-field="personality" placeholder="温顺、活泼、黏人" bindinput="bindInput"></textarea>
+    </view>
+    <view class="form-block">
+      <text class="form-label block">备注</text>
+      <textarea class="form-textarea" value="{{form.note}}" data-field="note" placeholder="可选" bindinput="bindInput"></textarea>
+    </view>
+  </view>
+
+  <view class="emoji-row">
+    <block wx:for="{{defaultAvatars}}" wx:key="*this">
+      <text class="emoji-choice {{form.avatarType === 'emoji' && form.avatarValue === item ? 'active' : ''}}" data-value="{{item}}" bindtap="chooseEmoji">{{item}}</text>
+    </block>
+  </view>
+
+  <view class="bottom-actions">
+    <button class="primary-action" bindtap="savePet">保存宠物资料</button>
+  </view>
+</view>

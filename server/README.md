@@ -1,6 +1,6 @@
 # 识别服务
 
-这是给微信小程序 `pages/identify` 用的本地后端，当前使用 DashScope / Qwen-VL。
+这是给微信小程序 `pages/identify` 用的本地后端，支持火山方舟豆包视觉模型和 DashScope / Qwen-VL。
 
 ## 1. 安装依赖
 
@@ -17,16 +17,24 @@ npm install
 copy .env.example .env
 ```
 
-然后填写：
+然后填写对应服务商的 Key。
 
-- `QWEN_API_KEY`
-- `QWEN_MODEL`
-- `QWEN_BASE_URL`
+火山方舟豆包推荐：
 
-默认推荐：
+```env
+MODEL_PROVIDER=ark
+ARK_API_KEY=你的火山方舟APIKey
+ARK_BASE_URL=https://ark.cn-beijing.volces.com/api/v3
+ARK_MODEL=doubao-seed-2-0-pro-260215
+PORT=3007
+CORS_ORIGIN=*
+```
+
+DashScope / Qwen-VL：
 
 ```env
 MODEL_PROVIDER=qwen
+QWEN_API_KEY=你的DashScope APIKey
 QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 QWEN_MODEL=qwen-vl-max-latest
 PORT=3007

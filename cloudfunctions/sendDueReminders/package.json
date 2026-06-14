@@ -1,0 +1,9 @@
+{
+  "name": "sendDueReminders",
+  "version": "1.0.0",
+  "description": "Send due pet reminder subscription messages",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

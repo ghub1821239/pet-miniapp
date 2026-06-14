@@ -1,0 +1,42 @@
+<view class="simple-page">
+  <view class="page-head">
+    <text class="page-title">识别历史</text>
+    <text class="page-sub">查看过往 AI 识别结果和关联宠物</text>
+  </view>
+
+  <view class="filter-tabs">
+    <block wx:for="{{tabs}}" wx:key="key">
+      <text class="filter-tab {{activeTab === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="changeTab">{{item.label}}</text>
+    </block>
+  </view>
+
+  <view wx:if="{{groups.length}}" class="group-list">
+    <block wx:for="{{groups}}" wx:key="date">
+      <view class="date-group">
+        <text class="date-title">{{item.date}}</text>
+        <block wx:for="{{item.records}}" wx:for-item="record" wx:key="id">
+          <view class="record-row">
+            <image class="record-image" src="{{record.image}}" mode="aspectFill"></image>
+            <view class="record-main">
+              <text class="item-title">{{record.result}}</text>
+              <text class="item-meta">识别时间：{{record.time || '未记录'}}</text>
+              <text class="item-meta">关联宠物：{{record.petName || '未关联'}}</text>
+              <text class="item-note">备注：{{record.note}}</text>
+              <view class="row-actions">
+                <text data-id="{{record.id}}" bindtap="viewDetail">查看详情</text>
+                <text wx:if="{{record.petId}}" data-id="{{record.id}}" bindtap="unbindPet">解除关联</text>
+                <text wx:else data-id="{{record.id}}" bindtap="associatePet">关联宠物</text>
+                <text data-id="{{record.id}}" bindtap="createPet">创建宠物档案</text>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </block>
+  </view>
+
+  <view wx:else class="empty-state">
+    <text class="empty-title">还没有识别记录</text>
+    <text class="empty-copy">完成一次 AI 识别后，会在这里查看历史结果</text>
+  </view>
+</view>

@@ -432,6 +432,7 @@ function updatePost(cloudId, patch) {
 
 module.exports = {
   fetchPosts: fetchPosts,
+  attachTempFileUrls: attachTempFileUrls,
   createPost: createPost,
   syncPostPatch: syncPostPatch,
   updatePost: updatePost,

@@ -4,6 +4,7 @@ var IDENTIFY_KEY = 'identifyRecords'
 var LEGACY_IDENTIFY_KEY = 'identifyHistory'
 var PETS_KEY = 'petList'
 var LEGACY_PETS_KEY = 'pets'
+var IDENTIFY_PET_DRAFT_KEY = 'identifyPetDraft'
 var CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
 var DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
 
@@ -77,11 +78,19 @@ function normalizeRecord(item) {
   var petName = item.petName === '小布丁' ? '布丁' : (item.petName || '毛孩子')
   var image = item.image || (petName === '布丁' ? DOG_IMAGE : CAT_IMAGE)
   var result = item.result || item.breed || '待识别'
+  var species = item.species || inferSpeciesFromBreed(result)
+  var displayName = petName
+
+  if (!displayName || displayName === '未知宠物' || displayName === '毛孩子') {
+    displayName = species || result || '宠物'
+  }
 
   return {
     id: item.id || 'record_' + Date.now(),
     petId: item.petId || '',
     petName: petName,
+    displayName: displayName,
+    species: species,
     result: result,
     confidence: Number(item.confidence || 0),
     image: image,
@@ -100,6 +109,16 @@ function formatNow() {
   var mm = date.getMinutes()
 
   return y + '-' + (m < 10 ? '0' + m : m) + '-' + (d < 10 ? '0' + d : d) + ' ' + (h < 10 ? '0' + h : h) + ':' + (mm < 10 ? '0' + mm : mm)
+}
+
+function formatIdentifyError(err) {
+  var message = (err && (err.errMsg || err.message)) ? (err.errMsg || err.message) : String(err || '未知错误')
+
+  if (message.length > 260) {
+    message = message.slice(0, 260) + '...'
+  }
+
+  return message || '识别服务暂时不可用，请稍后重试'
 }
 
 function formatDateOnly(dateTime) {
@@ -182,6 +201,155 @@ function inferSpeciesFromBreed(breed) {
   return '异宠'
 }
 
+var PET_KNOWLEDGE_MAP = {
+  cat: {
+    difficulty: '入门友好',
+    lifespan: '12-18年',
+    size: '小型到中型',
+    activeTime: '清晨与傍晚更活跃',
+    beginner: '适合新手，但需要稳定照护',
+    care: [
+      { title: '环境', items: ['准备安静、安全的休息区和猫砂盆。', '高处空间、抓板和玩具能帮助消耗精力。'] },
+      { title: '喂养', items: ['以猫粮或主食罐为主，注意饮水量。', '零食控制频率，避免体重增长过快。'] },
+      { title: '互动', items: ['每天安排短时间逗猫互动。', '观察食欲、排便和精神状态变化。'] },
+      { title: '日常照护', items: ['定期梳毛、剪指甲，长毛猫更要防毛结。', '按需做疫苗、驱虫和体检。'] }
+    ],
+    cautions: ['突然拒食、频繁呕吐或精神差需要及时观察。', '换粮要循序渐进，避免肠胃不适。', '窗户和阳台要做好防护。']
+  },
+  dog: {
+    difficulty: '需要规律陪伴',
+    lifespan: '10-15年',
+    size: '因品种差异较大',
+    activeTime: '白天与外出时更活跃',
+    beginner: '适合愿意规律遛狗的家庭',
+    care: [
+      { title: '环境', items: ['准备固定睡眠区、牵引用品和饮水区。', '幼犬或活跃犬需要更安全的活动空间。'] },
+      { title: '喂养', items: ['选择适龄犬粮，避免长期喂高盐人食。', '根据体型和运动量调整食量。'] },
+      { title: '互动', items: ['每天保持散步和基础训练。', '用奖励强化召回、等待等基础习惯。'] },
+      { title: '日常照护', items: ['定期驱虫、疫苗和洗护。', '长毛或双层毛犬需要更频繁梳毛。'] }
+    ],
+    cautions: ['外出请牵引，避免误食或走失。', '夏天注意防暑，冬天注意保暖。', '持续腹泻、咳嗽或精神差建议就医。']
+  },
+  reptile: {
+    difficulty: '入门友好',
+    lifespan: '8-20年',
+    size: '小型到中型',
+    activeTime: '多在傍晚或夜间活跃',
+    beginner: '适合愿意学习温湿度管理的新手',
+    care: [
+      { title: '环境', items: ['需要干燥、通风、温度稳定的饲养环境。', '建议准备躲避屋、加热垫和温区。'] },
+      { title: '喂养', items: ['以蟋蟀、面包虫等活体饲料为主。', '定期补充钙粉和维生素。'] },
+      { title: '互动', items: ['互动以短时间、低压力接触为主。', '避免频繁抓握，尤其是刚到新环境时。'] },
+      { title: '日常照护', items: ['定期清理垫材、食盆和水盆。', '观察脱皮、排便和进食情况。'] }
+    ],
+    cautions: ['对温度较敏感，避免低温饲养。', '脱皮期需注意湿度和皮肤状态。', '如出现拒食、精神差等情况，建议及时观察或就医。']
+  },
+  bird: {
+    difficulty: '需要耐心陪伴',
+    lifespan: '5-30年',
+    size: '小型到中型',
+    activeTime: '白天活跃',
+    beginner: '适合能提供陪伴和安静环境的家庭',
+    care: [
+      { title: '环境', items: ['鸟笼需通风、避风，远离厨房油烟。', '提供站杆、玩具和安全放飞空间。'] },
+      { title: '喂养', items: ['主食搭配谷物、颗粒粮和少量蔬果。', '保证清洁饮水，避免高油高盐食物。'] },
+      { title: '互动', items: ['每天温和互动，建立信任。', '避免突然惊吓和过度追逐。'] },
+      { title: '日常照护', items: ['定期清理笼底和食水容器。', '观察羽毛、粪便和呼吸状态。'] }
+    ],
+    cautions: ['对烟雾、香薰和油烟较敏感。', '放飞时关闭门窗并避开危险物。', '炸毛、闭眼、呼吸异常需要重视。']
+  },
+  rodent: {
+    difficulty: '入门友好',
+    lifespan: '2-8年',
+    size: '小型',
+    activeTime: '夜间或傍晚更活跃',
+    beginner: '适合空间有限但能稳定照护的新手',
+    care: [
+      { title: '环境', items: ['准备通风、干燥、可躲藏的饲养箱。', '垫材要定期更换，避免粉尘过大。'] },
+      { title: '喂养', items: ['以专用粮为主，少量搭配安全蔬果。', '注意磨牙需求，提供合适啃咬物。'] },
+      { title: '互动', items: ['先让它熟悉气味，再逐步上手互动。', '互动时间不宜过长，避免应激。'] },
+      { title: '日常照护', items: ['定期清理食盆、水壶和垫材。', '观察牙齿、毛发和体重变化。'] }
+    ],
+    cautions: ['避免高温、潮湿和强烈噪音。', '不同种类不一定适合混养。', '拒食、掉毛严重或行动异常需关注。']
+  },
+  other: {
+    difficulty: '视品类而定',
+    lifespan: '因品类差异较大',
+    size: '需结合具体品种判断',
+    activeTime: '需继续观察生活习性',
+    beginner: '建议先了解具体饲养需求',
+    care: [
+      { title: '环境', items: ['先确认温度、湿度、空间和安全需求。', '新到家时保持安静，减少频繁打扰。'] },
+      { title: '喂养', items: ['根据具体品种选择主食。', '不确定食物安全性时不要随意喂食。'] },
+      { title: '互动', items: ['先观察状态，再逐步建立互动。', '出现应激表现时减少接触。'] },
+      { title: '日常照护', items: ['记录进食、排便、精神状态。', '必要时咨询专业宠物医生。'] }
+    ],
+    cautions: ['不要仅凭一次识别结果决定全部饲养方式。', '如果识别不确定，建议结合更多照片确认。', '异常状态请及时就医或咨询专业人士。']
+  }
+}
+
+var BREED_KNOWLEDGE_MAP = {
+  '豹纹守宫': {
+    difficulty: '入门友好',
+    lifespan: '10-20年',
+    size: '小型爬宠',
+    activeTime: '夜行性，傍晚后更活跃',
+    beginner: '适合认真管理温区的新手'
+  },
+  '萨摩耶': {
+    difficulty: '中等，需要运动和梳毛',
+    lifespan: '12-14年',
+    size: '中大型犬',
+    activeTime: '白天外出时更活跃',
+    beginner: '适合有遛狗和洗护时间的家庭'
+  },
+  '蓝金渐层长毛猫': {
+    difficulty: '入门友好，注意梳毛',
+    lifespan: '12-18年',
+    size: '中型猫',
+    activeTime: '清晨与傍晚更活跃',
+    beginner: '适合新手，但长毛需要护理'
+  }
+}
+
+function getSpeciesKey(species, breed) {
+  var text = normalizeName((species || '') + ' ' + (breed || ''))
+  if (/(猫咪|猫|英短|美短|布偶|渐层|缅因|家猫)/.test(text)) return 'cat'
+  if (/(狗狗|狗|犬|萨摩耶|金毛|柯基|柴犬|边牧|哈士奇)/.test(text)) return 'dog'
+  if (/(爬宠|龟|蛇|蜥蜴|守宫|鬃狮|豹纹守宫)/.test(text)) return 'reptile'
+  if (/(鸟类|鸟|鹦鹉)/.test(text)) return 'bird'
+  if (/(啮齿|兔|仓鼠|龙猫|荷兰猪)/.test(text)) return 'rodent'
+  return 'other'
+}
+
+function buildKnowledge(species, breed) {
+  var key = getSpeciesKey(species, breed)
+  var base = clone(PET_KNOWLEDGE_MAP[key] || PET_KNOWLEDGE_MAP.other)
+  var breedInfo = BREED_KNOWLEDGE_MAP[normalizeName(breed)] || null
+
+  if (breedInfo) {
+    base.difficulty = breedInfo.difficulty || base.difficulty
+    base.lifespan = breedInfo.lifespan || base.lifespan
+    base.size = breedInfo.size || base.size
+    base.activeTime = breedInfo.activeTime || base.activeTime
+    base.beginner = breedInfo.beginner || base.beginner
+  }
+
+  return {
+    rows: [
+      { label: '宠物种类', value: species || '待确认' },
+      { label: '识别品种', value: breed || '待确认品种' },
+      { label: '饲养难度', value: base.difficulty },
+      { label: '寿命参考', value: base.lifespan },
+      { label: '体型参考', value: base.size },
+      { label: '活跃时间', value: base.activeTime },
+      { label: '是否适合新手', value: base.beginner }
+    ],
+    care: base.care,
+    cautions: base.cautions
+  }
+}
+
 Page({
   data: {
     imageUrl: '',
@@ -206,7 +374,12 @@ Page({
       notes: '',
       species: '',
       breed: '',
-      avatar: ''
+      avatar: '',
+      confidence: 0,
+      source: '',
+      knowledgeRows: [],
+      careSections: [],
+      cautions: []
     }
   },
 
@@ -321,6 +494,7 @@ Page({
       id: 'record_' + Date.now(),
       petId: result.petId || '',
       petName: result.petName,
+      species: result.species,
       result: result.breed,
       confidence: result.confidence,
       image: result.image,
@@ -563,7 +737,12 @@ Page({
         notes: '',
         species: species,
         breed: breed,
-        avatar: avatar
+        avatar: avatar,
+        confidence: Number(result.confidence || 0),
+        source: result.source || '',
+        knowledgeRows: buildKnowledge(species, breed).rows,
+        careSections: buildKnowledge(species, breed).care,
+        cautions: buildKnowledge(species, breed).cautions
       }
     })
   },
@@ -617,68 +796,28 @@ Page({
 
   saveToArchive: function () {
     var archiveForm = clone(this.data.archiveForm)
-    var pets = this.getStoredPets()
-    var mergedIndex = this.findMergeTargetIndex(pets, archiveForm.name, archiveForm.breed)
-    var merged = mergedIndex > -1
-    var targetId = ''
-    var pendingRecord = this.findRecordById(this.data.pendingIdentifyResultId)
-    var nowText = formatNow()
-    var i
 
-    archiveForm.name = normalizeName(archiveForm.name)
     archiveForm.species = normalizeName(archiveForm.species) || '宠物'
     archiveForm.breed = normalizeName(archiveForm.breed) || '未填品种'
-    archiveForm.weight = normalizeName(archiveForm.weight)
-    archiveForm.notes = normalizeName(archiveForm.notes)
 
-    if (!archiveForm.name) {
-      wx.showToast({
-        title: '请先填写名字',
-        icon: 'none'
-      })
-      return
-    }
-
-    if (pendingRecord && pendingRecord.petId) {
-      for (i = 0; i < pets.length; i++) {
-        if (String(pets[i].id) === String(pendingRecord.petId)) {
-          mergedIndex = i
-          merged = true
-          break
-        }
-      }
-    }
-
-    if (merged) {
-      pets[mergedIndex] = this.mergePetConservatively(pets[mergedIndex], archiveForm)
-      targetId = pets[mergedIndex].id
-    } else {
-      var newPet = this.buildNewPetFromForm(archiveForm)
-      pets.unshift(newPet)
-      targetId = newPet.id
-    }
-
-    this.savePets(pets)
-    this.updateIdentifyRecord(this.data.pendingIdentifyResultId, {
-      petId: targetId,
-      petName: archiveForm.name,
-      result: archiveForm.breed,
-      updatedAt: nowText,
-      date: formatDateOnly(nowText),
-      action: '已保存到档案'
-    }, true)
+    userStorage.setValue(IDENTIFY_PET_DRAFT_KEY, {
+      recordId: this.data.pendingIdentifyResultId || '',
+      avatar: archiveForm.avatar || this.data.imageUrl || CAT_IMAGE,
+      species: archiveForm.species,
+      breed: archiveForm.breed,
+      confidence: Number(archiveForm.confidence || 0),
+      source: archiveForm.source || '',
+      createdAt: formatNow()
+    })
 
     this.setData({
       showArchiveForm: false,
       pendingIdentifyResultId: ''
     })
 
-    wx.showToast({
-      title: merged ? '已合并到现有档案' : '已加入宠物档案',
-      icon: 'success'
+    wx.navigateTo({
+      url: '/pages/pet-edit/index?mode=create&fromIdentify=1'
     })
-
-    console.log('archive saved pet id:', targetId)
   },
 
   handleRecordActionTap: function (e) {
@@ -778,7 +917,10 @@ Page({
           image: result.image || imageUrl,
           features: Array.isArray(result.features) ? result.features : [],
           advice: result.advice || '暂未生成养护建议',
-          createdAt: result.createdAt || formatNow()
+          createdAt: result.createdAt || formatNow(),
+          source: result.source || 'api',
+          provider: result.provider || '',
+          model: result.model || ''
         }
 
         that.setData({
@@ -795,7 +937,14 @@ Page({
         })
       }).catch(function (err) {
         console.error('identify remote error:', err)
-        that.fallbackRecognize(item, imageUrl, true)
+        that.setData({
+          loading: false
+        })
+        wx.showModal({
+          title: '识别失败',
+          content: formatIdentifyError(err),
+          showCancel: false
+        })
       })
       return
     }
@@ -809,6 +958,9 @@ Page({
     setTimeout(function () {
       item.image = imageUrl || item.image
       item.createdAt = formatNow()
+      item.source = apiFailed ? 'demo' : 'local'
+      item.provider = ''
+      item.model = ''
       that.setData({
         loading: false,
         hasRecognizedResult: true,

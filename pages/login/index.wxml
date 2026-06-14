@@ -11,7 +11,7 @@
 
     <view class="login-icon-slot">
       <view class="login-icon-inner">
-        <text class="login-icon-placeholder">图标位</text>
+        <image class="login-default-avatar" src="/assets/mock/pets/pet-maohaizi.jpg.jpg" mode="aspectFill"></image>
       </view>
     </view>
 

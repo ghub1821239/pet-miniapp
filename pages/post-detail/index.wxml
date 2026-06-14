@@ -44,13 +44,6 @@
       <text wx:if="{{post.location}}">{{post.location}}</text>
     </view>
 
-    <view wx:if="{{isOwnPost}}" class="detail-promotion-card" bindtap="openPromotionSheet">
-      <view class="detail-promotion-copy">
-        <text class="detail-promotion-title">{{promotionStatus.active ? '推广中' : '推广核销'}}</text>
-        <text class="detail-promotion-sub">{{promotionStatus.active ? promotionStatus.text + ' · 可继续加热' : (selectedPromotionPackageId ? '套餐已选 · ' + (promotionCode ? '密钥已填写' : '待填写密钥') : '输入优惠码/密钥后立即开启推流')}}</text>
-      </view>
-      <view class="detail-promotion-btn">{{promotionStatus.active ? '继续加热' : '去推流'}}</view>
-    </view>
   </view>
 
   <view class="detail-comments">
@@ -91,24 +84,30 @@
         bindconfirm="submitComment"
       />
     </view>
-    <view class="action-item {{post.liked ? 'active' : ''}}" bindtap="toggleLike">
-      <text class="action-icon">{{post.liked ? '♥' : '♡'}}</text>
+    <view class="action-item action-like {{post.liked ? 'active' : ''}}" hover-class="action-tap" hover-stay-time="90" bindtap="toggleLike">
+      <view class="action-icon">
+        <image class="action-like-image" src="{{post.liked ? '/assets/icons/like-paw.svg' : '/assets/icons/like-paw-muted.svg'}}" mode="aspectFit"></image>
+      </view>
       <text class="action-count">{{post.likeCount}}</text>
     </view>
-    <view class="action-item {{post.favorited ? 'active' : ''}}" bindtap="toggleFavorite">
-      <text class="action-icon">{{post.favorited ? '★' : '☆'}}</text>
+    <view class="action-item action-bookmark {{post.favorited ? 'active' : ''}}" hover-class="action-tap" hover-stay-time="90" bindtap="toggleFavorite">
+      <view class="action-icon">
+        <image class="action-favorite-image" src="{{post.favorited ? '/assets/icons/favorite-star.svg' : '/assets/icons/favorite-star-muted.svg'}}" mode="aspectFit"></image>
+      </view>
       <text class="action-count">{{post.favoriteCount}}</text>
     </view>
-    <view class="action-item" bindtap="submitComment">
-      <text class="action-icon">◌</text>
-      <text class="action-count">{{post.commentCount}}</text>
+    <view class="action-item action-coin {{promotionStatus.active ? 'active' : ''}}" hover-class="action-tap" hover-stay-time="90" bindtap="openPromotionSheet">
+      <view class="action-icon">
+        <image class="action-rocket-image" src="{{promotionStatus.active ? '/assets/icons/rocket-boost.svg' : '/assets/icons/rocket-boost-muted.svg'}}" mode="aspectFit"></image>
+      </view>
+      <text class="action-count">{{promotionCoinCount}}</text>
     </view>
   </view>
 
   <view wx:if="{{promotionSheetVisible}}" class="mask detail-promotion-mask" bindtap="closePromotionSheet">
     <view class="modal detail-promotion-sheet" catchtap="noop">
-      <text class="modal-title">推广核销</text>
-      <text class="detail-promotion-sheet-sub">当前为演示模式：选择套餐并输入后端维护的优惠码/密钥，核销成功后立即开启推流。</text>
+      <text class="modal-title">{{promotionStatus.active ? '帖子正在推流' : '投币推流'}}</text>
+      <text class="detail-promotion-sheet-sub">{{promotionStatus.active ? promotionStatus.text + '，可以继续加热提升曝光。' : '选择推流套餐并输入优惠码/密钥，核销成功后立即开启推流。'}}</text>
 
       <block wx:for="{{promotionPackages}}" wx:key="id">
         <view class="detail-package {{selectedPromotionPackageId === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectPromotionPackage">

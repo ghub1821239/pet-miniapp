@@ -1,12 +1,12 @@
 var CAT_IMAGE = '/assets/mock/pets/pet-maohaizi.jpg.jpg'
 var DOG_IMAGE = '/assets/mock/pets/pet-buding.jpg.jpg'
-var IMG_MEADOW = DOG_IMAGE
-var IMG_HYDRANGEA = CAT_IMAGE
-var IMG_WINDOW = DOG_IMAGE
-var IMG_SUNSET = DOG_IMAGE
-var IMG_FLOWERS = DOG_IMAGE
-var IMG_SPRING = CAT_IMAGE
-var IMG_CORGI = DOG_IMAGE
+var IMG_FLOWERS = 'cloud://cloud1-d1gr7sg6s8ba1f7b5.636c-cloud1-d1gr7sg6s8ba1f7b5-1434048451/posts/post-buding-flowers.jpg'
+var IMG_MEADOW = 'cloud://cloud1-d1gr7sg6s8ba1f7b5.636c-cloud1-d1gr7sg6s8ba1f7b5-1434048451/posts/post-buding-meadow.jpg'
+var IMG_WINDOW = 'cloud://cloud1-d1gr7sg6s8ba1f7b5.636c-cloud1-d1gr7sg6s8ba1f7b5-1434048451/posts/post-buding-window.jpg'
+var IMG_CORGI = 'cloud://cloud1-d1gr7sg6s8ba1f7b5.636c-cloud1-d1gr7sg6s8ba1f7b5-1434048451/posts/post-corgi-beach.jpg'
+var IMG_HYDRANGEA = 'cloud://cloud1-d1gr7sg6s8ba1f7b5.636c-cloud1-d1gr7sg6s8ba1f7b5-1434048451/posts/post-maohaizi-hydrangea.jpg'
+var IMG_SPRING = 'cloud://cloud1-d1gr7sg6s8ba1f7b5.636c-cloud1-d1gr7sg6s8ba1f7b5-1434048451/posts/post-spring-companion.jpg'
+var IMG_SUNSET = 'cloud://cloud1-d1gr7sg6s8ba1f7b5.636c-cloud1-d1gr7sg6s8ba1f7b5-1434048451/posts/post-two-pets-sunset.jpg'
 
 var mockPosts = [
   {
@@ -19,8 +19,8 @@ var mockPosts = [
     category: '就医问诊',
     city: '天津',
     tags: ['猫咪', '呕吐', '不吃饭', '医院'],
-    images: [CAT_IMAGE],
-    coverImage: CAT_IMAGE,
+    images: [IMG_FLOWERS],
+    coverImage: IMG_FLOWERS,
     createdAt: '2026-05-22 10:20:00',
     likeCount: 28,
     commentCount: 12,
@@ -173,8 +173,8 @@ var mockPosts = [
     category: '好物分享',
     city: '天津',
     tags: ['梳毛', '测评', '推荐', '掉毛'],
-    images: [CAT_IMAGE],
-    coverImage: CAT_IMAGE,
+    images: [IMG_FLOWERS],
+    coverImage: IMG_FLOWERS,
     createdAt: '2026-05-20 14:40:00',
     likeCount: 61,
     commentCount: 19,
@@ -195,8 +195,8 @@ var mockPosts = [
     category: '养宠经验',
     city: '天津',
     tags: ['绝育', '医生', '护理', '经验'],
-    images: [DOG_IMAGE],
-    coverImage: DOG_IMAGE,
+    images: [IMG_MEADOW],
+    coverImage: IMG_MEADOW,
     createdAt: '2026-05-19 13:00:00',
     likeCount: 42,
     commentCount: 17,
@@ -283,8 +283,8 @@ var mockPosts = [
     category: '就医问诊',
     city: '北京',
     tags: ['疫苗', '发烧', '医生', '精神不好'],
-    images: [CAT_IMAGE],
-    coverImage: CAT_IMAGE,
+    images: [IMG_SPRING],
+    coverImage: IMG_SPRING,
     createdAt: '2026-05-21 22:05:00',
     likeCount: 22,
     commentCount: 20,
@@ -327,8 +327,8 @@ var mockPosts = [
     category: '领养救助',
     city: '北京',
     tags: ['送养', '无偿', '救助', '小奶狗'],
-    images: [DOG_IMAGE],
-    coverImage: DOG_IMAGE,
+    images: [IMG_MEADOW],
+    coverImage: IMG_MEADOW,
     createdAt: '2026-05-19 11:10:00',
     likeCount: 63,
     commentCount: 27,
@@ -393,8 +393,8 @@ var mockPosts = [
     category: '晒宠日常',
     city: '天津',
     tags: ['撒娇', '睡觉', '日常', '表情包'],
-    images: [CAT_IMAGE],
-    coverImage: CAT_IMAGE,
+    images: [IMG_CORGI],
+    coverImage: IMG_CORGI,
     createdAt: '2026-05-22 00:20:00',
     likeCount: 79,
     commentCount: 20,
@@ -481,8 +481,8 @@ var mockPosts = [
     category: '就医问诊',
     city: '天津',
     tags: ['流泪', '医院', '医生', '猫咪'],
-    images: [CAT_IMAGE],
-    coverImage: CAT_IMAGE,
+    images: [IMG_FLOWERS],
+    coverImage: IMG_FLOWERS,
     createdAt: '2026-05-20 22:10:00',
     likeCount: 26,
     commentCount: 18,
@@ -525,8 +525,8 @@ var mockPosts = [
     category: '好物分享',
     city: '天津',
     tags: ['狗粮', '换粮', '测评', '推荐'],
-    images: [DOG_IMAGE],
-    coverImage: DOG_IMAGE,
+    images: [IMG_MEADOW],
+    coverImage: IMG_MEADOW,
     createdAt: '2026-05-21 12:15:00',
     likeCount: 55,
     commentCount: 20,

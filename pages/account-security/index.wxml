@@ -1,0 +1,29 @@
+<view class="simple-page">
+  <view class="page-head">
+    <text class="page-title">账号安全</text>
+    <text class="page-sub">当前阶段支持修改登录密码</text>
+  </view>
+
+  <view class="section-title">修改密码</view>
+  <view class="form-list">
+    <view class="form-row">
+      <text class="form-label">当前密码</text>
+      <input class="form-input" password="{{!showPassword}}" value="{{form.currentPassword}}" data-field="currentPassword" placeholder="请输入当前密码" bindinput="bindInput" />
+    </view>
+    <view class="form-row">
+      <text class="form-label">新密码</text>
+      <input class="form-input" password="{{!showPassword}}" value="{{form.nextPassword}}" data-field="nextPassword" placeholder="至少 6 位" bindinput="bindInput" />
+    </view>
+    <view class="form-row">
+      <text class="form-label">确认新密码</text>
+      <input class="form-input" password="{{!showPassword}}" value="{{form.confirmPassword}}" data-field="confirmPassword" placeholder="再次输入新密码" bindinput="bindInput" />
+    </view>
+  </view>
+
+  <view class="hint-row">
+    <text>密码要求：至少 6 位，建议包含字母和数字</text>
+    <text class="toggle-text" bindtap="togglePassword">{{showPassword ? '隐藏密码' : '显示密码'}}</text>
+  </view>
+
+  <button class="primary-action" loading="{{saving}}" disabled="{{saving}}" bindtap="submitPasswordChange">确认修改</button>
+</view>

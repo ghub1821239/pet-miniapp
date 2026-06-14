@@ -1,0 +1,50 @@
+<view class="simple-page">
+  <view class="page-head">
+    <text class="page-title">编辑个人资料</text>
+    <text class="page-sub">这些信息会展示在档案页顶部</text>
+  </view>
+
+  <view class="form-list">
+    <view class="form-row" bindtap="chooseAvatar">
+      <text class="form-label">头像</text>
+      <image class="avatar-preview" src="{{form.avatar}}" mode="aspectFill"></image>
+    </view>
+    <view class="form-row cover-row" bindtap="chooseCover">
+      <text class="form-label">主页背景图</text>
+      <image class="cover-preview" src="{{form.cover}}" mode="aspectFill"></image>
+    </view>
+    <view class="form-row">
+      <text class="form-label">昵称</text>
+      <input class="form-input" value="{{form.nickname}}" data-field="nickname" placeholder="请输入昵称" bindinput="bindInput" />
+    </view>
+    <view class="form-row">
+      <text class="form-label">账号 ID</text>
+      <text class="form-value readonly">{{form.profileId}}</text>
+    </view>
+    <view class="form-row">
+      <text class="form-label">IP 地区</text>
+      <input class="form-input" value="{{form.location}}" data-field="location" placeholder="例如：天津" bindinput="bindInput" />
+    </view>
+    <view class="form-block">
+      <text class="form-label block">个人简介</text>
+      <textarea class="form-textarea" maxlength="40" value="{{form.bio}}" data-field="bio" placeholder="40 字以内，写一句介绍" bindinput="bindInput"></textarea>
+      <text class="count-text">{{form.bio.length || 0}}/40</text>
+    </view>
+    <view class="form-block">
+      <text class="form-label block">个人标签</text>
+      <view class="tag-row">
+        <block wx:for="{{tags}}" wx:key="*this">
+          <view class="tag-chip" data-index="{{index}}" bindtap="removeTag">{{item}} ×</view>
+        </block>
+      </view>
+      <view class="tag-input-row">
+        <input class="tag-input" value="{{tagInput}}" placeholder="输入标签后添加" bindinput="bindTagInput" confirm-type="done" bindconfirm="addTag" />
+        <button class="mini-btn" bindtap="addTag">添加</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom-actions">
+    <button class="primary-action" loading="{{saving}}" disabled="{{saving}}" bindtap="saveProfile">保存修改</button>
+  </view>
+</view>

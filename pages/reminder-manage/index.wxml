@@ -1,0 +1,44 @@
+<view class="simple-page">
+  <view class="page-head">
+    <view>
+      <text class="page-title">提醒管理</text>
+      <text class="page-sub">管理生日、疫苗、驱虫、复诊等照护提醒</text>
+    </view>
+    <button class="text-action" bindtap="addReminder">+ 新建提醒</button>
+  </view>
+
+  <view class="filter-tabs">
+    <block wx:for="{{tabs}}" wx:key="key">
+      <text class="filter-tab {{activeTab === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="changeTab">{{item.label}}</text>
+    </block>
+  </view>
+
+  <view wx:if="{{dueStationCount}}" class="station-alert">
+    <text>有 {{dueStationCount}} 条站内提醒已到时间，请及时处理。</text>
+  </view>
+
+  <view wx:if="{{filteredList.length}}" class="line-list">
+    <block wx:for="{{filteredList}}" wx:key="id">
+      <view class="reminder-row">
+        <view class="reminder-main">
+          <text class="item-title">{{item.title}}</text>
+          <text class="item-meta">宠物：{{item.petName || '关联宠物已删除'}} · {{item.reminderTypeText || item.type}}</text>
+          <text class="item-meta">提醒时间：{{item.displayTime}} · {{item.advanceText}}</text>
+          <text class="item-meta">提醒渠道：{{item.channelText}} · 状态：{{item.statusText}}</text>
+          <text wx:if="{{item.failReason}}" class="item-fail">失败原因：{{item.failReason}}</text>
+          <text class="item-note">备注：{{item.note || '暂无'}}</text>
+          <view class="row-actions">
+            <text wx:if="{{item.status === 'pending'}}" data-id="{{item.id}}" bindtap="markDone">完成</text>
+            <text wx:if="{{item.status === 'need_resubscribe'}}" data-id="{{item.id}}" bindtap="renewSubscribe">重新开启微信通知</text>
+            <text data-id="{{item.id}}" bindtap="editReminder">编辑</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view wx:else class="empty-state">
+    <text class="empty-title">暂无提醒</text>
+    <text class="empty-copy">为毛孩子添加下一次照护安排吧</text>
+  </view>
+</view>

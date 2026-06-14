@@ -82,11 +82,6 @@ async function createOrder(event) {
   if (!user) {
     return fail('NOT_LOGGED_IN', '请先登录后再购买推流')
   }
-  if (!isPostOwner(post, user)) {
-    return fail('NOT_OWNER', '只能给自己的帖子购买推流')
-  }
-
-  await patchPostOwnerIfMissing(post, user)
 
   const outTradeNo = buildOrderNo(userId)
   const orderPayload = {

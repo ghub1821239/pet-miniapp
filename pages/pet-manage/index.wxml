@@ -1,0 +1,35 @@
+<view class="simple-page">
+  <view class="page-head">
+    <view>
+      <text class="page-title">宠物档案管理</text>
+      <text class="page-sub">统一管理毛孩子资料、生日、体重和照护提醒</text>
+    </view>
+    <button class="text-action" bindtap="addPet">+ 添加宠物</button>
+  </view>
+
+  <view wx:if="{{petList.length}}" class="line-list">
+    <block wx:for="{{petList}}" wx:key="id">
+      <view class="pet-row">
+        <image wx:if="{{item.avatarType === 'image'}}" class="pet-avatar" src="{{item.avatarValue}}" mode="aspectFill"></image>
+        <view wx:else class="pet-avatar fallback" style="background: {{item.color}};">{{item.avatarValue || item.initial}}</view>
+        <view class="pet-main">
+          <text class="pet-name">{{item.name}}</text>
+          <text class="pet-meta">{{item.breed}} · {{item.gender}} · {{item.ageText}}</text>
+          <text class="pet-info">生日：{{item.birthday || '未填写'}}    体重：{{item.weight}}</text>
+          <text class="pet-reminder">下次提醒：{{item.nextReminder}}</text>
+          <view class="row-actions">
+            <text data-id="{{item.id}}" bindtap="viewPet">查看</text>
+            <text data-id="{{item.id}}" bindtap="editPet">编辑</text>
+            <text class="danger" data-id="{{item.id}}" bindtap="deletePet">删除</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view wx:else class="empty-state">
+    <text class="empty-title">还没有毛孩子档案</text>
+    <text class="empty-copy">创建第一只宠物，记录它的生日、体重和提醒</text>
+    <button class="primary-action small" bindtap="addPet">创建第一只宠物</button>
+  </view>
+</view>

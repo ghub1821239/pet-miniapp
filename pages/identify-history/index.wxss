@@ -1,0 +1,106 @@
+.simple-page {
+  min-height: 100vh;
+  padding: 34rpx 28rpx;
+  box-sizing: border-box;
+  background: #FFFDF6;
+  color: #5B4A3A;
+}
+
+.page-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 800;
+}
+
+.page-sub {
+  display: block;
+  margin-top: 10rpx;
+  color: #9A8B7A;
+  font-size: 24rpx;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 34rpx;
+  margin-top: 34rpx;
+  padding-bottom: 18rpx;
+  border-bottom: 1px solid rgba(156, 175, 136, 0.18);
+}
+
+.filter-tab {
+  color: #9A8B7A;
+  font-weight: 800;
+}
+
+.filter-tab.active {
+  color: #7F956D;
+}
+
+.date-title {
+  display: block;
+  margin: 30rpx 0 8rpx;
+  color: #7F6F5E;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.record-row {
+  display: flex;
+  gap: 18rpx;
+  padding: 22rpx 0;
+  border-bottom: 1px solid rgba(156, 175, 136, 0.18);
+}
+
+.record-image {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 20rpx;
+  background: #EEF5EA;
+  flex-shrink: 0;
+}
+
+.record-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-title {
+  display: block;
+  font-size: 29rpx;
+  font-weight: 800;
+}
+
+.item-meta,
+.item-note {
+  display: block;
+  margin-top: 7rpx;
+  color: #9A8B7A;
+  font-size: 23rpx;
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+  margin-top: 14rpx;
+  color: #7F956D;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.empty-state {
+  padding-top: 130rpx;
+  text-align: center;
+}
+
+.empty-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.empty-copy {
+  display: block;
+  margin-top: 14rpx;
+  color: #9A8B7A;
+}

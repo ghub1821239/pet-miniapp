@@ -6,6 +6,7 @@ var cloudPosts = require('../../utils/cloudPosts')
 var postStorage = require('../../utils/post-storage')
 var userStorage = require('../../utils/user-storage')
 var userPostState = require('../../utils/user-post-state')
+var mockComments = require('../../utils/mock-comments')
 
 var VIEWED_POSTS_KEY = 'communityViewedPosts'
 var CURRENT_CITY = '天津'
@@ -79,7 +80,8 @@ function isCloudFileId(value) {
 }
 
 function getRenderableImages(post) {
-  var source = Array.isArray(post.images) ? post.images : []
+  var tempImages = Array.isArray(post._tempImageUrls) ? post._tempImageUrls.filter(Boolean) : []
+  var source = tempImages.length ? tempImages : (Array.isArray(post.images) ? post.images : [])
   var result = []
   var i
 
@@ -97,6 +99,7 @@ function normalizeLegacyPost(post, index) {
   var imageFileIds = Array.isArray(post.imageFileIds) ? post.imageFileIds : []
   var images = getRenderableImages(post)
   var cover = post.coverImage || post.cover || images[0] || '/assets/mock/pets/pet-buding.jpg.jpg'
+  var comments = mockComments.ensurePostComments(post, 10)
 
   if (isCloudFileId(cover)) {
     cover = images[0] || '/assets/mock/pets/pet-buding.jpg.jpg'
@@ -118,7 +121,8 @@ function normalizeLegacyPost(post, index) {
     coverImage: cover,
     createdAt: post.createdAt || '2026-05-22 10:00:00',
     likeCount: Number(post.likeCount || post.likes || 0),
-    commentCount: Number(post.commentCount || 0),
+    commentCount: comments.length,
+    comments: comments,
     collectCount: Number(post.collectCount || 0),
     viewCount: Number(post.viewCount || 100),
     isSolved: post.isSolved === undefined ? true : !!post.isSolved,
@@ -216,7 +220,7 @@ function mergeInteractionFromLocal(incomingPosts, localPosts) {
       result.push(incoming)
       continue
     }
-    result.push(Object.assign({}, incoming, {
+    var merged = Object.assign({}, incoming, {
       liked: local.liked !== undefined ? !!local.liked : !!incoming.liked,
       isLiked: local.isLiked !== undefined ? !!local.isLiked : !!incoming.isLiked,
       likeCount: Number(local.likeCount !== undefined ? local.likeCount : incoming.likeCount || incoming.likes || 0),
@@ -229,7 +233,8 @@ function mergeInteractionFromLocal(incomingPosts, localPosts) {
       commentCount: Number(local.commentCount !== undefined ? local.commentCount : incoming.commentCount || 0),
       isFollowing: local.isFollowing !== undefined ? !!local.isFollowing : !!incoming.isFollowing,
       comments: Array.isArray(local.comments) && local.comments.length ? local.comments.slice() : (Array.isArray(incoming.comments) ? incoming.comments.slice() : [])
-    }))
+    })
+    result.push(mockComments.applyCommentsToPost(merged, 10))
   }
 
   return result
@@ -496,12 +501,30 @@ Page({
         }
 
         console.log('云数据库 posts 暂无数据，使用本地 mock 数据')
-        self.runAlgorithmData(mergeStoragePosts(), 'mock')
+        self.runFallbackAlgorithmData(ticket)
       })
       .catch(function (err) {
         console.warn('云数据库 posts 读取失败，使用本地 mock 数据:', err)
         if (self._loadTicket === ticket) {
-          self.runAlgorithmData(mergeStoragePosts(), 'mock')
+          self.runFallbackAlgorithmData(ticket)
+        }
+      })
+  },
+
+  runFallbackAlgorithmData: function (ticket) {
+    var self = this
+    var fallbackPosts = mergeStoragePosts()
+
+    cloudPosts.attachTempFileUrls(fallbackPosts)
+      .then(function (posts) {
+        if (self._loadTicket === ticket) {
+          self.runAlgorithmData(posts, 'mock')
+        }
+      })
+      .catch(function (err) {
+        console.warn('本地 mock 图片临时链接获取失败，使用默认图片:', err)
+        if (self._loadTicket === ticket) {
+          self.runAlgorithmData(fallbackPosts, 'mock')
         }
       })
   },
