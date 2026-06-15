@@ -543,6 +543,11 @@
 .detail-code-input {
   margin-top: 14rpx;
   background: #FFFFFF;
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0 24rpx;
+  font-size: 26rpx;
+  box-sizing: border-box;
 }
 
 .detail-promotion-actions {
