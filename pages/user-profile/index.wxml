@@ -1,0 +1,51 @@
+<view class="page-container user-profile-page">
+  <view class="user-topbar">
+    <view class="user-back" bindtap="goBack">‹</view>
+    <text class="user-topbar-title">个人主页</text>
+    <view class="user-topbar-placeholder"></view>
+  </view>
+
+  <view class="card user-profile-hero">
+    <image class="user-profile-avatar" src="{{profile.avatar}}" mode="aspectFill"></image>
+    <text class="user-profile-name">{{profile.nickname}}</text>
+    <text class="user-profile-meta">{{profile.account || '站内用户'}}</text>
+    <text class="user-profile-bio">{{profile.bio}}</text>
+
+    <view class="user-profile-stats">
+      <view class="user-profile-stat">
+        <text class="user-profile-stat-value">{{following}}</text>
+        <text class="user-profile-stat-label">Following</text>
+      </view>
+      <view class="user-profile-stat">
+        <text class="user-profile-stat-value">{{followers}}</text>
+        <text class="user-profile-stat-label">Followers</text>
+      </view>
+    </view>
+
+    <button class="primary-btn user-follow-btn" bindtap="toggleFollow">
+      {{isFollowing ? '取消关注' : '关注 TA'}}
+    </button>
+  </view>
+
+  <view class="card user-post-card">
+    <text class="section-title">TA 的帖子</text>
+
+    <view wx:if="{{posts.length}}" class="user-post-list">
+      <block wx:for="{{posts}}" wx:key="id">
+        <view class="user-post-item" data-id="{{item.id}}" bindtap="handlePostTap">
+          <image class="user-post-cover" src="{{item.coverImage}}" mode="aspectFill"></image>
+          <view class="user-post-main">
+            <text class="user-post-title">{{item.title}}</text>
+            <text class="user-post-summary">{{item.summary}}</text>
+            <text class="user-post-meta">{{item.category}} · {{item.createdDate}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view wx:else class="empty">
+      <text class="empty-title">TA 还没有公开帖子</text>
+      <text class="empty-copy">等 TA 分享新的萌宠日常吧</text>
+    </view>
+  </view>
+</view>

@@ -1,4 +1,5 @@
 var userStorage = require('./user-storage')
+var socialState = require('./social-state')
 
 var LIKED_POST_IDS_KEY = 'likedPostIds'
 var FAVORITED_POST_IDS_KEY = 'favoritedPostIds'
@@ -40,7 +41,7 @@ function toggleId(key, postId, active) {
 }
 
 function applyStateToPost(post) {
-  var next = Object.assign({}, post)
+  var next = socialState.applyFollowingStateToPost(post)
   var id = next && next.id ? next.id : ''
 
   if (!id) {

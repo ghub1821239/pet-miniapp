@@ -53,11 +53,11 @@
     </view>
 
     <view class="profile-stats-row">
-      <view class="profile-stat-item">
+      <view class="profile-stat-item" data-type="following" bindtap="openSocialPanel">
         <text class="profile-stat-value">{{profile.following}}</text>
         <text class="profile-stat-label">Following</text>
       </view>
-      <view class="profile-stat-item">
+      <view class="profile-stat-item" data-type="followers" bindtap="openSocialPanel">
         <text class="profile-stat-value">{{profile.followers}}</text>
         <text class="profile-stat-label">Followers</text>
       </view>

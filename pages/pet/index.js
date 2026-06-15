@@ -1,6 +1,7 @@
 var auth = require('../../utils/auth')
 var mockData = require('../../data/mockPosts.js')
 var postStorage = require('../../utils/post-storage')
+var socialState = require('../../utils/social-state')
 var userStorage = require('../../utils/user-storage')
 var userPostState = require('../../utils/user-post-state')
 
@@ -281,6 +282,46 @@ function normalizePost(post) {
   }
 }
 
+function buildInteractedPosts(likedPosts, favoritePosts) {
+  var map = {}
+  var result = []
+  var i
+  var item
+  var key
+
+  for (i = 0; i < favoritePosts.length; i++) {
+    item = favoritePosts[i]
+    key = String(item.id)
+    map[key] = Object.assign({}, item, {
+      interactionText: '已收藏'
+    })
+  }
+
+  for (i = 0; i < likedPosts.length; i++) {
+    item = likedPosts[i]
+    key = String(item.id)
+    if (map[key]) {
+      map[key].interactionText = '已点赞 · 已收藏'
+    } else {
+      map[key] = Object.assign({}, item, {
+        interactionText: '已点赞'
+      })
+    }
+  }
+
+  for (key in map) {
+    if (Object.prototype.hasOwnProperty.call(map, key)) {
+      result.push(map[key])
+    }
+  }
+
+  result.sort(function (a, b) {
+    return String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
+  })
+
+  return result
+}
+
 function normalizeReminder(item) {
   return {
     id: item.id || 'reminder_' + Date.now(),
@@ -430,6 +471,17 @@ Page({
       profile.profileId = currentUser.account
     }
 
+    socialState.saveProfileSnapshot({
+      id: currentUser.id || '',
+      account: currentUser.account || '',
+      nickname: profile.nickname,
+      avatar: profile.avatar,
+      cover: profile.cover,
+      bio: profile.bio,
+      location: profile.location,
+      tags: profile.tags
+    })
+
     userStorage.setValue(PROFILE_KEY, profile)
 
     this.setData({
@@ -496,7 +548,7 @@ Page({
   },
 
   loadProfilePosts: function () {
-    var combined = uniquePosts(postStorage.getPostList()).map(normalizePost)
+    var combined = userPostState.applyStateToPosts(uniquePosts(postStorage.getPostList()).map(normalizePost))
     var likedIds = userPostState.getLikedPostIds()
     var favoritedIds = userPostState.getFavoritedPostIds()
     var likedMap = {}
@@ -504,6 +556,11 @@ Page({
     var ownPosts = []
     var favoritePosts = []
     var likedPosts = []
+    var interactionPosts
+    var socialCounts
+    var likesAndSavesCount
+    var nextProfile
+    var currentSocialId = socialState.getCurrentProfileId()
     var i
     var post
 
@@ -527,19 +584,38 @@ Page({
       }
     }
 
+    interactionPosts = buildInteractedPosts(likedPosts, favoritePosts)
+    socialCounts = socialState.getSocialCounts(currentSocialId)
+    likesAndSavesCount = 0
+
+    for (i = 0; i < ownPosts.length; i++) {
+      likesAndSavesCount += Number(ownPosts[i].likeCount || 0)
+      likesAndSavesCount += Number(ownPosts[i].favoriteCount || ownPosts[i].collectCount || 0)
+    }
+
     var tabs = [
       { key: 'posts', label: '历史帖子', count: ownPosts.length },
       { key: 'favorites', label: '收藏', count: favoritePosts.length },
       { key: 'likes', label: '点赞', count: likedPosts.length }
     ]
 
+    nextProfile = Object.assign({}, this.data.profile, {
+      following: socialCounts.following,
+      followers: socialCounts.followers,
+      likesAndSaves: likesAndSavesCount
+    })
+
+    userStorage.setValue(PROFILE_KEY, nextProfile)
+
     this.setData({
+      profile: nextProfile,
       allPostList: combined,
       profilePostGroups: {
         posts: ownPosts,
         favorites: favoritePosts,
         likes: likedPosts
       },
+      interactionPosts: interactionPosts,
       tabs: tabs,
       currentTabPosts: this.getPostsByTab(this.data.activeTab, {
         posts: ownPosts,
@@ -640,6 +716,13 @@ Page({
 
     wx.navigateTo({
       url: '/pages/post-detail/index?id=' + encodeURIComponent(id)
+    })
+  },
+
+  openSocialPanel: function (e) {
+    var type = e.currentTarget.dataset.type
+    wx.navigateTo({
+      url: '/pages/social-list/index?type=' + encodeURIComponent(type || 'following')
     })
   },
 

@@ -29,7 +29,6 @@
       <view class="filter-refresh" bindtap="handleRelocate">重新定位</view>
       <view wx:if="{{locationDenied}}" class="filter-permission" bindtap="handleOpenSetting">开启定位</view>
     </view>
-    <text class="toolbar-tip">提示：未配置地图 KEY 时将自动展示可联调的示例医院数据</text>
   </view>
 
   <view class="map-card card">

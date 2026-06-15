@@ -133,6 +133,7 @@
 
 .profile-stat-item {
   flex: 1;
+  padding: 10rpx 0;
 }
 
 .profile-stat-value {

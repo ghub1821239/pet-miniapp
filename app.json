@@ -17,6 +17,8 @@
     "pages/reminder-edit/index",
     "pages/identify-history/index",
     "pages/identify-detail/index",
+    "pages/social-list/index",
+    "pages/user-profile/index",
     "pages/logout-confirm/index",
     "pages/publish/index"
   ],

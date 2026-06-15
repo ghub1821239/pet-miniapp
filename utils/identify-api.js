@@ -9,6 +9,8 @@ var CLOUD_FUNCTION_NAME = 'recognizePet'
 var RECOGNIZE_ENDPOINT = '/pet-recognize'
 var HEALTH_ENDPOINT = '/health'
 var BASE_URL_STORAGE_KEY = 'identifyApiBaseUrl'
+var MAX_FUNCTION_FILE_SIZE = 350 * 1024
+var PREFERRED_UPLOAD_FILE_SIZE = 450 * 1024
 var activeBaseUrl = ''
 var cloudContainerReady = false
 var cloudFunctionReady = false
@@ -123,6 +125,69 @@ function readFileAsBase64(filePath) {
       },
       fail: reject
     })
+  })
+}
+
+function getFileSize(filePath) {
+  return new Promise(function (resolve, reject) {
+    if (typeof wx === 'undefined' || !wx || !wx.getFileSystemManager) {
+      reject(new Error('当前环境不支持读取文件信息'))
+      return
+    }
+
+    wx.getFileSystemManager().getFileInfo({
+      filePath: filePath,
+      success: function (res) {
+        resolve(Number(res.size || 0))
+      },
+      fail: reject
+    })
+  })
+}
+
+function compressImage(filePath, quality) {
+  return new Promise(function (resolve, reject) {
+    if (typeof wx === 'undefined' || !wx || typeof wx.compressImage !== 'function') {
+      resolve(filePath)
+      return
+    }
+
+    wx.compressImage({
+      src: filePath,
+      quality: quality,
+      success: function (res) {
+        resolve(res && res.tempFilePath ? res.tempFilePath : filePath)
+      },
+      fail: function () {
+        resolve(filePath)
+      }
+    })
+  })
+}
+
+function optimizeImageForRecognize(filePath) {
+  return getFileSize(filePath).then(function (size) {
+    if (size <= PREFERRED_UPLOAD_FILE_SIZE) {
+      return filePath
+    }
+
+    return compressImage(filePath, 60).then(function (compressedPath) {
+      if (!compressedPath || compressedPath === filePath) {
+        return filePath
+      }
+
+      return getFileSize(compressedPath).then(function (compressedSize) {
+        if (compressedSize <= PREFERRED_UPLOAD_FILE_SIZE) {
+          return compressedPath
+        }
+
+        return compressImage(compressedPath, 35)
+      }).catch(function () {
+        return compressedPath
+      })
+    })
+  }).catch(function () {
+    return filePath
   })
 }
 
@@ -285,46 +350,23 @@ function checkIdentifyApi() {
 }
 
 function recognizePetByApi(filePath) {
-  return new Promise(function (resolve, reject) {
+  return optimizeImageForRecognize(filePath).then(function (optimizedFilePath) {
+    return new Promise(function (resolve, reject) {
     var targets = getRuntimeBaseUrls()
     var errors = []
+    var uploadTargets = activeBaseUrl ? [activeBaseUrl] : targets.slice()
 
-    if (cloudFunctionReady || canCallFunction()) {
-      recognizePetByFunction(filePath).then(resolve).catch(function (functionErr) {
-        errors.push('云函数调用失败：' + getErrorMessage(functionErr))
-        recognizeByContainerOrHttp()
-      })
+    if (uploadTargets.length) {
+      tryUpload(0, uploadTargets, optimizedFilePath)
       return
     }
 
-    recognizeByContainerOrHttp()
+    recognizeByFallbacks(optimizedFilePath)
 
-    function recognizeByContainerOrHttp() {
-      if (cloudContainerReady || canCallContainer()) {
-        recognizePetByContainer(filePath).then(resolve).catch(function (containerErr) {
-          errors.push('云托管调用失败：' + getErrorMessage(containerErr))
-          uploadByHttp()
-        })
-        return
-      }
-
-      uploadByHttp()
-    }
-
-    function uploadByHttp() {
-      if (!targets.length) {
-        reject(new Error(errors.concat(['未配置识别接口地址']).join('；')))
-        return
-      }
-
-      var uploadTargets = activeBaseUrl ? [activeBaseUrl] : targets.slice()
-      tryUpload(0, uploadTargets)
-    }
-
-    function tryUpload(index, uploadTargets) {
+    function tryUpload(index, uploadTargets, currentFilePath) {
       wx.uploadFile({
         url: uploadTargets[index] + RECOGNIZE_ENDPOINT,
-        filePath: filePath,
+        filePath: currentFilePath,
         name: 'file',
         timeout: 60000,
         formData: {
@@ -340,7 +382,7 @@ function recognizePetByApi(filePath) {
           } catch (err) {
             errors.push(uploadTargets[index] + '：' + getErrorMessage(err))
             if (index < uploadTargets.length - 1) {
-              tryUpload(index + 1, uploadTargets)
+              tryUpload(index + 1, uploadTargets, currentFilePath)
               return
             }
             reject(new Error(errors.join('；')))
@@ -349,18 +391,43 @@ function recognizePetByApi(filePath) {
         fail: function (err) {
           errors.push(uploadTargets[index] + '：' + getErrorMessage(err))
           if (index < uploadTargets.length - 1) {
-            tryUpload(index + 1, uploadTargets)
+            tryUpload(index + 1, uploadTargets, currentFilePath)
             return
           }
           reject(new Error(errors.join('；')))
         }
       })
     }
+
+    function recognizeByFallbacks(currentFilePath) {
+      recognizePetByFunction(currentFilePath).then(resolve).catch(function (functionErr) {
+        errors.push('云函数调用失败：' + getErrorMessage(functionErr))
+        recognizeByContainer(currentFilePath)
+      })
+    }
+
+    function recognizeByContainer(currentFilePath) {
+      if (cloudContainerReady || canCallContainer()) {
+        recognizePetByContainer(currentFilePath).then(resolve).catch(function (containerErr) {
+          errors.push('云托管调用失败：' + getErrorMessage(containerErr))
+          reject(new Error(errors.concat(['未配置可用的直传识别接口地址']).join('；')))
+        })
+        return
+      }
+
+      reject(new Error(errors.concat(['未配置可用的直传识别接口地址']).join('；')))
+    }
+  })
   })
 }
 
 function recognizePetByFunction(filePath) {
-  return readFileAsBase64(filePath).then(function (imageBase64) {
+  return getFileSize(filePath).then(function (size) {
+    if (size > MAX_FUNCTION_FILE_SIZE) {
+      throw new Error('图片过大，已跳过云函数直传，请改用文件上传接口')
+    }
+    return readFileAsBase64(filePath)
+  }).then(function (imageBase64) {
     return callIdentifyFunction({
       imageBase64: imageBase64,
       mimeType: guessMimeType(filePath),
@@ -378,7 +445,12 @@ function recognizePetByFunction(filePath) {
 }
 
 function recognizePetByContainer(filePath) {
-  return readFileAsBase64(filePath).then(function (imageBase64) {
+  return getFileSize(filePath).then(function (size) {
+    if (size > MAX_FUNCTION_FILE_SIZE) {
+      throw new Error('图片过大，已跳过云托管 JSON 直传，请改用文件上传接口')
+    }
+    return readFileAsBase64(filePath)
+  }).then(function (imageBase64) {
     return callIdentifyContainer(RECOGNIZE_ENDPOINT, 'POST', {
       imageBase64: imageBase64,
       mimeType: guessMimeType(filePath),

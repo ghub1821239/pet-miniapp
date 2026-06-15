@@ -1,0 +1,47 @@
+<view class="page-container social-list-page">
+  <view class="social-topbar">
+    <view class="social-back" bindtap="goBack">‹</view>
+    <text class="social-title">{{title}}</text>
+    <view class="social-topbar-placeholder"></view>
+  </view>
+
+  <view wx:if="{{mode === 'users'}}" class="card social-card">
+    <view wx:if="{{users.length}}" class="social-user-list">
+      <block wx:for="{{users}}" wx:key="id">
+        <view class="social-user-item" data-id="{{item.id}}" bindtap="handleUserTap">
+          <image class="social-user-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+          <view class="social-user-main">
+            <text class="social-user-name">{{item.nickname}}</text>
+            <text class="social-user-meta">{{item.account || '站内用户'}}</text>
+            <text wx:if="{{item.tagText}}" class="social-user-tags">{{item.tagText}}</text>
+            <text wx:else class="social-user-tags">{{item.bio}}</text>
+          </view>
+          <text class="social-user-arrow">›</text>
+        </view>
+      </block>
+    </view>
+    <view wx:else class="empty">
+      <text class="empty-title">还没有相关用户</text>
+      <text class="empty-copy">去社区多互动一下吧</text>
+    </view>
+  </view>
+
+  <view wx:if="{{mode === 'posts'}}" class="card social-card">
+    <view wx:if="{{posts.length}}" class="social-post-list">
+      <block wx:for="{{posts}}" wx:key="id">
+        <view class="social-post-item" data-id="{{item.id}}" bindtap="handlePostTap">
+          <image class="social-post-cover" src="{{item.coverImage}}" mode="aspectFill"></image>
+          <view class="social-post-main">
+            <text class="social-post-title">{{item.title}}</text>
+            <text class="social-post-summary">{{item.summary}}</text>
+            <text class="social-post-meta">{{item.interactionText}} · {{item.createdDate}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+    <view wx:else class="empty">
+      <text class="empty-title">还没有互动记录</text>
+      <text class="empty-copy">点赞或收藏后，会在这里快速找到它们</text>
+    </view>
+  </view>
+</view>
