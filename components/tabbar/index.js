@@ -1,3 +1,5 @@
+var auth = require('../../utils/auth')
+
 function svgToDataUri(svg) {
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg)
 }
@@ -95,6 +97,13 @@ Component({
     goPage: function (e) {
       var key = e.currentTarget.dataset.key
       var url = e.currentTarget.dataset.url
+
+      if (!auth.ensureValidAuth()) {
+        wx.reLaunch({
+          url: '/pages/login/index'
+        })
+        return
+      }
 
       if (key === this.data.current) {
         return

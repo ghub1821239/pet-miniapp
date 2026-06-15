@@ -388,19 +388,12 @@ function isOwnPost(post) {
   var currentUser = auth.getCurrentUser() || {}
   var author = post && post.author ? post.author : {}
   var postUserId = post.userId || author.userId || ''
-  var currentNickname = normalizeName(currentUser.nickname)
-  var currentAccount = normalizeName(currentUser.account)
-  var postAuthorName = normalizeName(getAuthorName(post))
-  if (currentUser.id && postUserId && String(currentUser.id) === String(postUserId)) {
-    return true
+
+  if (!currentUser.id || !postUserId) {
+    return false
   }
-  if (currentNickname && postAuthorName && currentNickname === postAuthorName) {
-    return true
-  }
-  if (currentAccount && postAuthorName && currentAccount === postAuthorName) {
-    return true
-  }
-  return post.author === '我' || post.userName === '我'
+
+  return String(currentUser.id) === String(postUserId)
 }
 
 Page({

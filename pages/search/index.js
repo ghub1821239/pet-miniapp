@@ -453,7 +453,6 @@ Page({
 
     if (!Array.isArray(sourceList) || !sourceList.length) {
       sourceList = clone(mockData.mockPosts || DEFAULT_POSTS)
-      postStorage.setPostList(clone(sourceList))
     }
 
     cloudPosts.attachTempFileUrls(sourceList)

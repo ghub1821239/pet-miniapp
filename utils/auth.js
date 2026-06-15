@@ -75,6 +75,11 @@ function logout() {
   wx.setStorageSync(AUTO_LOGIN_DISABLED_KEY, true)
 }
 
+function clearLocalAuth() {
+  wx.removeStorageSync(AUTH_SESSION_KEY)
+  wx.removeStorageSync(CURRENT_USER_KEY)
+}
+
 function getCurrentUser() {
   return wx.getStorageSync(CURRENT_USER_KEY) || null
 }
@@ -85,7 +90,17 @@ function getSession() {
 
 function isLoggedIn() {
   var session = getSession()
-  return !!session.userId
+  var user = getCurrentUser()
+  return !!(session.userId && user && user.id && String(session.userId) === String(user.id))
+}
+
+function ensureValidAuth() {
+  if (isLoggedIn()) {
+    return true
+  }
+
+  clearLocalAuth()
+  return false
 }
 
 function isAutoLoginDisabled() {
@@ -107,9 +122,11 @@ module.exports = {
   changePassword: changePassword,
   updateProfile: updateProfile,
   logout: logout,
+  clearLocalAuth: clearLocalAuth,
   getCurrentUser: getCurrentUser,
   getSession: getSession,
   isLoggedIn: isLoggedIn,
+  ensureValidAuth: ensureValidAuth,
   isAutoLoginDisabled: isAutoLoginDisabled,
   clearAutoLoginDisabled: clearAutoLoginDisabled
 }

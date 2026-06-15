@@ -11,7 +11,7 @@
 
     <view class="login-icon-slot">
       <view class="login-icon-inner">
-        <image class="login-default-avatar" src="/assets/mock/pets/pet-maohaizi.jpg.jpg" mode="aspectFill"></image>
+        <image class="login-default-avatar" src="/assets/icons/login-pet-journal.svg" mode="aspectFit"></image>
       </view>
     </view>
 

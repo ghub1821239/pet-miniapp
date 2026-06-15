@@ -47,9 +47,7 @@ Page({
   },
 
   onLoad: function () {
-    var user = auth.getCurrentUser()
-
-    if (user && user.id) {
+    if (auth.ensureValidAuth()) {
       this.enterApp()
     }
   },

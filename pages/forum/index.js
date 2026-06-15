@@ -287,7 +287,6 @@ function mergeStoragePosts() {
     }
   }
 
-  postStorage.setPostList(result)
   return result
 }
 

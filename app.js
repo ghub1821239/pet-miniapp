@@ -1,4 +1,7 @@
-// app.js
+var auth = require('./utils/auth')
+
+var LOGIN_PAGE = 'pages/login/index'
+
 App({
   onLaunch: function () {
     if (wx.cloud) {
@@ -11,5 +14,21 @@ App({
     }
 
     console.log('萌宠日记启动成功')
+  },
+
+  onShow: function () {
+    var pages = getCurrentPages()
+    var currentPage = pages && pages.length ? pages[pages.length - 1] : null
+    var route = currentPage && currentPage.route ? currentPage.route : ''
+
+    if (route === LOGIN_PAGE) {
+      return
+    }
+
+    if (!auth.ensureValidAuth()) {
+      wx.reLaunch({
+        url: '/' + LOGIN_PAGE
+      })
+    }
   }
 })
