@@ -1,0 +1,30 @@
+const assert = require('node:assert/strict')
+const { mockPosts } = require('../data/mockPosts')
+const { clusterPosts } = require('../utils/topicCluster')
+const { buildUserProfile, recommendPosts, mockUserBehavior } = require('../utils/recommend')
+const { buildFilterIndex, filterPosts } = require('../utils/filterIndex')
+
+const clustered = clusterPosts(mockPosts, { k: 7, iterations: 10 })
+const profile = buildUserProfile(clustered.posts, mockUserBehavior)
+const ranked = recommendPosts(clustered.posts, profile)
+const filtered = filterPosts(ranked, { city: '天津', petType: '猫' }, buildFilterIndex(ranked))
+
+assert.equal(clustered.posts.length, mockPosts.length)
+assert.deepEqual(new Set(ranked.map(p => p.id)), new Set(mockPosts.map(p => p.id)))
+assert.ok(ranked.every(p => Number.isFinite(p.recommendScore)))
+assert.ok(ranked.every((p, i) => i === 0 || ranked[i - 1].recommendScore >= p.recommendScore))
+assert.deepEqual(
+  filtered.map(p => p.id),
+  ranked.filter(p => p.city === '天津' && p.petType === '猫').map(p => p.id)
+)
+assert.deepEqual(clusterPosts([], { k: 7 }).posts, [])
+assert.deepEqual(filterPosts(ranked, { city: '不存在的城市' }, buildFilterIndex(ranked)), [])
+
+console.log(`示例帖子：${mockPosts.length} 条`)
+console.log('聚类主题：')
+console.table(clustered.topics)
+console.log('推荐前五条：')
+console.table(ranked.slice(0, 5).map(p => ({ id: p.id, title: p.title, score: p.recommendScore, reason: p.recommendReason })))
+console.log(`天津的猫咪帖子：${filtered.length} 条`)
+console.log(filtered.map(p => p.id).join(', '))
+console.log('检查通过：帖子完整性、分数排序、多条件筛选、空输入和无匹配条件。')

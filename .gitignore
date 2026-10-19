@@ -13,3 +13,7 @@ $RECYCLE.BIN/
 # Node.js
 node_modules/
 .env
+
+# Local development state
+project.private.config.json
+*.log
